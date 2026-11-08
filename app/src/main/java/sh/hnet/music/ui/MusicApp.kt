@@ -1,9 +1,10 @@
-@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalSharedTransitionApi::class)
 
 package sh.hnet.music.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -57,6 +58,24 @@ import androidx.navigation3.ui.NavDisplay
 import sh.hnet.music.MusicApplication
 import sh.hnet.music.R
 import sh.hnet.music.ui.components.formatCount
+import sh.hnet.music.ui.player.MiniPlayer
+import sh.hnet.music.ui.player.NowPlayingScreen
+import sh.hnet.music.ui.player.PlayerViewModel
+import sh.hnet.music.ui.player.TrackDetailsScreen
+import sh.hnet.music.data.LibraryTrack
+import androidx.activity.compose.PredictiveBackHandler
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.core.SeekableTransitionState
+import androidx.compose.animation.core.rememberTransition
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.input.pointer.pointerInput
+import kotlinx.coroutines.launch
+import kotlin.coroutines.cancellation.CancellationException
 import sh.hnet.music.ui.library.AlbumScreen
 import sh.hnet.music.ui.library.ArtistScreen
 import sh.hnet.music.ui.library.ArtistTracksScreen
@@ -75,10 +94,14 @@ import sh.hnet.music.ui.settings.SettingsRootScreen
 
 /** The app's shell: one back stack per navigation bar destination, the bottom block, snackbars. */
 @Composable
-fun MusicApp() {
+fun MusicApp(openNowPlaying: Int = 0) {
     val app = LocalContext.current.applicationContext as MusicApplication
     val library: LibraryViewModel = viewModel { LibraryViewModel(app) }
     val browse: BrowseViewModel = viewModel { BrowseViewModel(app) }
+    val playerModel: PlayerViewModel = viewModel { PlayerViewModel(app) }
+    val playerState by playerModel.state.collectAsStateWithLifecycle()
+    val currentTrack by playerModel.current.collectAsStateWithLifecycle()
+    val currentDetails by playerModel.details.collectAsStateWithLifecycle()
     val summary by library.summary.collectAsStateWithLifecycle()
 
     var tab by rememberSaveable { mutableStateOf(Tab.LIBRARY) }
@@ -89,6 +112,42 @@ fun MusicApp() {
 
     // A destination's root goes back to Library, Library's root leaves the app (§3.1)
     BackHandler(enabled = tab != Tab.LIBRARY && stack.size == 1) { tab = Tab.LIBRARY }
+
+    // Now playing: an overlay opened from the mini player; its transition can be driven by
+    // predictive back and by a downward drag, so it is seekable
+    val scope = rememberCoroutineScope()
+    val nowPlaying = remember { SeekableTransitionState(false) }
+    val nowPlayingTransition = rememberTransition(nowPlaying, label = "nowPlaying")
+    var detailsOpen by rememberSaveable { mutableStateOf(false) }
+    val hasQueue = playerState.queueSize > 0
+    fun openNowPlaying() = scope.launch { nowPlaying.animateTo(true) }
+    fun closeNowPlaying() = scope.launch { detailsOpen = false; nowPlaying.animateTo(false) }
+    LaunchedEffect(openNowPlaying) { if (openNowPlaying > 0 && hasQueue) nowPlaying.animateTo(true) }
+    LaunchedEffect(hasQueue) { if (!hasQueue) nowPlaying.snapTo(false) }
+    val dragHeight = with(LocalDensity.current) { 600.dp.toPx() }
+    var dragged by remember { mutableFloatStateOf(0f) }
+    // Swipe down on the top bar or the cover closes now playing, following the finger
+    val dragToClose = Modifier.pointerInput(Unit) {
+        detectVerticalDragGestures(
+            onDragStart = { dragged = 0f },
+            onDragEnd = { scope.launch { if (dragged / dragHeight > 0.25f) nowPlaying.animateTo(false) else nowPlaying.animateTo(true) } },
+            onDragCancel = { scope.launch { nowPlaying.animateTo(true) } },
+        ) { change, amount ->
+            change.consume()
+            dragged = (dragged + amount).coerceAtLeast(0f)
+            scope.launch { nowPlaying.seekTo((dragged / dragHeight).coerceIn(0f, 1f), targetState = false) }
+        }
+    }
+    val goToArtist: (String) -> Unit = { name ->
+        closeNowPlaying()
+        tab = Tab.LIBRARY
+        stacks.getValue(Tab.LIBRARY).add(Screen.Artist(name))
+    }
+    val goToAlbum: (LibraryTrack) -> Unit = { track ->
+        closeNowPlaying()
+        tab = Tab.LIBRARY
+        stacks.getValue(Tab.LIBRARY).add(Screen.Album(Albums.keyOf(track)))
+    }
 
     val snackbars = remember { SnackbarHostState() }
     val alreadyAdded = stringResource(R.string.msg_folder_already_added)
@@ -106,6 +165,8 @@ fun MusicApp() {
     val fastEffects: FiniteAnimationSpec<Float> = motion.fastEffectsSpec()
     val shift = with(LocalDensity.current) { 30.dp.roundToPx() }
 
+    SharedTransitionLayout {
+    Box(Modifier.fillMaxSize()) {
     Scaffold(
         contentWindowInsets = WindowInsets(0),
         snackbarHost = {
@@ -115,7 +176,18 @@ fun MusicApp() {
         },
         bottomBar = {
             Column {
-                // The mini player joins here in S4
+                if (hasQueue) {
+                    nowPlayingTransition.AnimatedVisibility(visible = { open -> !open }, enter = fadeIn(), exit = fadeOut()) {
+                        MiniPlayer(
+                            track = currentTrack,
+                            state = playerState,
+                            onPlayPause = playerModel.player::togglePlayPause,
+                            onNext = playerModel.player::next,
+                            onOpen = { openNowPlaying() },
+                            modifier = Modifier.sharedBounds(rememberSharedContentState("player"), this),
+                        )
+                    }
+                }
                 ShortNavigationBar {
                     Tab.entries.forEach { item ->
                         val selected = item == tab
@@ -233,5 +305,43 @@ fun MusicApp() {
                 },
             )
         }
+    }
+    // Now playing over everything, without navigation bar and mini player (SPEC §3.3)
+    nowPlayingTransition.AnimatedVisibility(visible = { open -> open }, enter = fadeIn(), exit = fadeOut()) {
+        // Registered here, after the destinations, so they win over the pages' own Back while open
+        BackHandler(enabled = detailsOpen) { detailsOpen = false }
+        PredictiveBackHandler(enabled = nowPlaying.targetState && !detailsOpen) { events ->
+            try {
+                events.collect { nowPlaying.seekTo(it.progress, targetState = false) }
+            } catch (cancelled: CancellationException) {
+                // The gesture was cancelled: back to fully open
+                scope.launch { nowPlaying.animateTo(true) }
+                throw cancelled
+            }
+            // Closing disables this handler, which cancels its coroutine: run outside it
+            scope.launch { nowPlaying.animateTo(false) }
+        }
+        Box(Modifier.fillMaxSize().sharedBounds(rememberSharedContentState("player"), this)) {
+            NowPlayingScreen(
+                track = currentTrack,
+                details = currentDetails,
+                state = playerState,
+                player = playerModel.player,
+                dragArea = dragToClose,
+                onClose = { closeNowPlaying() },
+                onGoToArtist = goToArtist,
+                onGoToAlbum = goToAlbum,
+                onDetails = { detailsOpen = true },
+            )
+            androidx.compose.animation.AnimatedVisibility(
+                visible = detailsOpen,
+                enter = slideInHorizontally(spatial) { shift } + fadeIn(effects),
+                exit = slideOutHorizontally(spatial) { shift } + fadeOut(fastEffects),
+            ) {
+                TrackDetailsScreen(playerModel, onBack = { detailsOpen = false })
+            }
+        }
+    }
+    }
     }
 }

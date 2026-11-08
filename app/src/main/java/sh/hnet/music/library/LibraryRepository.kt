@@ -37,6 +37,11 @@ class LibraryRepository(dao: TrackDao, scope: CoroutineScope) {
         .flowOn(Dispatchers.Default)
         .stateIn(scope, SharingStarted.Eagerly, emptyMap())
 
+    val tracksByUri: StateFlow<Map<String, LibraryTrack>> = tracks
+        .map { list -> list.orEmpty().associateBy { it.documentUri } }
+        .flowOn(Dispatchers.Default)
+        .stateIn(scope, SharingStarted.Eagerly, emptyMap())
+
     val albumsByKey: StateFlow<Map<String, Album>> = albums
         .map { list -> list.orEmpty().associateBy { it.key } }
         .flowOn(Dispatchers.Default)

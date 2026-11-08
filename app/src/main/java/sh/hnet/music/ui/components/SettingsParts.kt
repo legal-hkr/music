@@ -59,6 +59,8 @@ fun SettingsPage(
     title: String,
     onBack: (() -> Unit)?,
     subtitle: String? = null,
+    /** False when the page is drawn inside something that already took the status bar's inset. */
+    topInsets: Boolean = true,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val scrollBehavior = if (onBack == null) TopAppBarDefaults.exitUntilCollapsedScrollBehavior() else TopAppBarDefaults.pinnedScrollBehavior()
@@ -79,6 +81,7 @@ fun SettingsPage(
                     }
                 },
                 navigationIcon = { TooltipIconButton(R.drawable.ic_arrow_back, stringResource(R.string.content_description_back), onBack) },
+                windowInsets = if (topInsets) TopAppBarDefaults.windowInsets else androidx.compose.foundation.layout.WindowInsets(0),
                 scrollBehavior = scrollBehavior,
             )
         }

@@ -14,11 +14,25 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import sh.hnet.music.data.LibraryTrack
 
+/** What the UI shows of the player; [currentId] null when the queue is empty. */
+data class PlayerState(
+    val currentId: String? = null,
+    val isPlaying: Boolean = false,
+    val durationMs: Long = 0,
+    val shuffle: Boolean = false,
+    val repeatMode: Int = Player.REPEAT_MODE_OFF,
+    val hasNext: Boolean = false,
+    val queueSize: Int = 0,
+)
+
 /** The UI's side of playback: a controller of [PlaybackService], connected once for the process. */
 class PlayerConnection(private val context: Context) {
     private var controller: MediaController? = null
     private var connecting = false
     private val pending = mutableListOf<(MediaController) -> Unit>()
+
+    private val _state = MutableStateFlow(PlayerState())
+    val state: StateFlow<PlayerState> = _state.asStateFlow()
 
     private val _currentId = MutableStateFlow<String?>(null)
     /** Document URI of the current track (playing or paused). */
@@ -32,8 +46,18 @@ class PlayerConnection(private val context: Context) {
     }
 
     private fun sync(player: Player) {
-        _currentId.value = player.currentMediaItem?.mediaId
+        val id = player.currentMediaItem?.mediaId
+        _currentId.value = id
         _isPlaying.value = player.isPlaying
+        _state.value = PlayerState(
+            currentId = id,
+            isPlaying = player.isPlaying,
+            durationMs = player.duration.coerceAtLeast(0),
+            shuffle = player.shuffleModeEnabled,
+            repeatMode = player.repeatMode,
+            hasNext = player.hasNextMediaItem(),
+            queueSize = player.mediaItemCount,
+        )
     }
 
     /** Runs [action] on the controller, connecting first when needed. Main thread only. */
@@ -57,6 +81,9 @@ class PlayerConnection(private val context: Context) {
 
     /** Connects early, so lists can mark the current track as soon as they show. */
     fun connect() = withController {}
+
+    /** The current position; read on demand (the seek bar polls it while visible). */
+    fun positionMs(): Long = controller?.currentPosition?.coerceAtLeast(0) ?: 0
 
     /**
      * Replaces the queue with [tracks] and plays from [start]. [shuffle] null keeps the current
@@ -89,6 +116,26 @@ class PlayerConnection(private val context: Context) {
         if (wasEmpty) c.prepare()
     }
 
+    fun togglePlayPause() = withController { c ->
+        if (c.isPlaying) c.pause() else {
+            if (c.playbackState == Player.STATE_IDLE) c.prepare()
+            if (c.playbackState == Player.STATE_ENDED) c.seekToDefaultPosition()
+            c.play()
+        }
+    }
+
+    fun next() = withController { it.seekToNext() }
+
+    /** Within the first 3 s the previous track, after that the start of this one (Media3's default). */
+    fun previous() = withController { it.seekToPrevious() }
+
+    fun seekTo(positionMs: Long) = withController { it.seekTo(positionMs) }
+
+    fun setShuffle(enabled: Boolean) = withController { it.shuffleModeEnabled = enabled }
+
+    /** Off, all, one, off… */
+    fun cycleRepeat() = withController { it.repeatMode = nextRepeatMode(it.repeatMode) }
+
     private fun item(track: LibraryTrack): MediaItem = MediaItem.Builder()
         .setMediaId(track.documentUri)
         .setUri(track.documentUri.toUri())
@@ -103,4 +150,12 @@ class PlayerConnection(private val context: Context) {
                 .build(),
         )
         .build()
+
+    companion object {
+        fun nextRepeatMode(mode: Int) = when (mode) {
+            Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
+            Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
+            else -> Player.REPEAT_MODE_OFF
+        }
+    }
 }
