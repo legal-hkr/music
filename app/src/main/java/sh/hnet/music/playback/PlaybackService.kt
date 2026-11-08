@@ -8,6 +8,15 @@ import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import sh.hnet.music.MusicApplication
 import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
@@ -24,6 +33,10 @@ import sh.hnet.music.R
 @androidx.annotation.OptIn(UnstableApi::class)
 class PlaybackService : MediaSessionService() {
     private var session: MediaSession? = null
+    private val scope = MainScope()
+    private val store by lazy { QueueStore(this) }
+    private var saveJob: Job? = null
+    private var restored = false
 
     private val shuffleCommand = SessionCommand(ACTION_SHUFFLE, Bundle.EMPTY)
     private val repeatCommand = SessionCommand(ACTION_REPEAT, Bundle.EMPTY)
@@ -55,7 +68,87 @@ class PlaybackService : MediaSessionService() {
         player.addListener(object : Player.Listener {
             override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) = refreshButtons()
             override fun onRepeatModeChanged(repeatMode: Int) = refreshButtons()
+            override fun onEvents(player: Player, events: Player.Events) {
+                if (events.containsAny(
+                        Player.EVENT_TIMELINE_CHANGED,
+                        Player.EVENT_MEDIA_ITEM_TRANSITION,
+                        Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED,
+                        Player.EVENT_REPEAT_MODE_CHANGED,
+                        Player.EVENT_IS_PLAYING_CHANGED,
+                        Player.EVENT_POSITION_DISCONTINUITY,
+                    )
+                ) scheduleSave()
+            }
         })
+        scope.launch { restore(player) }
+        // While playing, the position is saved now and then, so a killed process loses little
+        scope.launch {
+            while (true) {
+                delay(SAVE_EVERY_MS)
+                if (player.isPlaying) scheduleSave()
+            }
+        }
+    }
+
+    /** The queue as it stands; null when empty. Main thread (reads the player). */
+    private fun snapshot(player: Player): SavedQueue? {
+        if (player.mediaItemCount == 0) return null
+        val timeline = player.currentTimeline
+        val order = if (player.shuffleModeEnabled && !timeline.isEmpty) {
+            buildList {
+                var i = timeline.getFirstWindowIndex(true)
+                while (i != C.INDEX_UNSET && size < timeline.windowCount) {
+                    add(i)
+                    i = timeline.getNextWindowIndex(i, Player.REPEAT_MODE_OFF, true)
+                }
+            }
+        } else emptyList()
+        return SavedQueue(
+            uris = (0 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId },
+            current = player.currentMediaItemIndex,
+            positionMs = player.currentPosition.coerceAtLeast(0),
+            shuffle = player.shuffleModeEnabled,
+            repeatMode = player.repeatMode,
+            shuffleOrder = order,
+        )
+    }
+
+    private fun scheduleSave() {
+        // Nothing is saved before the saved queue was looked at, or an empty start would erase it
+        if (!restored) return
+        saveJob?.cancel()
+        saveJob = scope.launch {
+            delay(500)
+            val queue = session?.player?.let(::snapshot)
+            withContext(Dispatchers.IO) { store.save(queue) }
+        }
+    }
+
+    /** Puts back the saved queue, paused where it was, unless something was queued meanwhile. */
+    private suspend fun restore(player: ExoPlayer) {
+        try {
+            val saved = withContext(Dispatchers.IO) { store.load() } ?: return
+            if (player.mediaItemCount > 0) return
+            val dao = (application as MusicApplication).database.trackDao()
+            val known = withContext(Dispatchers.IO) {
+                saved.uris.distinct().chunked(500).flatMap { dao.libraryTracks(it) }.associateBy { it.documentUri }
+            }
+            if (player.mediaItemCount > 0) return
+            // Tracks that left the library are dropped; the current one may be among them
+            val kept = saved.uris.withIndex().filter { known.containsKey(it.value) }
+            if (kept.isEmpty()) return
+            val currentKept = kept.indexOfFirst { it.index == saved.current }
+            val start = if (currentKept >= 0) currentKept else kept.indexOfFirst { it.index > saved.current }.coerceAtLeast(0)
+            player.setMediaItems(kept.map { known.getValue(it.value).toMediaItem() }, start, if (currentKept >= 0) saved.positionMs else 0)
+            if (saved.shuffle && kept.size == saved.uris.size && saved.shuffleOrder.size == kept.size) {
+                player.shuffleOrder = DefaultShuffleOrder(saved.shuffleOrder.toIntArray(), System.nanoTime())
+            }
+            player.shuffleModeEnabled = saved.shuffle
+            player.repeatMode = saved.repeatMode
+            player.prepare()
+        } finally {
+            restored = true
+        }
     }
 
     private fun refreshButtons() {
@@ -117,6 +210,9 @@ class PlaybackService : MediaSessionService() {
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = session
 
     override fun onDestroy() {
+        // Last chance: written at once, the scope is about to go
+        if (restored) session?.player?.let { store.save(snapshot(it)) }
+        scope.cancel()
         session?.run {
             player.release()
             release()
@@ -126,6 +222,7 @@ class PlaybackService : MediaSessionService() {
     }
 
     private companion object {
+        const val SAVE_EVERY_MS = 10_000L
         const val ACTION_SHUFFLE = "sh.hnet.music.SHUFFLE"
         const val ACTION_REPEAT = "sh.hnet.music.REPEAT"
     }

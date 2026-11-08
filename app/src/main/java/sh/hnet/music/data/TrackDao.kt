@@ -67,6 +67,13 @@ interface TrackDao {
     )
     fun observeLibrary(): Flow<List<LibraryTrack>>
 
+    @Query(
+        "SELECT documentUri, folderUri, relativePath, title, artists, album, albumArtists, trackNumber, " +
+            "discNumber, year, durationMs, compilation, titleSort, artistSort, albumSort, albumArtistSort, " +
+            "lastModified, size, hasEmbeddedCover FROM track WHERE documentUri IN (:uris)",
+    )
+    suspend fun libraryTracks(uris: List<String>): List<LibraryTrack>
+
     @Query("SELECT * FROM track WHERE documentUri = :documentUri")
     fun observeTrack(documentUri: String): Flow<Track?>
 

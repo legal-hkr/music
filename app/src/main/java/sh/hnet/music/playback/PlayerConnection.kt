@@ -3,9 +3,7 @@ package sh.hnet.music.playback
 import android.content.ComponentName
 import android.content.Context
 import androidx.core.content.ContextCompat
-import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
@@ -212,20 +210,7 @@ class PlayerConnection(private val context: Context) {
         if (current > 0) c.removeMediaItems(0, current)
     }
 
-    private fun item(track: LibraryTrack): MediaItem = MediaItem.Builder()
-        .setMediaId(track.documentUri)
-        .setUri(track.documentUri.toUri())
-        .setMediaMetadata(
-            MediaMetadata.Builder()
-                .setTitle(track.displayTitle)
-                .setArtist(track.artists.joinToString(", ").ifEmpty { null })
-                .setAlbumTitle(track.album)
-                .setAlbumArtist(track.albumArtists.joinToString(", ").ifEmpty { null })
-                .setTrackNumber(track.trackNumber)
-                .setDiscNumber(track.discNumber)
-                .build(),
-        )
-        .build()
+    private fun item(track: LibraryTrack): MediaItem = track.toMediaItem()
 
     companion object {
         fun nextRepeatMode(mode: Int) = when (mode) {
