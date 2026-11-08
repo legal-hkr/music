@@ -85,6 +85,7 @@ import sh.hnet.music.ui.components.TrackNavigation
 import sh.hnet.music.ui.library.BrowseViewModel
 import sh.hnet.music.ui.library.LibraryScreen
 import sh.hnet.music.ui.search.SearchScreen
+import sh.hnet.music.ui.search.SearchViewModel
 import sh.hnet.music.ui.settings.AboutScreen
 import sh.hnet.music.ui.settings.FolderScreen
 import sh.hnet.music.ui.settings.LibraryMessage
@@ -100,6 +101,7 @@ fun MusicApp(openNowPlaying: Int = 0) {
     val library: LibraryViewModel = viewModel { LibraryViewModel(app) }
     val browse: BrowseViewModel = viewModel { BrowseViewModel(app) }
     val playerModel: PlayerViewModel = viewModel { PlayerViewModel(app) }
+    val search: SearchViewModel = viewModel { SearchViewModel(app) }
     val playerState by playerModel.state.collectAsStateWithLifecycle()
     val currentTrack by playerModel.current.collectAsStateWithLifecycle()
     val currentDetails by playerModel.details.collectAsStateWithLifecycle()
@@ -204,10 +206,13 @@ fun MusicApp(openNowPlaying: Int = 0) {
                             selected = selected,
                             onClick = {
                                 if (selected) {
-                                    // Re-selecting a destination returns to its root
+                                    // Re-selecting a destination returns to its root; Search also clears its query
                                     while (stack.size > 1) stack.removeAt(stack.lastIndex)
+                                    if (item == Tab.SEARCH) search.clear()
                                 } else {
                                     tab = item
+                                    // Selecting Search puts the cursor in its field
+                                    if (item == Tab.SEARCH && stacks.getValue(Tab.SEARCH).size == 1) search.requestFocus()
                                 }
                             },
                             icon = {
@@ -285,7 +290,15 @@ fun MusicApp(openNowPlaying: Int = 0) {
                     entry<Screen.ArtistTracks> { key ->
                         ArtistTracksScreen(browse, key.name, trackNavigation, onBack = back)
                     }
-                    entry<Screen.Search> { SearchScreen() }
+                    entry<Screen.Search> {
+                        SearchScreen(
+                            search,
+                            browse,
+                            navigation = trackNavigation,
+                            onOpenAlbum = { currentStack.add(Screen.Album(it)) },
+                            onOpenArtist = { currentStack.add(Screen.Artist(it)) },
+                        )
+                    }
                     entry<Screen.Settings> {
                         SettingsRootScreen(
                             library,

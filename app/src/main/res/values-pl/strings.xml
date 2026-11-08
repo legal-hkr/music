@@ -234,4 +234,20 @@
         <item quantity="other">Zniknie %d utworu zaplanowanego po obecnym. Ten, który teraz gra, nie zostanie przerwany.</item>
     </plurals>
     <string name="button_clear">Wyczyść</string>
+    <!-- Search (S6) -->
+    <string name="hint_search">Szukaj w bibliotece</string>
+    <string name="content_description_clear_search">Wyczyść wyszukiwanie</string>
+    <string name="msg_search_no_results"><![CDATA[W bibliotece nie ma niczego pasującego do <b>%s</b>.]]></string>
+    <plurals name="button_show_all_albums">
+        <item quantity="one">Pokaż %s album</item>
+        <item quantity="few">Pokaż wszystkie %s albumy</item>
+        <item quantity="many">Pokaż wszystkie %s albumów</item>
+        <item quantity="other">Pokaż wszystkie %s albumu</item>
+    </plurals>
+    <plurals name="button_show_all_artists">
+        <item quantity="one">Pokaż %s wykonawcę</item>
+        <item quantity="few">Pokaż wszystkich %s wykonawców</item>
+        <item quantity="many">Pokaż wszystkich %s wykonawców</item>
+        <item quantity="other">Pokaż wszystkich %s wykonawcy</item>
+    </plurals>
 </resources>

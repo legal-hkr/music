@@ -208,4 +208,16 @@
         <item quantity="other">The %d tracks after the one playing now are removed. The current track keeps playing.</item>
     </plurals>
     <string name="button_clear">Clear</string>
+    <!-- Search (S6) -->
+    <string name="hint_search">Search your library</string>
+    <string name="content_description_clear_search">Clear search</string>
+    <string name="msg_search_no_results"><![CDATA[Nothing in your library matches <b>%s</b>.]]></string>
+    <plurals name="button_show_all_albums">
+        <item quantity="one">Show all %s albums</item>
+        <item quantity="other">Show all %s albums</item>
+    </plurals>
+    <plurals name="button_show_all_artists">
+        <item quantity="one">Show all %s artists</item>
+        <item quantity="other">Show all %s artists</item>
+    </plurals>
 </resources>
