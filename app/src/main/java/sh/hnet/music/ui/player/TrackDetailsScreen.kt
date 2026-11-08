@@ -3,7 +3,6 @@
 package sh.hnet.music.ui.player
 
 import android.text.format.Formatter
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,8 +38,10 @@ import java.util.Date
 @Composable
 fun TrackDetailsScreen(viewModel: PlayerViewModel, onBack: () -> Unit) {
     val track by viewModel.details.collectAsStateWithLifecycle()
+    // A Surface for the content colour as well as the background (see NowPlayingScreen)
+    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
     Column(
-        Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface).statusBarsPadding().navigationBarsPadding(),
+        Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding(),
     ) {
         // SettingsPage draws its own status-bar inset through its top bar; here the overlay already did
         SettingsPage(title = stringResource(R.string.title_track_details), onBack = onBack, topInsets = false) {
@@ -93,6 +94,7 @@ fun TrackDetailsScreen(viewModel: PlayerViewModel, onBack: () -> Unit) {
                 }
             }
         }
+    }
     }
 }
 

@@ -3,7 +3,6 @@
 package sh.hnet.music.ui.player
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,6 +41,7 @@ import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.SliderState
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
@@ -99,10 +99,12 @@ fun NowPlayingScreen(
     onQueue: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // A Surface, not just a background: it also sets the content colour (onSurface), which this
+    // overlay outside the Scaffold wouldn't get otherwise (black text and icons in dark theme)
+    Surface(modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
     BoxWithConstraints(
-        modifier
+        Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface)
             .statusBarsPadding()
             .navigationBarsPadding(),
     ) {
@@ -133,6 +135,7 @@ fun NowPlayingScreen(
                 }
             }
         }
+    }
     }
 }
 

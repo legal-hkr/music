@@ -46,6 +46,10 @@ fun Cover(track: LibraryTrack?, shape: Shape, modifier: Modifier = Modifier) {
             initialValue = track?.let { covers.cached(it, size)?.asImageBitmap() },
             key1 = track?.documentUri, key2 = track?.lastModified, key3 = size,
         ) {
+            // The state outlives a change of track (the mini player keeps its place): drop the
+            // previous track's picture first, or it would stay until the new one is decoded – or for
+            // good, when the new track has no cover
+            value = track?.let { covers.cached(it, size)?.asImageBitmap() }
             if (value == null && track?.hasEmbeddedCover == true) value = covers.load(track, size)?.asImageBitmap()
         }
         val picture = image
