@@ -209,4 +209,29 @@
     <string name="label_of">%1$d z %2$d</string>
     <string name="label_yes">Tak</string>
     <string name="msg_no_replaygain">Ten plik nie ma tych tagów</string>
+    <!-- Queue (S5) -->
+    <string name="button_queue">Kolejka</string>
+    <string name="title_queue">Kolejka</string>
+    <plurals name="label_queue_remaining">
+        <item quantity="one">Jeszcze %1$d utwór – %2$s</item>
+        <item quantity="few">Jeszcze %1$d utwory – %2$s</item>
+        <item quantity="many">Jeszcze %1$d utworów – %2$s</item>
+        <item quantity="other">Jeszcze %1$d utworu – %2$s</item>
+    </plurals>
+    <string name="label_queue_none_remaining">To ostatni utwór w kolejce</string>
+    <string name="content_description_reorder">Przestaw: %s</string>
+    <string name="label_move_up">Przesuń wyżej</string>
+    <string name="label_move_down">Przesuń niżej</string>
+    <string name="label_remove_from_queue">Usuń z kolejki</string>
+    <string name="msg_removed_from_queue"><![CDATA[Usunięto <b>%s</b> z kolejki]]></string>
+    <string name="button_undo">Cofnij</string>
+    <string name="button_clear_queue">Wyczyść kolejkę</string>
+    <string name="title_clear_queue">Wyczyścić kolejkę?</string>
+    <plurals name="msg_clear_queue">
+        <item quantity="one">Zniknie %d utwór zaplanowany po obecnym. Ten, który teraz gra, nie zostanie przerwany.</item>
+        <item quantity="few">Znikną %d utwory zaplanowane po obecnym. Ten, który teraz gra, nie zostanie przerwany.</item>
+        <item quantity="many">Zniknie %d utworów zaplanowanych po obecnym. Ten, który teraz gra, nie zostanie przerwany.</item>
+        <item quantity="other">Zniknie %d utworu zaplanowanego po obecnym. Ten, który teraz gra, nie zostanie przerwany.</item>
+    </plurals>
+    <string name="button_clear">Wyczyść</string>
 </resources>

@@ -140,10 +140,6 @@ private fun Header(album: Album, onOpenArtist: (String) -> Unit) {
     }
 }
 
-/** "1 h 14 min", "52 min"; absent for an unknown length. */
+/** Absent for an unknown length. */
 @Composable
-private fun albumDuration(ms: Long): String? {
-    if (ms <= 0) return null
-    val minutes = ((ms + 30_000) / 60_000).toInt().coerceAtLeast(1)
-    return if (minutes >= 60) stringResource(R.string.label_duration_hm, minutes / 60, minutes % 60) else stringResource(R.string.label_duration_m, minutes)
-}
+private fun albumDuration(ms: Long): String? = if (ms <= 0) null else sh.hnet.music.ui.components.durationText(ms)

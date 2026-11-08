@@ -24,6 +24,10 @@ class PlayerViewModel(app: MusicApplication) : ViewModel() {
 
     val state: StateFlow<PlayerState> = player.state
 
+    val queue: StateFlow<sh.hnet.music.playback.QueueSnapshot> = player.queue
+
+    val tracks: StateFlow<Map<String, LibraryTrack>> = app.library.tracksByUri
+
     /** The current track as the library lists it (title, artists, cover). */
     val current: StateFlow<LibraryTrack?> = combine(player.state, app.library.tracksByUri) { state, tracks ->
         state.currentId?.let { tracks[it] }

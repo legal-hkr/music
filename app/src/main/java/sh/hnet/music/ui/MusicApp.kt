@@ -61,6 +61,7 @@ import sh.hnet.music.ui.components.formatCount
 import sh.hnet.music.ui.player.MiniPlayer
 import sh.hnet.music.ui.player.NowPlayingScreen
 import sh.hnet.music.ui.player.PlayerViewModel
+import sh.hnet.music.ui.player.QueueSheet
 import sh.hnet.music.ui.player.TrackDetailsScreen
 import sh.hnet.music.data.LibraryTrack
 import androidx.activity.compose.PredictiveBackHandler
@@ -119,9 +120,12 @@ fun MusicApp(openNowPlaying: Int = 0) {
     val nowPlaying = remember { SeekableTransitionState(false) }
     val nowPlayingTransition = rememberTransition(nowPlaying, label = "nowPlaying")
     var detailsOpen by rememberSaveable { mutableStateOf(false) }
+    var queueOpen by rememberSaveable { mutableStateOf(false) }
+    val queue by playerModel.queue.collectAsStateWithLifecycle()
+    val tracksByUri by playerModel.tracks.collectAsStateWithLifecycle()
     val hasQueue = playerState.queueSize > 0
     fun openNowPlaying() = scope.launch { nowPlaying.animateTo(true) }
-    fun closeNowPlaying() = scope.launch { detailsOpen = false; nowPlaying.animateTo(false) }
+    fun closeNowPlaying() = scope.launch { detailsOpen = false; queueOpen = false; nowPlaying.animateTo(false) }
     LaunchedEffect(openNowPlaying) { if (openNowPlaying > 0 && hasQueue) nowPlaying.animateTo(true) }
     LaunchedEffect(hasQueue) { if (!hasQueue) nowPlaying.snapTo(false) }
     val dragHeight = with(LocalDensity.current) { 600.dp.toPx() }
@@ -332,7 +336,11 @@ fun MusicApp(openNowPlaying: Int = 0) {
                 onGoToArtist = goToArtist,
                 onGoToAlbum = goToAlbum,
                 onDetails = { detailsOpen = true },
+                onQueue = { queueOpen = true },
             )
+            if (queueOpen) {
+                QueueSheet(queue, playerState.shuffle, tracksByUri, playerModel.player, onDismiss = { queueOpen = false })
+            }
             androidx.compose.animation.AnimatedVisibility(
                 visible = detailsOpen,
                 enter = slideInHorizontally(spatial) { shift } + fadeIn(effects),

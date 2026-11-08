@@ -25,6 +25,15 @@ data class PlayerState(
     val queueSize: Int = 0,
 )
 
+/** A queued item: its place in the player's list ([index]) and what it is. */
+data class QueueItem(val index: Int, val mediaId: String, val title: String?, val artists: String?)
+
+/**
+ * The queue in the order it plays (shuffled when shuffle is on); [current] is the position of the
+ * current item in [items], -1 when empty.
+ */
+data class QueueSnapshot(val items: List<QueueItem> = emptyList(), val current: Int = -1)
+
 /** The UI's side of playback: a controller of [PlaybackService], connected once for the process. */
 class PlayerConnection(private val context: Context) {
     private var controller: MediaController? = null
@@ -41,8 +50,40 @@ class PlayerConnection(private val context: Context) {
     private val _isPlaying = MutableStateFlow(false)
     val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
 
+    private val _queue = MutableStateFlow(QueueSnapshot())
+    val queue: StateFlow<QueueSnapshot> = _queue.asStateFlow()
+
     private val listener = object : Player.Listener {
-        override fun onEvents(player: Player, events: Player.Events) = sync(player)
+        override fun onEvents(player: Player, events: Player.Events) {
+            sync(player)
+            if (events.containsAny(
+                    Player.EVENT_TIMELINE_CHANGED,
+                    Player.EVENT_MEDIA_ITEM_TRANSITION,
+                    Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED,
+                )
+            ) syncQueue(player)
+        }
+    }
+
+    /** The items in play order, walking the timeline with the player's own shuffle order. */
+    private fun syncQueue(player: Player) {
+        val timeline = player.currentTimeline
+        if (timeline.isEmpty) {
+            _queue.value = QueueSnapshot()
+            return
+        }
+        val shuffle = player.shuffleModeEnabled
+        val order = ArrayList<Int>(timeline.windowCount)
+        var index = timeline.getFirstWindowIndex(shuffle)
+        while (index != androidx.media3.common.C.INDEX_UNSET && order.size < timeline.windowCount) {
+            order += index
+            index = timeline.getNextWindowIndex(index, Player.REPEAT_MODE_OFF, shuffle)
+        }
+        val items = order.map { i ->
+            val item = player.getMediaItemAt(i)
+            QueueItem(i, item.mediaId, item.mediaMetadata.title?.toString(), item.mediaMetadata.artist?.toString())
+        }
+        _queue.value = QueueSnapshot(items, order.indexOf(player.currentMediaItemIndex))
     }
 
     private fun sync(player: Player) {
@@ -74,6 +115,7 @@ class PlayerConnection(private val context: Context) {
             controller = connected
             connected.addListener(listener)
             sync(connected)
+            syncQueue(connected)
             pending.toList().forEach { it(connected) }
             pending.clear()
         }, ContextCompat.getMainExecutor(context))
@@ -135,6 +177,40 @@ class PlayerConnection(private val context: Context) {
 
     /** Off, all, one, off… */
     fun cycleRepeat() = withController { it.repeatMode = nextRepeatMode(it.repeatMode) }
+
+    /**
+     * Plays the queue's item at [index] (the player's list index) from its start. Nothing is
+     * removed: the tracks before it become history, hidden from the queue sheet (which starts at
+     * the current track) but still reached by Previous, one by one in the queue's order.
+     */
+    fun jumpTo(index: Int) = withController { c ->
+        c.seekToDefaultPosition(index)
+        c.play()
+    }
+
+    /** Removes the item at [index]; true when there was one. */
+    fun remove(index: Int): Boolean {
+        val c = controller ?: return false
+        if (index !in 0 until c.mediaItemCount) return false
+        c.removeMediaItem(index)
+        return true
+    }
+
+    /**
+     * Puts [track] at [index] (Undo of a removal). Built anew from the library: items read back
+     * through the controller carry no file URI, and the session refuses items without one.
+     */
+    fun insert(index: Int, track: LibraryTrack) = withController { c -> c.addMediaItem(index.coerceIn(0, c.mediaItemCount), item(track)) }
+
+    /** Moves an item in the player's list; called once, when a dragged row is dropped. */
+    fun move(from: Int, to: Int) = withController { c -> if (from != to) c.moveMediaItem(from, to) }
+
+    /** Clears everything except the current track, which keeps playing (SPEC §10). */
+    fun clearAroundCurrent() = withController { c ->
+        val current = c.currentMediaItemIndex
+        if (current + 1 < c.mediaItemCount) c.removeMediaItems(current + 1, c.mediaItemCount)
+        if (current > 0) c.removeMediaItems(0, current)
+    }
 
     private fun item(track: LibraryTrack): MediaItem = MediaItem.Builder()
         .setMediaId(track.documentUri)

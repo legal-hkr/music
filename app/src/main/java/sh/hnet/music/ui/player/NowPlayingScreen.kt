@@ -26,6 +26,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.DropdownMenuGroup
 import androidx.compose.material3.DropdownMenuItem
@@ -94,6 +96,7 @@ fun NowPlayingScreen(
     onGoToArtist: (String) -> Unit,
     onGoToAlbum: (LibraryTrack) -> Unit,
     onDetails: () -> Unit,
+    onQueue: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     BoxWithConstraints(
@@ -114,7 +117,7 @@ fun NowPlayingScreen(
                         Cover(track, RoundedCornerShape(28.dp), Modifier.padding(start = 24.dp).aspectRatio(1f, matchHeightConstraintsFirst = true))
                     }
                     Column(Modifier.weight(1f).padding(end = 24.dp), verticalArrangement = Arrangement.Center) {
-                        Controls(track, details, state, player, onGoToArtist, onGoToAlbum, onDetails)
+                        Controls(track, details, state, player, onGoToArtist, onGoToAlbum, onDetails, onQueue)
                     }
                 }
             } else {
@@ -126,7 +129,7 @@ fun NowPlayingScreen(
                 }
                 Spacer(Modifier.height(20.dp))
                 Column(Modifier.padding(horizontal = 24.dp).padding(bottom = 16.dp)) {
-                    Controls(track, details, state, player, onGoToArtist, onGoToAlbum, onDetails)
+                    Controls(track, details, state, player, onGoToArtist, onGoToAlbum, onDetails, onQueue)
                 }
             }
         }
@@ -142,6 +145,7 @@ private fun ColumnScope.Controls(
     onGoToArtist: (String) -> Unit,
     onGoToAlbum: (LibraryTrack) -> Unit,
     onDetails: () -> Unit,
+    onQueue: () -> Unit,
 ) {
     // Title block and the track's actions
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -198,7 +202,11 @@ private fun ColumnScope.Controls(
         ) {
             Icon(painterResource(repeatIcon), contentDescription = stringResource(R.string.content_description_repeat))
         }
-        // The Queue button joins here in S5
+        Spacer(Modifier.weight(1f))
+        FilledTonalButton(onClick = onQueue, contentPadding = ButtonDefaults.SmallContentPadding, modifier = Modifier.heightIn(min = 40.dp)) {
+            Icon(painterResource(R.drawable.ic_queue_music), contentDescription = null, modifier = Modifier.size(18.dp))
+            Text(stringResource(R.string.button_queue), modifier = Modifier.padding(start = 8.dp))
+        }
     }
 }
 
