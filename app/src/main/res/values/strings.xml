@@ -6,4 +6,17 @@
     <string name="msg_no_folders">No folders yet. Add the folder where you keep your music – the app sees only the folders you choose.</string>
     <string name="button_add_folder">Add folder</string>
     <string name="content_description_remove_folder">Remove folder</string>
+    <string name="content_description_rescan">Scan folders again</string>
+
+    <string name="msg_scan_listing">Looking for music files…</string>
+    <string name="msg_scan_reading">Reading tags – %1$d of %2$d</string>
+    <plurals name="label_folder_tracks">
+        <item quantity="one">%d track</item>
+        <item quantity="other">%d tracks</item>
+    </plurals>
+    <plurals name="label_folder_skipped">
+        <item quantity="one">%d file not supported</item>
+        <item quantity="other">%d files not supported</item>
+    </plurals>
+    <string name="error_folder_unavailable">No access – remove the folder and add it again</string>
 </resources>

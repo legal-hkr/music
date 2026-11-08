@@ -15,12 +15,19 @@ object LibraryFolders {
         dao.upsert(LibraryFolder(treeUri.toString(), displayName(resolver, treeUri), System.currentTimeMillis()))
     }
 
-    suspend fun remove(resolver: ContentResolver, dao: LibraryFolderDao, treeUri: String) {
+    suspend fun remove(resolver: ContentResolver, dao: LibraryFolderDao, tracks: TrackDao, treeUri: String) {
         val uri = treeUri.toUri()
         if (resolver.persistedUriPermissions.any { it.uri == uri }) {
             resolver.releasePersistableUriPermission(uri, READ)
         }
+        tracks.removeFolder(treeUri)
         dao.delete(treeUri)
+    }
+
+    /** False when the grant is gone (revoked in settings, app data restored) or the volume is missing. */
+    fun isGranted(resolver: ContentResolver, treeUri: String): Boolean {
+        val uri = treeUri.toUri()
+        return resolver.persistedUriPermissions.any { it.uri == uri && it.isReadPermission }
     }
 
     private fun displayName(resolver: ContentResolver, treeUri: Uri): String {

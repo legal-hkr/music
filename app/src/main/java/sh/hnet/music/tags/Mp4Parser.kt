@@ -133,6 +133,7 @@ internal object Mp4Parser {
             "fLaC" -> AudioCodec.FLAC
             "Opus" -> AudioCodec.OPUS
             ".mp3" -> AudioCodec.MP3
+            "drms", "enca" -> AudioCodec.PROTECTED
             else -> return
         }
         r.seek(start + 8) // reserved, data reference index

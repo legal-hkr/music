@@ -10,6 +10,9 @@ interface LibraryFolderDao {
     @Query("SELECT * FROM library_folder ORDER BY displayName COLLATE NOCASE")
     fun observeAll(): Flow<List<LibraryFolder>>
 
+    @Query("SELECT * FROM library_folder")
+    suspend fun all(): List<LibraryFolder>
+
     @Upsert
     suspend fun upsert(folder: LibraryFolder)
 

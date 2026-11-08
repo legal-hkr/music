@@ -1,6 +1,12 @@
 package sh.hnet.music.tags
 
-enum class AudioCodec { FLAC, ALAC, MP3, MP2, MP1, AAC, VORBIS, OPUS, UNKNOWN }
+enum class AudioCodec {
+    FLAC, ALAC, MP3, MP2, MP1, AAC, VORBIS, OPUS,
+
+    /** Encrypted (old iTunes FairPlay .m4p): tags are readable, the audio isn't. */
+    PROTECTED,
+    UNKNOWN,
+}
 
 /** What the stream itself says; [bitsPerSample] only for lossless codecs. */
 data class AudioProperties(

@@ -6,4 +6,21 @@
     <string name="msg_no_folders">Nie ma jeszcze żadnego folderu. Wskaż, gdzie trzymasz muzykę – aplikacja zajrzy tylko tam, gdzie jej pozwolisz.</string>
     <string name="button_add_folder">Dodaj folder</string>
     <string name="content_description_remove_folder">Usuń folder</string>
+    <string name="content_description_rescan">Przeszukaj foldery ponownie</string>
+
+    <string name="msg_scan_listing">Szukam plików z muzyką…</string>
+    <string name="msg_scan_reading">Czytam tagi – %1$d z %2$d</string>
+    <plurals name="label_folder_tracks">
+        <item quantity="one">%d utwór</item>
+        <item quantity="few">%d utwory</item>
+        <item quantity="many">%d utworów</item>
+        <item quantity="other">%d utworu</item>
+    </plurals>
+    <plurals name="label_folder_skipped">
+        <item quantity="one">%d plik w nieobsługiwanym formacie</item>
+        <item quantity="few">%d pliki w nieobsługiwanym formacie</item>
+        <item quantity="many">%d plików w nieobsługiwanym formacie</item>
+        <item quantity="other">%d pliku w nieobsługiwanym formacie</item>
+    </plurals>
+    <string name="error_folder_unavailable">Brak dostępu – usuń folder i dodaj go jeszcze raz</string>
 </resources>

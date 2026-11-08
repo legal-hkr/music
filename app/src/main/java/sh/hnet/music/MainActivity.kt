@@ -11,6 +11,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        // Picks up files added or changed since the last start; not again on rotation.
+        if (savedInstanceState == null) (application as MusicApplication).scanner.requestScan()
         setContent {
             MusicTheme {
                 FoldersScreen()
