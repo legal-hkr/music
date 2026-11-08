@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import sh.hnet.music.ui.FoldersScreen
+import sh.hnet.music.ui.MusicApp
 import sh.hnet.music.ui.theme.MusicTheme
 
 class MainActivity : ComponentActivity() {
@@ -15,7 +15,7 @@ class MainActivity : ComponentActivity() {
         if (savedInstanceState == null) (application as MusicApplication).scanner.requestScan()
         setContent {
             MusicTheme {
-                FoldersScreen()
+                MusicApp()
             }
         }
     }

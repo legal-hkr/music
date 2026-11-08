@@ -32,7 +32,11 @@ internal object FolderWalker {
      * All candidates, or throws [IncompleteListing] when any directory can't be listed, so a
      * missing SD card or a revoked grant never looks like a folder whose files were deleted.
      */
-    fun list(resolver: ContentResolver, folderUri: String): List<ScannedFile> {
+    /**
+     * @param skipDirectories Document IDs (same provider) of other picked folders inside this one: their
+     *   files belong to them, so nothing is listed twice.
+     */
+    fun list(resolver: ContentResolver, folderUri: String, skipDirectories: Set<String>): List<ScannedFile> {
         val tree = folderUri.toUri()
         val files = mutableListOf<ScannedFile>()
         val pending = ArrayDeque<Pair<String, String>>() // document ID, relative path
@@ -55,7 +59,7 @@ internal object FolderWalker {
                     val relative = if (path.isEmpty()) name else "$path/$name"
                     val mime = it.getString(2).orEmpty()
                     if (mime == Document.MIME_TYPE_DIR) {
-                        pending += id to relative
+                        if (id !in skipDirectories) pending += id to relative
                     } else if (isAudio(name, mime)) {
                         files += ScannedFile(
                             documentUri = DocumentsContract.buildDocumentUriUsingTree(tree, id).toString(),

@@ -19,6 +19,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import sh.hnet.music.data.FileState
+import sh.hnet.music.data.LibraryFolder
 import sh.hnet.music.data.LibraryFolderDao
 import sh.hnet.music.data.LibraryFolders
 import sh.hnet.music.data.ScannedFile
@@ -31,13 +32,13 @@ import sh.hnet.music.tags.FileChannelSource
 import sh.hnet.music.tags.TagParser
 import java.io.IOException
 
-/** Where a running scan is; [total] is known once the folders have been listed. */
-data class ScanProgress(val listing: Boolean, val done: Int = 0, val total: Int = 0)
+/** A folder in a running scan: [total] is known once its files have been listed. */
+data class FolderScan(val listing: Boolean = true, val done: Int = 0, val total: Int = 0)
 
 /**
- * Incremental scan of the picked folders: list them, read tags only of files that are new or
- * changed (size or modification time), drop files that are gone. Results are written in
- * batches, so a scan cut short keeps what it had read and the next one continues from there.
+ * Incremental scan of the picked folders, one after another: list a folder, read tags only of
+ * files that are new or changed (size or modification time), drop files that are gone. Results
+ * are written in batches, so a scan cut short keeps what it had read and the next one continues.
  */
 class LibraryScanner(
     private val resolver: ContentResolver,
@@ -45,12 +46,16 @@ class LibraryScanner(
     private val tracks: TrackDao,
     private val scope: CoroutineScope,
 ) {
-    private val _progress = MutableStateFlow<ScanProgress?>(null)
-    val progress: StateFlow<ScanProgress?> = _progress.asStateFlow()
+    /** Folders waiting in or going through the running scan, by tree URI. Empty when idle. */
+    private val _progress = MutableStateFlow<Map<String, FolderScan>>(emptyMap())
+    val progress: StateFlow<Map<String, FolderScan>> = _progress.asStateFlow()
 
-    /** Folders whose last scan couldn't list them (no grant, volume missing); their tracks are kept. */
+    /** Folders the app can't read (no grant, volume missing); their tracks are kept. */
     private val _unavailable = MutableStateFlow<Set<String>>(emptySet())
     val unavailable: StateFlow<Set<String>> = _unavailable.asStateFlow()
+
+    /** Folders whose last listing failed although the grant was there (e.g. an SD card taken out). */
+    private var listingFailed = emptySet<String>()
 
     private val mutex = Mutex()
     private var rescanRequested = false
@@ -74,46 +79,61 @@ class LibraryScanner(
         rescanRequested.also { rescanRequested = false }
     }
 
+    /** Re-checks the grants without listing anything, e.g. when the folders page is shown. */
+    suspend fun refreshAccess() = withContext(Dispatchers.IO) {
+        val all = folders.all().map { it.treeUri }
+        listingFailed = listingFailed intersect all.toSet()
+        _unavailable.value = all.filterTo(HashSet()) { !LibraryFolders.isGranted(resolver, it) } + listingFailed
+    }
+
     private suspend fun scanAll() = withContext(Dispatchers.IO) {
-        _progress.value = ScanProgress(listing = true)
+        val all = folders.all()
+        _progress.value = all.associate { it.treeUri to FolderScan() }
+        val failed = mutableSetOf<String>()
         try {
-            val listed = mutableMapOf<String, List<ScannedFile>>()
-            val unavailable = mutableSetOf<String>()
-            for (folder in folders.all()) {
-                val uri = folder.treeUri
-                if (!LibraryFolders.isGranted(resolver, uri)) {
-                    unavailable += uri
-                    continue
-                }
-                try {
-                    listed[uri] = FolderWalker.list(resolver, uri)
-                } catch (_: FolderWalker.IncompleteListing) {
-                    unavailable += uri
-                }
-            }
-            _unavailable.value = unavailable
-
-            val toRead = mutableListOf<ScannedFile>()
-            for ((folderUri, files) in listed) {
-                val known = (tracks.trackStates(folderUri) + tracks.skippedStates(folderUri)).associateBy { it.documentUri }
-                files.filterTo(toRead) { known[it.documentUri]?.matches(it) != true }
-                val present = files.mapTo(HashSet()) { it.documentUri }
-                val gone = known.keys.filter { it !in present }
-                if (gone.isNotEmpty()) tracks.removeFiles(gone)
-            }
-
-            _progress.value = ScanProgress(listing = false, done = 0, total = toRead.size)
-            toRead.chunked(BATCH).forEach { batch ->
-                val results = coroutineScope { batch.map { file -> async(parsing) { read(file) } }.awaitAll() }
-                tracks.applyResults(
-                    results.filterIsInstance<Track>(),
-                    results.filterIsInstance<SkippedFile>(),
-                )
-                _progress.update { it?.copy(done = it.done + batch.size) }
+            for (folder in all) {
+                if (!scanFolder(folder, all)) failed += folder.treeUri
+                _progress.update { it - folder.treeUri }
             }
         } finally {
-            _progress.value = null
+            _progress.value = emptyMap()
+            listingFailed = failed.filterTo(HashSet()) { LibraryFolders.isGranted(resolver, it) }
+            _unavailable.value = failed
         }
+    }
+
+    /** False when the folder couldn't be listed; its tracks stay as they were. */
+    private suspend fun scanFolder(folder: LibraryFolder, all: List<LibraryFolder>): Boolean {
+        val uri = folder.treeUri
+        if (!LibraryFolders.isGranted(resolver, uri)) return false
+        val (authority, _) = LibraryFolders.rootOf(uri)
+        val nested = all.asSequence()
+            .filter { it.treeUri != uri }
+            .map { LibraryFolders.rootOf(it.treeUri) }
+            .filter { it.first == authority }
+            .mapTo(HashSet()) { it.second }
+        val files = try {
+            FolderWalker.list(resolver, uri, nested)
+        } catch (_: FolderWalker.IncompleteListing) {
+            return false
+        }
+
+        val known = (tracks.trackStates(uri) + tracks.skippedStates(uri)).associateBy { it.documentUri }
+        val toRead = files.filter { known[it.documentUri]?.matches(it) != true }
+        val present = files.mapTo(HashSet()) { it.documentUri }
+        val gone = known.keys.filter { it !in present }
+        if (gone.isNotEmpty()) tracks.removeFiles(gone)
+
+        _progress.update { it + (uri to FolderScan(listing = false, total = toRead.size)) }
+        toRead.chunked(BATCH).forEach { batch ->
+            val results = coroutineScope { batch.map { file -> async(parsing) { read(file) } }.awaitAll() }
+            tracks.applyResults(results.filterIsInstance<Track>(), results.filterIsInstance<SkippedFile>())
+            _progress.update { map ->
+                val current = map[uri] ?: return@update map
+                map + (uri to current.copy(done = current.done + batch.size))
+            }
+        }
+        return true
     }
 
     private fun FileState.matches(file: ScannedFile) = size == file.size && lastModified == file.lastModified

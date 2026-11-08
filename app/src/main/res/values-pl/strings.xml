@@ -2,25 +2,91 @@
 <resources>
     <string name="app_name">Muzyka</string>
 
-    <string name="title_folders">Foldery z muzyką</string>
-    <string name="msg_no_folders">Nie ma jeszcze żadnego folderu. Wskaż, gdzie trzymasz muzykę – aplikacja zajrzy tylko tam, gdzie jej pozwolisz.</string>
-    <string name="button_add_folder">Dodaj folder</string>
-    <string name="content_description_remove_folder">Usuń folder</string>
-    <string name="content_description_rescan">Przeszukaj foldery ponownie</string>
+    <!-- Navigation -->
+    <string name="label_nav_library">Biblioteka</string>
+    <string name="label_nav_search">Szukaj</string>
+    <string name="label_nav_settings">Ustawienia</string>
+    <plurals name="content_description_settings_scanning">
+        <item quantity="one">Ustawienia, trwa skanowanie %d folderu</item>
+        <item quantity="few">Ustawienia, trwa skanowanie %d folderów</item>
+        <item quantity="many">Ustawienia, trwa skanowanie %d folderów</item>
+        <item quantity="other">Ustawienia, trwa skanowanie %d folderu</item>
+    </plurals>
+    <string name="content_description_back">Wstecz</string>
 
+    <!-- Library and Search -->
+    <string name="msg_library_filling">Muzyka pojawi się tutaj, gdy tylko pliki zostaną odczytane.</string>
+    <string name="msg_search_empty">Znajdź albumy, wykonawców i utwory ze swojej muzyki.</string>
+
+    <!-- Settings root -->
+    <string name="title_settings">Ustawienia</string>
+    <string name="title_settings_library">Biblioteka</string>
+    <string name="title_settings_about">O aplikacji</string>
+    <string name="label_version_value">Wersja %s</string>
+    <string name="label_library_summary">%1$s – %2$s</string>
+    <plurals name="label_folder_count">
+        <item quantity="one">%s folder</item>
+        <item quantity="few">%s foldery</item>
+        <item quantity="many">%s folderów</item>
+        <item quantity="other">%s folderu</item>
+    </plurals>
+    <plurals name="label_track_count">
+        <item quantity="one">%s utwór</item>
+        <item quantity="few">%s utwory</item>
+        <item quantity="many">%s utworów</item>
+        <item quantity="other">%s utworu</item>
+    </plurals>
+    <plurals name="label_scanning_folders">
+        <item quantity="one">Skanuję %d folder</item>
+        <item quantity="few">Skanuję %d foldery</item>
+        <item quantity="many">Skanuję %d folderów</item>
+        <item quantity="other">Skanuję %d folderu</item>
+    </plurals>
+    <string name="label_no_folders">Nie dodano jeszcze folderów</string>
+    <string name="label_no_playable_files">Brak plików do odtworzenia</string>
+    <string name="label_folder_needs_attention">Jeden z folderów wymaga uwagi</string>
+
+    <!-- Settings › Library -->
+    <string name="title_music_folders">Foldery z muzyką</string>
+    <string name="label_folder_counts">%1$s – %2$s</string>
+    <plurals name="label_skipped_count">
+        <item quantity="one">%s pominięty</item>
+        <item quantity="few">%s pominięte</item>
+        <item quantity="many">%s pominiętych</item>
+        <item quantity="other">%s pominiętego</item>
+    </plurals>
     <string name="msg_scan_listing">Szukam plików z muzyką…</string>
-    <string name="msg_scan_reading">Czytam tagi – %1$d z %2$d</string>
-    <plurals name="label_folder_tracks">
-        <item quantity="one">%d utwór</item>
-        <item quantity="few">%d utwory</item>
-        <item quantity="many">%d utworów</item>
-        <item quantity="other">%d utworu</item>
+    <string name="label_scanning_progress">Skanuję… %1$s z %2$s plików</string>
+    <string name="msg_folder_no_access">Aplikacja straciła dostęp do tego folderu.</string>
+    <string name="button_choose_folder_again">Wskaż folder ponownie</string>
+    <string name="button_add_folder">Dodaj folder</string>
+    <string name="msg_folder_already_added"><![CDATA[Folder <b>%s</b> jest już w bibliotece.]]></string>
+    <string name="msg_only_listed_folders">Aplikacja widzi wyłącznie foldery z tej listy.</string>
+
+    <!-- Folder page -->
+    <string name="title_skipped_not_supported">Nieobsługiwane</string>
+    <string name="title_skipped_drm">Zabezpieczone DRM</string>
+    <string name="title_skipped_unreadable">Nie do odczytania</string>
+    <string name="msg_skipped_dsd">Pliki DSD nie są jeszcze obsługiwane.</string>
+    <string name="msg_skipped_format">Ten format nie jest obsługiwany.</string>
+    <string name="msg_skipped_drm">Plików z zabezpieczeniem przed kopiowaniem nie da się odtworzyć.</string>
+    <string name="msg_skipped_damaged">Plik jest uszkodzony albo niekompletny.</string>
+    <string name="msg_skipped_unreadable">Nie udało się otworzyć tego pliku.</string>
+    <string name="msg_no_skipped_files">Wszystkie pliki z tego folderu dają się odtworzyć.</string>
+    <string name="button_show_all">Pokaż wszystkie (%s)</string>
+    <string name="button_remove_folder">Usuń folder</string>
+    <string name="title_remove_folder"><![CDATA[Usunąć folder <b>%s</b>?]]></string>
+    <plurals name="msg_remove_folder">
+        <item quantity="one">%s utwór zniknie z biblioteki. Pliki zostaną w telefonie.</item>
+        <item quantity="few">%s utwory znikną z biblioteki. Pliki zostaną w telefonie.</item>
+        <item quantity="many">%s utworów zniknie z biblioteki. Pliki zostaną w telefonie.</item>
+        <item quantity="other">%s utworu zniknie z biblioteki. Pliki zostaną w telefonie.</item>
     </plurals>
-    <plurals name="label_folder_skipped">
-        <item quantity="one">%d plik w nieobsługiwanym formacie</item>
-        <item quantity="few">%d pliki w nieobsługiwanym formacie</item>
-        <item quantity="many">%d plików w nieobsługiwanym formacie</item>
-        <item quantity="other">%d pliku w nieobsługiwanym formacie</item>
-    </plurals>
-    <string name="error_folder_unavailable">Brak dostępu – usuń folder i dodaj go jeszcze raz</string>
+    <string name="button_remove">Usuń</string>
+    <string name="button_cancel">Anuluj</string>
+
+    <!-- About -->
+    <string name="label_version">Wersja</string>
+    <string name="msg_copied">Skopiowano</string>
+    <string name="msg_about_privacy">Aplikacja nie ma dostępu do internetu. Czyta tylko te foldery, które wskażesz, i nie zbiera o Tobie żadnych informacji.</string>
 </resources>

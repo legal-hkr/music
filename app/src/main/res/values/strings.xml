@@ -2,21 +2,79 @@
 <resources>
     <string name="app_name">Music</string>
 
-    <string name="title_folders">Music folders</string>
-    <string name="msg_no_folders">No folders yet. Add the folder where you keep your music – the app sees only the folders you choose.</string>
-    <string name="button_add_folder">Add folder</string>
-    <string name="content_description_remove_folder">Remove folder</string>
-    <string name="content_description_rescan">Scan folders again</string>
+    <!-- Navigation -->
+    <string name="label_nav_library">Library</string>
+    <string name="label_nav_search">Search</string>
+    <string name="label_nav_settings">Settings</string>
+    <plurals name="content_description_settings_scanning">
+        <item quantity="one">Settings, scanning %d folder</item>
+        <item quantity="other">Settings, scanning %d folders</item>
+    </plurals>
+    <string name="content_description_back">Back</string>
 
+    <!-- Library and Search (empty states until S2 and S6) -->
+    <string name="msg_library_filling">Your music appears here as it\'s read.</string>
+    <string name="msg_search_empty">Find albums, artists and tracks in your music.</string>
+
+    <!-- Settings root -->
+    <string name="title_settings">Settings</string>
+    <string name="title_settings_library">Library</string>
+    <string name="title_settings_about">About</string>
+    <string name="label_version_value">Version %s</string>
+    <string name="label_library_summary">%1$s – %2$s</string>
+    <plurals name="label_folder_count">
+        <item quantity="one">%s folder</item>
+        <item quantity="other">%s folders</item>
+    </plurals>
+    <plurals name="label_track_count">
+        <item quantity="one">%s track</item>
+        <item quantity="other">%s tracks</item>
+    </plurals>
+    <plurals name="label_scanning_folders">
+        <item quantity="one">Scanning %d folder</item>
+        <item quantity="other">Scanning %d folders</item>
+    </plurals>
+    <string name="label_no_folders">No folders yet</string>
+    <string name="label_no_playable_files">No playable files</string>
+    <string name="label_folder_needs_attention">A folder needs attention</string>
+
+    <!-- Settings › Library -->
+    <string name="title_music_folders">Music folders</string>
+    <string name="label_folder_counts">%1$s – %2$s</string>
+    <plurals name="label_skipped_count">
+        <item quantity="one">%s skipped</item>
+        <item quantity="other">%s skipped</item>
+    </plurals>
     <string name="msg_scan_listing">Looking for music files…</string>
-    <string name="msg_scan_reading">Reading tags – %1$d of %2$d</string>
-    <plurals name="label_folder_tracks">
-        <item quantity="one">%d track</item>
-        <item quantity="other">%d tracks</item>
+    <string name="label_scanning_progress">Scanning… %1$s of %2$s files</string>
+    <string name="msg_folder_no_access">Music can\'t read this folder anymore.</string>
+    <string name="button_choose_folder_again">Choose the folder again</string>
+    <string name="button_add_folder">Add folder</string>
+    <string name="msg_folder_already_added"><![CDATA[<b>%s</b> is already in your library.]]></string>
+    <string name="msg_only_listed_folders">Music sees only the folders listed here.</string>
+
+    <!-- Folder page -->
+    <string name="title_skipped_not_supported">Not supported</string>
+    <string name="title_skipped_drm">Protected by DRM</string>
+    <string name="title_skipped_unreadable">Couldn\'t be read</string>
+    <string name="msg_skipped_dsd">DSD isn\'t supported yet.</string>
+    <string name="msg_skipped_format">This format isn\'t supported.</string>
+    <string name="msg_skipped_drm">Copy-protected files can\'t be played.</string>
+    <string name="msg_skipped_damaged">The file is damaged or incomplete.</string>
+    <string name="msg_skipped_unreadable">Music couldn\'t open this file.</string>
+    <string name="msg_no_skipped_files">Every file in this folder plays.</string>
+    <string name="button_show_all">Show all %s</string>
+    <string name="button_remove_folder">Remove folder</string>
+    <string name="title_remove_folder"><![CDATA[Remove <b>%s</b>?]]></string>
+    <plurals name="msg_remove_folder">
+        <item quantity="one">Its %s track leaves your library. The files stay on your phone.</item>
+        <item quantity="other">Its %s tracks leave your library. The files stay on your phone.</item>
     </plurals>
-    <plurals name="label_folder_skipped">
-        <item quantity="one">%d file not supported</item>
-        <item quantity="other">%d files not supported</item>
-    </plurals>
-    <string name="error_folder_unavailable">No access – remove the folder and add it again</string>
+    <string name="button_remove">Remove</string>
+    <string name="button_cancel">Cancel</string>
+
+    <!-- About -->
+    <string name="label_version">Version</string>
+    <string name="msg_copied">Copied</string>
+    <string name="msg_about_privacy">Music has no internet access. It reads only the folders you choose and keeps nothing about you.</string>
 </resources>

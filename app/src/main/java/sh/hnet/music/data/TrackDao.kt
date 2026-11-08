@@ -60,6 +60,9 @@ interface TrackDao {
         deleteSkippedOfFolder(folderUri)
     }
 
+    @Query("SELECT * FROM skipped_file WHERE folderUri = :folderUri ORDER BY relativePath COLLATE NOCASE")
+    fun observeSkipped(folderUri: String): Flow<List<SkippedFile>>
+
     @Query("SELECT folderUri, COUNT(*) AS count FROM track GROUP BY folderUri")
     fun observeTrackCounts(): Flow<List<FolderCount>>
 
