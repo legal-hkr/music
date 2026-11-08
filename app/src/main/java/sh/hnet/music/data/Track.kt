@@ -113,3 +113,30 @@ data class ScannedFile(
 data class FileState(val documentUri: String, val size: Long, val lastModified: Long)
 
 data class FolderCount(val folderUri: String, val count: Int)
+
+/** The columns the library views need, without the technical ones (codec, rate, ReplayGain). */
+data class LibraryTrack(
+    val documentUri: String,
+    val folderUri: String,
+    val relativePath: String,
+    val title: String?,
+    val artists: List<String>,
+    val album: String?,
+    val albumArtists: List<String>,
+    val trackNumber: Int?,
+    val discNumber: Int?,
+    val year: Int?,
+    val durationMs: Long,
+    val compilation: Boolean,
+    val titleSort: String?,
+    val artistSort: String?,
+    val albumSort: String?,
+    val albumArtistSort: String?,
+    val lastModified: Long,
+    val size: Long,
+    val hasEmbeddedCover: Boolean,
+) {
+    /** The title, or the file name without its extension when the file has none. */
+    val displayTitle: String
+        get() = title ?: relativePath.substringAfterLast('/').substringBeforeLast('.')
+}

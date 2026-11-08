@@ -109,6 +109,7 @@ class LibraryViewModel(private val app: MusicApplication) : ViewModel() {
                     replacing != null -> {
                         val addedAt = folderDao.get(replacing)?.addedAt ?: System.currentTimeMillis()
                         LibraryFolders.remove(resolver, folderDao, trackDao, replacing)
+                        app.covers.clearFolder(replacing)
                         LibraryFolders.add(resolver, folderDao, uri, addedAt)
                     }
                     else -> LibraryFolders.add(resolver, folderDao, uri)
@@ -122,6 +123,7 @@ class LibraryViewModel(private val app: MusicApplication) : ViewModel() {
     fun removeFolder(treeUri: String) {
         viewModelScope.launch(Dispatchers.IO) {
             LibraryFolders.remove(resolver, folderDao, trackDao, treeUri)
+            app.covers.clearFolder(treeUri)
             locations -= treeUri
             scanner.refreshAccess()
             // Files of a folder inside it now belong to this one's parent again, if any

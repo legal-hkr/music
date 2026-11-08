@@ -60,6 +60,13 @@ interface TrackDao {
         deleteSkippedOfFolder(folderUri)
     }
 
+    @Query(
+        "SELECT documentUri, folderUri, relativePath, title, artists, album, albumArtists, trackNumber, " +
+            "discNumber, year, durationMs, compilation, titleSort, artistSort, albumSort, albumArtistSort, " +
+            "lastModified, size, hasEmbeddedCover FROM track",
+    )
+    fun observeLibrary(): Flow<List<LibraryTrack>>
+
     @Query("SELECT * FROM skipped_file WHERE folderUri = :folderUri ORDER BY relativePath COLLATE NOCASE")
     fun observeSkipped(folderUri: String): Flow<List<SkippedFile>>
 

@@ -4,14 +4,14 @@ package sh.hnet.music.tags
 internal object Mp3Parser {
     private const val SYNC_SEARCH = 64 * 1024
 
-    fun parse(r: SourceReader, audioStart: Long, id3: TagBuilder): ParsedAudio? {
+    fun parse(r: SourceReader, audioStart: Long, id3: TagBuilder, pictures: PictureSink? = null): ParsedAudio? {
         var end = r.size
         val v1 = TagBuilder()
         if (Id3v1.isAt(r, end - Id3v1.SIZE)) {
             Id3v1.read(r, end - Id3v1.SIZE, v1)
             end -= Id3v1.SIZE
         }
-        val ape = TagBuilder()
+        val ape = TagBuilder(pictures)
         ApeTag.readEndingAt(r, end, ape)?.let { end = it }
         val properties = audio(r, audioStart, end) ?: return null
         return ParsedAudio(properties, id3.build().orElse(ape.build()).orElse(v1.build()))

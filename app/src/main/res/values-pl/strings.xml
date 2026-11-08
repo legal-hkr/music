@@ -89,4 +89,37 @@
     <string name="label_version">Wersja</string>
     <string name="msg_copied">Skopiowano</string>
     <string name="msg_about_privacy">Aplikacja nie ma dostępu do internetu. Czyta tylko te foldery, które wskażesz, i nie zbiera o Tobie żadnych informacji.</string>
+    <!-- Library views (S2) -->
+    <string name="label_view_albums">Albumy</string>
+    <string name="label_view_artists">Wykonawcy</string>
+    <string name="label_view_tracks">Utwory</string>
+    <string name="content_description_library_view">Widok biblioteki</string>
+    <string name="msg_view_coming">Ten widok pojawi się w kolejnej wersji.</string>
+    <plurals name="label_album_count">
+        <item quantity="one">%s album</item>
+        <item quantity="few">%s albumy</item>
+        <item quantity="many">%s albumów</item>
+        <item quantity="other">%s albumu</item>
+    </plurals>
+    <string name="label_sort_album_artist">Wykonawca albumu</string>
+    <string name="label_sort_title">Tytuł</string>
+    <string name="label_sort_year">Rok</string>
+    <string name="label_sort_recently_added">Ostatnio dodane</string>
+    <string name="content_description_sort">Sortowanie: %s</string>
+    <string name="label_various_artists">Różni wykonawcy</string>
+    <string name="content_description_album">Album %1$s, %2$s</string>
+    <string name="label_disc">Płyta %d</string>
+    <string name="label_duration_hm">%1$d h %2$d min</string>
+    <string name="label_duration_m">%d min</string>
+    <string name="button_play">Odtwórz</string>
+    <string name="button_shuffle">Losowo</string>
+    <string name="menu_play_next">Odtwórz jako następny</string>
+    <string name="menu_add_to_queue">Dodaj do kolejki</string>
+    <string name="menu_go_to_artist">Przejdź do wykonawcy</string>
+    <string name="menu_go_to_album">Przejdź do albumu</string>
+    <string name="msg_plays_next">Zagra jako następny</string>
+    <string name="msg_added_to_queue">Dodano do kolejki</string>
+    <string name="content_description_more_for">Więcej opcji: %s</string>
+    <string name="desc_playing">Odtwarzany</string>
+    <string name="desc_paused">Wstrzymany</string>
 </resources>

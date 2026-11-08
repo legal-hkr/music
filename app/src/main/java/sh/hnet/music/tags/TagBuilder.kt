@@ -1,12 +1,25 @@
 package sh.hnet.music.tags
 
+/** Receives embedded pictures while a file is parsed; [type] as in ID3 and FLAC (3: front cover). */
+fun interface PictureSink {
+    fun picture(type: Int, data: ByteArray)
+}
+
 /**
  * Collects fields under Vorbis comment names, whatever the tag format: ID3 frames, APE items
  * and MP4 atoms are mapped onto them, so one place turns fields into [AudioTags].
  */
-internal class TagBuilder {
+internal class TagBuilder(val pictures: PictureSink? = null) {
     private val fields = LinkedHashMap<String, MutableList<String>>()
     var hasCover = false
+
+    /** Notes a picture; reads it only when someone wants pictures ([read] gives its bytes). */
+    inline fun picture(type: Int, size: Long, read: () -> ByteArray?) {
+        hasCover = true
+        val sink = pictures ?: return
+        if (size > MAX_PICTURE) return
+        read()?.let { sink.picture(type, it) }
+    }
 
     fun add(key: String, value: String) {
         val clean = value.trim().trim('\u0000').trim()
@@ -50,6 +63,7 @@ internal class TagBuilder {
     }
 
     companion object {
+        const val MAX_PICTURE = 16L shl 20
         private val YEAR = Regex("""\d{4}""")
         private val LEADING_INT = Regex("""^\s*(\d+)""")
 

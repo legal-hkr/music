@@ -8,8 +8,8 @@ import java.io.IOException
  */
 object TagParser {
     /** Null when the file isn't a supported audio format or is damaged. */
-    fun parse(source: RandomAccessSource): ParsedAudio? = try {
-        parseOrThrow(source)
+    fun parse(source: RandomAccessSource, pictures: PictureSink? = null): ParsedAudio? = try {
+        parseOrThrow(source, pictures)
     } catch (_: IOException) {
         null
     } catch (_: RuntimeException) {
@@ -17,9 +17,9 @@ object TagParser {
         null
     }
 
-    internal fun parseOrThrow(source: RandomAccessSource): ParsedAudio? {
+    internal fun parseOrThrow(source: RandomAccessSource, pictures: PictureSink? = null): ParsedAudio? {
         val r = SourceReader(source)
-        val id3 = TagBuilder()
+        val id3 = TagBuilder(pictures)
         var start = 0L
         while (true) {
             val size = Id3v2.tagSize(r, start)
@@ -29,10 +29,10 @@ object TagParser {
         }
         val magic = r.peek(start, 8)
         return when {
-            magic.startsWith("fLaC") -> FlacParser.parse(r, start)?.withFallback(id3)
-            magic.startsWith("OggS") -> OggParser.parse(r, start)?.withFallback(id3)
-            start == 0L && magic.startsWith("ftyp", 4) -> Mp4Parser.parse(r)
-            else -> Mp3Parser.parse(r, start, id3)
+            magic.startsWith("fLaC") -> FlacParser.parse(r, start, pictures)?.withFallback(id3)
+            magic.startsWith("OggS") -> OggParser.parse(r, start, pictures)?.withFallback(id3)
+            start == 0L && magic.startsWith("ftyp", 4) -> Mp4Parser.parse(r, pictures)
+            else -> Mp3Parser.parse(r, start, id3, pictures)
         }
     }
 

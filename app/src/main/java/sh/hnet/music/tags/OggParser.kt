@@ -6,11 +6,11 @@ import java.io.EOFException
 internal object OggParser {
     private const val OPUS_RATE = 48_000
 
-    fun parse(r: SourceReader, start: Long): ParsedAudio? {
+    fun parse(r: SourceReader, start: Long, pictures: PictureSink? = null): ParsedAudio? {
         val packets = OggPacketInput(r, start)
         packets.startPacket()
         val ident = packets.readBytes(8)
-        val tags = TagBuilder()
+        val tags = TagBuilder(pictures)
         val codec: AudioCodec
         val sampleRate: Int
         val channels: Int

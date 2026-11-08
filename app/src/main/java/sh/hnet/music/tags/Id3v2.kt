@@ -106,32 +106,17 @@ internal object Id3v2 {
     private fun frame(r: SourceReader, id: String, major: Int, flags: Int, dataStart: Long, size: Long, into: TagBuilder) {
         if (id in PICTURES) {
             into.hasCover = true
+            // The picture type sits inside the frame, after the encoding and the MIME type
+            val sink = into.pictures ?: return
+            if (size > TagBuilder.MAX_PICTURE) return
+            val data = frameData(r, major, flags, dataStart, size, TagBuilder.MAX_PICTURE.toInt()) ?: return
+            picture(id, data)?.let { (type, bytes) -> sink.picture(type, bytes) }
             return
         }
         val key = TEXT_FRAMES[id]
         if (key == null && id !in USER_TEXT) return
         if (size > MAX_FRAME || size < 1) return
-        r.seek(dataStart)
-        var data = r.readBytes(size.toInt())
-        var skip = 0
-        var compressed = false
-        when (major) {
-            3 -> {
-                if (flags and 0x0040 != 0) return // encrypted
-                if (flags and 0x0080 != 0) { compressed = true; skip += 4 }
-                if (flags and 0x0020 != 0) skip += 1
-            }
-            4 -> {
-                if (flags and 0x0004 != 0) return // encrypted
-                if (flags and 0x0040 != 0) skip += 1
-                if (flags and 0x0001 != 0) skip += 4
-                compressed = flags and 0x0008 != 0
-            }
-        }
-        if (skip >= data.size) return
-        data = data.copyOfRange(skip, data.size)
-        if (major == 4 && flags and 0x0002 != 0) data = resync(data)
-        if (compressed) data = inflate(data) ?: return
+        val data = frameData(r, major, flags, dataStart, size, MAX_FRAME) ?: return
         if (data.isEmpty()) return
         val values = strings(data[0].toInt(), data, 1)
         if (key == null) {
@@ -143,6 +128,64 @@ internal object Id3v2 {
         } else {
             values.forEach { into.add(key, it) }
         }
+    }
+
+    /** A frame's content with its format flags undone (extra header bytes, unsynchronisation, compression). */
+    private fun frameData(r: SourceReader, major: Int, flags: Int, dataStart: Long, size: Long, limit: Int): ByteArray? {
+        if (size < 1) return null
+        r.seek(dataStart)
+        var data = r.readBytes(size.toInt())
+        var skip = 0
+        var compressed = false
+        when (major) {
+            3 -> {
+                if (flags and 0x0040 != 0) return null // encrypted
+                if (flags and 0x0080 != 0) { compressed = true; skip += 4 }
+                if (flags and 0x0020 != 0) skip += 1
+            }
+            4 -> {
+                if (flags and 0x0004 != 0) return null // encrypted
+                if (flags and 0x0040 != 0) skip += 1
+                if (flags and 0x0001 != 0) skip += 4
+                compressed = flags and 0x0008 != 0
+            }
+        }
+        if (skip >= data.size) return null
+        data = data.copyOfRange(skip, data.size)
+        if (major == 4 && flags and 0x0002 != 0) data = resync(data)
+        if (compressed) data = inflate(data, limit) ?: return null
+        return data
+    }
+
+    /**
+     * APIC: encoding, MIME type (Latin-1, terminated), picture type, description (in the encoding,
+     * terminated), image. v2.2 PIC: encoding, three-letter format, type, description, image.
+     */
+    private fun picture(id: String, data: ByteArray): Pair<Int, ByteArray>? {
+        if (data.size < 4) return null
+        val encoding = data[0].toInt()
+        var i = if (id == "PIC") {
+            4
+        } else {
+            val end = (1 until data.size).firstOrNull { data[it].toInt() == 0 } ?: return null
+            end + 1
+        }
+        if (i >= data.size) return null
+        val type = data[i].toInt() and 0xFF
+        i++
+        // Description, terminated by one zero byte, or two at an even offset for UTF-16
+        val wide = encoding == 1 || encoding == 2
+        while (i < data.size) {
+            if (wide) {
+                if (i + 1 < data.size && data[i].toInt() == 0 && data[i + 1].toInt() == 0) { i += 2; break }
+                i += 2
+            } else {
+                if (data[i].toInt() == 0) { i += 1; break }
+                i += 1
+            }
+        }
+        if (i >= data.size) return null
+        return type to data.copyOfRange(i, data.size)
     }
 
     /** "(17)", "17", "(17)Rock" or a name. */
@@ -179,7 +222,7 @@ internal object Id3v2 {
         return result.map { it.trim() }.dropLastWhile { it.isEmpty() }
     }
 
-    private fun inflate(data: ByteArray): ByteArray? {
+    private fun inflate(data: ByteArray, limit: Int): ByteArray? {
         if (data.isEmpty()) return null
         val inflater = Inflater()
         return try {
@@ -190,7 +233,7 @@ internal object Id3v2 {
                 val n = inflater.inflate(buffer)
                 if (n == 0 && (inflater.needsInput() || inflater.needsDictionary())) break
                 out.write(buffer, 0, n)
-                if (out.size() > MAX_FRAME) return null
+                if (out.size() > limit) return null
             }
             out.toByteArray()
         } catch (_: java.util.zip.DataFormatException) {
@@ -276,7 +319,12 @@ internal object ApeTag {
             if (valueStart + valueSize > end - 32) break
             val type = (flags shr 1 and 3).toInt()
             when {
-                key.uppercase().startsWith("COVER ART") -> into.hasCover = true
+                key.uppercase().startsWith("COVER ART") -> into.picture(if (key.uppercase() == "COVER ART (FRONT)") 3 else 0, valueSize) {
+                    // Binary item: the file name, a zero byte, then the image
+                    val value = r.readBytes(valueSize.toInt())
+                    val zero = value.indexOf(0)
+                    if (zero < 0) null else value.copyOfRange(zero + 1, value.size)
+                }
                 type == 0 && valueSize <= MAX_VALUE -> String(r.readBytes(valueSize.toInt()), Charsets.UTF_8)
                     .split('\u0000').forEach { into.add(key, it) }
             }

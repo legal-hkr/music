@@ -57,6 +57,9 @@ import androidx.navigation3.ui.NavDisplay
 import sh.hnet.music.MusicApplication
 import sh.hnet.music.R
 import sh.hnet.music.ui.components.formatCount
+import sh.hnet.music.ui.library.AlbumScreen
+import sh.hnet.music.ui.library.ArtistScreen
+import sh.hnet.music.ui.library.BrowseViewModel
 import sh.hnet.music.ui.library.LibraryScreen
 import sh.hnet.music.ui.search.SearchScreen
 import sh.hnet.music.ui.settings.AboutScreen
@@ -72,6 +75,7 @@ import sh.hnet.music.ui.settings.SettingsRootScreen
 fun MusicApp() {
     val app = LocalContext.current.applicationContext as MusicApplication
     val library: LibraryViewModel = viewModel { LibraryViewModel(app) }
+    val browse: BrowseViewModel = viewModel { BrowseViewModel(app) }
     val summary by library.summary.collectAsStateWithLifecycle()
 
     var tab by rememberSaveable { mutableStateOf(Tab.LIBRARY) }
@@ -166,7 +170,18 @@ fun MusicApp() {
                         (slideOutHorizontally(spatial) { shift } + fadeOut(fastEffects))
                 },
                 entryProvider = entryProvider {
-                    entry<Screen.Library> { LibraryScreen() }
+                    entry<Screen.Library> { LibraryScreen(browse, onOpenAlbum = { currentStack.add(Screen.Album(it)) }) }
+                    entry<Screen.Album> { key ->
+                        AlbumScreen(
+                            browse,
+                            key.key,
+                            onBack = { currentStack.removeAt(currentStack.lastIndex) },
+                            onOpenArtist = { currentStack.add(Screen.Artist(it)) },
+                        )
+                    }
+                    entry<Screen.Artist> { key ->
+                        ArtistScreen(key.name, onBack = { currentStack.removeAt(currentStack.lastIndex) })
+                    }
                     entry<Screen.Search> { SearchScreen() }
                     entry<Screen.Settings> {
                         SettingsRootScreen(

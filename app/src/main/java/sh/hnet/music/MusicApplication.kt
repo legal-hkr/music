@@ -4,7 +4,10 @@ import android.app.Application
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import sh.hnet.music.data.MusicDatabase
+import sh.hnet.music.library.CoverCache
+import sh.hnet.music.library.LibraryRepository
 import sh.hnet.music.library.LibraryScanner
+import sh.hnet.music.playback.PlayerConnection
 
 class MusicApplication : Application() {
     /** Work that outlives a screen (scans); lives as long as the process. */
@@ -15,4 +18,12 @@ class MusicApplication : Application() {
     val scanner: LibraryScanner by lazy {
         LibraryScanner(contentResolver, database.libraryFolderDao(), database.trackDao(), appScope)
     }
+
+    val library: LibraryRepository by lazy { LibraryRepository(database.trackDao(), appScope) }
+
+    val covers: CoverCache by lazy { CoverCache(this) }
+
+    val player: PlayerConnection by lazy { PlayerConnection(this) }
+
+    val preferences: Preferences by lazy { Preferences(this) }
 }

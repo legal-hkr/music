@@ -75,6 +75,7 @@ dependencies {
     implementation(libs.navigation3.runtime)
     implementation(libs.navigation3.ui)
     implementation(libs.kotlinx.serialization.core)
+    implementation(libs.datastore.preferences)
 
     implementation(libs.media3.exoplayer)
     implementation(libs.media3.session)

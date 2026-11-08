@@ -28,16 +28,16 @@ internal object Mp4Parser {
         var bitsPerSample: Int? = null
     }
 
-    private class State {
+    private class State(pictures: PictureSink?) {
         var movieTimescale = 0L
         var movieDuration = 0L
         var audio: Track? = null
         var mdatBytes = 0L
-        val tags = TagBuilder()
+        val tags = TagBuilder(pictures)
     }
 
-    fun parse(r: SourceReader): ParsedAudio? {
-        val state = State()
+    fun parse(r: SourceReader, pictures: PictureSink? = null): ParsedAudio? {
+        val state = State(pictures)
         boxes(r, 0, r.size) { type, start, end ->
             when (type) {
                 "moov" -> moov(r, start, end, state)
@@ -176,7 +176,15 @@ internal object Mp4Parser {
     private fun ilst(r: SourceReader, start: Long, end: Long, tags: TagBuilder) {
         boxes(r, start, end) { item, payload, itemEnd ->
             if (item == "covr") {
-                tags.hasCover = true
+                // One data box per picture; iTunes keeps the front cover first
+                boxes(r, payload, itemEnd) { child, childPayload, childEnd ->
+                    if (child == "data" && childEnd - childPayload > 8) {
+                        tags.picture(3, childEnd - childPayload - 8) {
+                            r.seek(childPayload + 8)
+                            r.readBytes((childEnd - childPayload - 8).toInt())
+                        }
+                    }
+                }
                 return@boxes
             }
             var name: String? = null

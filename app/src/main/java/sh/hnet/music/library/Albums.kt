@@ -1,0 +1,121 @@
+package sh.hnet.music.library
+
+import sh.hnet.music.data.LibraryTrack
+import java.text.CollationKey
+import java.text.Collator
+import java.util.Locale
+
+/**
+ * An album as the library shows it (SPEC §4.4).
+ *
+ * @param albumArtists The album artist tags; empty when the files have none.
+ * @param shownArtists Who the album is shown under: the tags, else the one artist all tracks share;
+ *   empty for a compilation without tags ("Various artists").
+ */
+data class Album(
+    val key: String,
+    val title: String,
+    val albumArtists: List<String>,
+    val shownArtists: List<String>,
+    val compilation: Boolean,
+    val year: Int?,
+    /** In disc and track order; tracks without a number after the numbered ones, by title. */
+    val tracks: List<LibraryTrack>,
+    val discCount: Int,
+    val durationMs: Long,
+    /** The newest file's modification time: when the album came to the device, near enough. */
+    val addedAt: Long,
+    val coverTrack: LibraryTrack?,
+    val albumSort: String?,
+    val albumArtistSort: String?,
+) {
+    val isVarious: Boolean get() = shownArtists.isEmpty()
+
+    /** Whether a track's row shows its artists: always on a compilation, else when they differ. */
+    fun showsArtistOf(track: LibraryTrack): Boolean = compilation || track.artists != shownArtists
+}
+
+enum class AlbumSort { ALBUM_ARTIST, TITLE, YEAR, RECENTLY_ADDED }
+
+object Albums {
+    private val DISC_FOLDER = Regex("""^(cd|disc|disk|dysk|płyta)\s*[-_]?\s*\d+$""", RegexOption.IGNORE_CASE)
+
+    /** Groups tracks into albums; tracks without an album tag stay out (they're in Tracks). */
+    fun group(tracks: List<LibraryTrack>): List<Album> =
+        tracks.filter { !it.album.isNullOrBlank() }
+            .groupBy(::keyOf)
+            .map { (key, members) -> build(key, members) }
+
+    /**
+     * Album title + album artists; without album artist tags, title + the folder the files are in
+     * (a "CD1"/"Disc 2" folder counts as its parent), so two different "Greatest Hits" don't merge.
+     */
+    private fun keyOf(track: LibraryTrack): String {
+        val title = normalize(track.album!!)
+        if (track.albumArtists.isNotEmpty()) {
+            return "a\u0000$title\u0000" + track.albumArtists.joinToString("\u0001") { normalize(it) }
+        }
+        val parts = track.relativePath.split('/').dropLast(1)
+        val folder = if (parts.isNotEmpty() && DISC_FOLDER.matches(parts.last().trim())) parts.dropLast(1) else parts
+        return "f\u0000$title\u0000${track.folderUri}\u0000" + folder.joinToString("/")
+    }
+
+    private fun normalize(text: String) = text.trim().lowercase(Locale.ROOT)
+
+    private fun build(key: String, members: List<LibraryTrack>): Album {
+        val ordered = members.sortedWith(
+            compareBy<LibraryTrack> { it.discNumber ?: 1 }
+                .thenBy { it.trackNumber == null }
+                .thenBy { it.trackNumber ?: 0 }
+                .thenBy { it.displayTitle.lowercase() },
+        )
+        val first = ordered.first()
+        val albumArtists = first.albumArtists
+        val leadArtists = ordered.mapNotNull { it.artists.firstOrNull() }.distinct()
+        val compilation = ordered.any { it.compilation } || leadArtists.size > 1
+        val shown = when {
+            albumArtists.isNotEmpty() -> albumArtists
+            compilation -> emptyList()
+            else -> leadArtists
+        }
+        return Album(
+            key = key,
+            title = first.album!!.trim(),
+            albumArtists = albumArtists,
+            shownArtists = shown,
+            compilation = compilation,
+            year = ordered.firstNotNullOfOrNull { it.year },
+            tracks = ordered,
+            discCount = ordered.mapNotNull { it.discNumber }.distinct().size.coerceAtLeast(1),
+            durationMs = ordered.sumOf { it.durationMs },
+            addedAt = ordered.maxOf { it.lastModified },
+            coverTrack = ordered.firstOrNull { it.hasEmbeddedCover },
+            albumSort = ordered.firstNotNullOfOrNull { it.albumSort },
+            albumArtistSort = ordered.firstNotNullOfOrNull { it.albumArtistSort },
+        )
+    }
+
+    /**
+     * Sorted per SPEC §4.2: sort tags win over names, comparison by the locale's collator, a leading
+     * "The " ignored only when there's no sort tag; "Various artists" last by album artist.
+     */
+    fun sort(albums: List<Album>, order: AlbumSort, locale: Locale): List<Album> {
+        val collator = Collator.getInstance(locale).apply { strength = Collator.SECONDARY }
+        val keys = HashMap<String, CollationKey>()
+        fun key(text: String): CollationKey = keys.getOrPut(text) { collator.getCollationKey(text) }
+        val byTitle = compareBy<Album> { key(it.albumSort ?: withoutArticle(it.title)) }
+        val comparator = when (order) {
+            AlbumSort.TITLE -> byTitle
+            AlbumSort.ALBUM_ARTIST -> compareBy<Album> { it.isVarious }
+                .thenBy { key(it.albumArtistSort ?: withoutArticle(it.shownArtists.joinToString(", "))) }
+                .thenBy(nullsLast<Int>()) { it.year }
+                .then(byTitle)
+            AlbumSort.YEAR -> compareBy<Album, Int?>(nullsLast(reverseOrder())) { it.year }.then(byTitle)
+            AlbumSort.RECENTLY_ADDED -> compareByDescending<Album> { it.addedAt }.then(byTitle)
+        }
+        return albums.sortedWith(comparator)
+    }
+
+    fun withoutArticle(text: String): String =
+        if (text.length > 4 && text.startsWith("The ", ignoreCase = true)) text.substring(4) else text
+}

@@ -16,6 +16,8 @@ enum class Tab(val root: Screen, @param:StringRes val label: Int, @param:Drawabl
 @Serializable
 sealed interface Screen : NavKey {
     @Serializable data object Library : Screen
+    @Serializable data class Album(val key: String) : Screen
+    @Serializable data class Artist(val name: String) : Screen
     @Serializable data object Search : Screen
     @Serializable data object Settings : Screen
     @Serializable data object SettingsLibrary : Screen

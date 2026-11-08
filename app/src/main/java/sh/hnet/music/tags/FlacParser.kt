@@ -6,9 +6,9 @@ internal object FlacParser {
     private const val VORBIS_COMMENT = 4
     private const val PICTURE = 6
 
-    fun parse(r: SourceReader, start: Long): ParsedAudio? {
+    fun parse(r: SourceReader, start: Long, pictures: PictureSink? = null): ParsedAudio? {
         r.seek(start + 4)
-        val tags = TagBuilder()
+        val tags = TagBuilder(pictures)
         var info: StreamInfo? = null
         while (true) {
             val header = r.u8()
@@ -19,7 +19,9 @@ internal object FlacParser {
             when (type) {
                 STREAMINFO -> info = streamInfo(r)
                 VORBIS_COMMENT -> VorbisComment.read(r, tags)
-                PICTURE -> tags.hasCover = true
+                PICTURE -> tags.picture(r.peek(blockStart, 4).fold(0) { a, b -> (a shl 8) or (b.toInt() and 0xFF) }, length.toLong()) {
+                    pictureBlock(r)
+                }
             }
             r.seek(blockStart + length)
             if (header and 0x80 != 0) break
@@ -52,6 +54,20 @@ internal object FlacParser {
             (b[4].toLong() shl 24) or (b[5].toLong() shl 16) or (b[6].toLong() shl 8) or b[7].toLong()
         return StreamInfo(sampleRate, channels, bitsPerSample, totalSamples)
     }
+}
+
+/**
+ * The image inside a FLAC picture block (also Ogg's METADATA_BLOCK_PICTURE): type, MIME type,
+ * description, four dimensions, then the data.
+ */
+internal fun pictureBlock(input: ByteInput): ByteArray? {
+    input.skip(4) // type, read by the caller
+    input.skip(input.u32be()) // MIME type
+    input.skip(input.u32be()) // description
+    input.skip(16) // width, height, depth, colours
+    val length = input.u32be()
+    if (length > TagBuilder.MAX_PICTURE) return null
+    return input.readBytes(length.toInt())
 }
 
 /** Average bitrate of [bytes] of audio lasting [durationMs]. */
