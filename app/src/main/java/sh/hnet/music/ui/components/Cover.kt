@@ -14,6 +14,7 @@ import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
@@ -34,14 +35,17 @@ import sh.hnet.music.data.LibraryTrack
 
 /**
  * A track's embedded cover, square and cropped, or the placeholder (SPEC §4.5) when it has none.
- * The placeholder also shows while the picture loads, so nothing jumps.
+ * The placeholder also shows while the picture loads, so nothing jumps. [player] marks the mini
+ * player and now playing, whose neighbouring tracks' covers are loaded ahead.
  */
 @Composable
-fun Cover(track: LibraryTrack?, shape: Shape, modifier: Modifier = Modifier) {
+fun Cover(track: LibraryTrack?, shape: Shape, modifier: Modifier = Modifier, player: Boolean = false) {
     BoxWithConstraints(modifier.clip(shape)) {
         val px = with(LocalDensity.current) { maxWidth.roundToPx() }
         val covers = (LocalContext.current.applicationContext as MusicApplication).covers
         val size = covers.sizeFor(px)
+        // The player's surfaces tell the cache which sizes to load ahead for the next track
+        if (player) SideEffect { covers.notePlayerSize(size) }
         val image by produceState<ImageBitmap?>(
             initialValue = track?.let { covers.cached(it, size)?.asImageBitmap() },
             key1 = track?.documentUri, key2 = track?.lastModified, key3 = size,

@@ -119,7 +119,7 @@ fun NowPlayingScreen(
             if (landscape) {
                 Row(Modifier.fillMaxSize().padding(bottom = 16.dp), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
                     Box(Modifier.weight(1f).fillMaxSize().then(dragArea), contentAlignment = Alignment.Center) {
-                        Cover(track, RoundedCornerShape(28.dp), Modifier.padding(start = 24.dp).aspectRatio(1f, matchHeightConstraintsFirst = true))
+                        Cover(track, RoundedCornerShape(28.dp), Modifier.padding(start = 24.dp).aspectRatio(1f, matchHeightConstraintsFirst = true), player = true)
                     }
                     Column(Modifier.weight(1f).padding(end = 24.dp), verticalArrangement = Arrangement.Center) {
                         Controls(track, details, gain, state, player, onGoToArtist, onGoToAlbum, onDetails, onQueue)
@@ -130,7 +130,7 @@ fun NowPlayingScreen(
                     Modifier.weight(1f).fillMaxWidth().heightIn(min = 200.dp).then(dragArea).padding(horizontal = 24.dp),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Cover(track, RoundedCornerShape(28.dp), Modifier.aspectRatio(1f, matchHeightConstraintsFirst = true))
+                    Cover(track, RoundedCornerShape(28.dp), Modifier.aspectRatio(1f, matchHeightConstraintsFirst = true), player = true)
                 }
                 Spacer(Modifier.height(20.dp))
                 Column(Modifier.padding(horizontal = 24.dp).padding(bottom = 16.dp)) {

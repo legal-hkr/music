@@ -17,6 +17,7 @@ import sh.hnet.music.tags.FileChannelSource
 import java.io.File
 import java.io.IOException
 import java.security.MessageDigest
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Cover thumbnails: decoded from the embedded picture once, kept in memory and in the app's own
@@ -43,11 +44,27 @@ class CoverCache(context: Context) {
 
     fun cached(track: LibraryTrack, size: Int): Bitmap? = memory.get(key(track, size))
 
+    /** Sizes the player's surfaces (mini player, now playing) show the current cover at. */
+    private val playerSizes: MutableSet<Int> = ConcurrentHashMap.newKeySet()
+
+    fun notePlayerSize(size: Int) {
+        playerSizes.add(size)
+    }
+
+    /**
+     * Loads [track]'s cover at the player's sizes ahead of time, so skipping to it shows the cover
+     * at once instead of the placeholder while it is decoded.
+     */
+    suspend fun prefetch(track: LibraryTrack) {
+        if (!track.hasEmbeddedCover) return
+        playerSizes.forEach { size -> if (cached(track, size) == null) load(track, size) }
+    }
+
     suspend fun load(track: LibraryTrack, size: Int): Bitmap? = withContext(decoding) {
         val key = key(track, size)
         memory.get(key)?.let { return@withContext it }
         val file = File(folderOf(track.folderUri), "$key.webp")
-        val bitmap = BitmapFactory.decodeFile(file.path) ?: decodeEmbedded(track, size)?.also { store(file, it) }
+        val bitmap = (if (file.exists()) BitmapFactory.decodeFile(file.path) else null) ?: decodeEmbedded(track, size)?.also { store(file, it) }
         bitmap?.also { memory.put(key, it) }
     }
 

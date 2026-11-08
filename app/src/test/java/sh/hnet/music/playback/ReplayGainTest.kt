@@ -43,9 +43,12 @@ class ReplayGainTest {
     }
 
     @Test
-    fun positiveGainIsNotAmplified() {
+    fun positiveGainIsAppliedUpToThePeak() {
         val quiet = GainTags(trackGainDb = 5f, trackPeak = 0.3f, albumGainDb = null, albumPeak = null)
-        assertEquals(0f, ReplayGain.compute(quiet, GainSettings(ReplayGainMode.TRACK), false)!!.db)
+        assertEquals(5f, ReplayGain.compute(quiet, GainSettings(ReplayGainMode.TRACK), false)!!.db)
+        val loud = quiet.copy(trackPeak = 0.8f)
+        val applied = ReplayGain.compute(loud, GainSettings(ReplayGainMode.TRACK), false)!!
+        assertTrue(0.8f * applied.linear <= 1.0001f && applied.db > 1.9f)
     }
 
     @Test

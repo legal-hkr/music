@@ -62,7 +62,7 @@ fun MiniPlayer(
                 .clickable(onClick = onOpen)
                 .padding(start = 8.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
         ) {
-            Cover(track, RoundedCornerShape(12.dp), Modifier.size(48.dp))
+            Cover(track, RoundedCornerShape(12.dp), Modifier.size(48.dp), player = true)
             Spacer(Modifier.width(12.dp))
             Column(
                 verticalArrangement = Arrangement.Center,

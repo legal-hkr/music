@@ -6,7 +6,10 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -56,5 +59,11 @@ class PlayerViewModel(app: MusicApplication) : ViewModel() {
 
     init {
         player.connect()
+        // The tracks either side of the current one in play order get their covers loaded ahead
+        viewModelScope.launch {
+            combine(player.queue, app.library.tracksByUri) { queue, tracks ->
+                listOf(queue.current + 1, queue.current - 1).mapNotNull { i -> queue.items.getOrNull(i)?.let { tracks[it.mediaId] } }
+            }.distinctUntilChanged().collectLatest { neighbours -> neighbours.forEach { app.covers.prefetch(it) } }
+        }
     }
 }

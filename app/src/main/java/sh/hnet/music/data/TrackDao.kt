@@ -63,22 +63,20 @@ interface TrackDao {
     @Query(
         "SELECT documentUri, folderUri, relativePath, title, artists, album, albumArtists, trackNumber, " +
             "discNumber, year, durationMs, compilation, titleSort, artistSort, albumSort, albumArtistSort, " +
-            "lastModified, size, hasEmbeddedCover FROM track",
+            "lastModified, size, hasEmbeddedCover, trackGainDb, trackPeak, albumGainDb, albumPeak FROM track",
     )
     fun observeLibrary(): Flow<List<LibraryTrack>>
 
     @Query(
         "SELECT documentUri, folderUri, relativePath, title, artists, album, albumArtists, trackNumber, " +
             "discNumber, year, durationMs, compilation, titleSort, artistSort, albumSort, albumArtistSort, " +
-            "lastModified, size, hasEmbeddedCover FROM track WHERE documentUri IN (:uris)",
+            "lastModified, size, hasEmbeddedCover, trackGainDb, trackPeak, albumGainDb, albumPeak FROM track WHERE documentUri IN (:uris)",
     )
     suspend fun libraryTracks(uris: List<String>): List<LibraryTrack>
 
     @Query("SELECT * FROM track WHERE documentUri = :documentUri")
     fun observeTrack(documentUri: String): Flow<Track?>
 
-    @Query("SELECT * FROM track WHERE documentUri = :documentUri")
-    suspend fun track(documentUri: String): Track?
 
     @Query("SELECT * FROM skipped_file WHERE folderUri = :folderUri ORDER BY relativePath COLLATE NOCASE")
     fun observeSkipped(folderUri: String): Flow<List<SkippedFile>>

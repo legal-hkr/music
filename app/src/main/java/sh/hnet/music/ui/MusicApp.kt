@@ -14,6 +14,8 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Badge
@@ -264,7 +266,11 @@ fun MusicApp(openNowPlaying: Int = 0) {
             targetState = tab,
             // Fade through between destinations
             transitionSpec = { (fadeIn(effects) + scaleIn(initialScale = 0.92f)) togetherWith fadeOut(fastEffects) },
-            modifier = Modifier.fillMaxSize().padding(bottom = padding.calculateBottomPadding()),
+            // The bottom bar's height is padding already given: the keyboard (imePadding in Search)
+            // only adds what it covers beyond it, or the screen ends a bar's height above the keyboard
+            modifier = Modifier.fillMaxSize()
+                .padding(bottom = padding.calculateBottomPadding())
+                .consumeWindowInsets(PaddingValues(bottom = padding.calculateBottomPadding())),
             label = "destination",
         ) { current ->
             val currentStack = stacks.getValue(current)

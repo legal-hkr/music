@@ -135,6 +135,10 @@ data class LibraryTrack(
     val lastModified: Long,
     val size: Long,
     val hasEmbeddedCover: Boolean,
+    val trackGainDb: Float? = null,
+    val trackPeak: Float? = null,
+    val albumGainDb: Float? = null,
+    val albumPeak: Float? = null,
 ) {
     /** The title, or the file name without its extension when the file has none. */
     val displayTitle: String

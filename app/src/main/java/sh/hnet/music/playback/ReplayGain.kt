@@ -33,7 +33,8 @@ object ReplayGain {
      * track gain otherwise, each falling back to the other and then to the pre-amp. With
      * [GainSettings.preventClipping] the gain is lowered so the peak stays at or below full scale.
      *
-     * The player can only attenuate (volume ≤ 1), so a positive result is applied as 0 dB.
+     * Positive gain is applied too (samples are scaled as float); without clipping prevention a
+     * peak may then exceed full scale and clip at the output.
      *
      * @return null when ReplayGain is off, or the file has no tags and the pre-amp is 0 dB
      */
@@ -53,12 +54,14 @@ object ReplayGain {
             }
         var db = gain
         if (settings.preventClipping && peak != null && peak > 0f) db = min(db, -20f * log10(peak))
-        return AppliedGain(min(db, 0f), isAlbum)
+        return AppliedGain(db, isAlbum)
     }
 }
 
 /** Tags of a library track. */
 fun sh.hnet.music.data.Track.gainTags() = GainTags(trackGainDb, trackPeak, albumGainDb, albumPeak)
+
+fun sh.hnet.music.data.LibraryTrack.gainTags() = GainTags(trackGainDb, trackPeak, albumGainDb, albumPeak)
 
 /**
  * "An album plays in order" (SPEC §11.4) as the queue shows it: shuffle off and a neighbour in the
