@@ -59,6 +59,9 @@ import sh.hnet.music.R
 import sh.hnet.music.ui.components.formatCount
 import sh.hnet.music.ui.library.AlbumScreen
 import sh.hnet.music.ui.library.ArtistScreen
+import sh.hnet.music.ui.library.ArtistTracksScreen
+import sh.hnet.music.library.Albums
+import sh.hnet.music.ui.components.TrackNavigation
 import sh.hnet.music.ui.library.BrowseViewModel
 import sh.hnet.music.ui.library.LibraryScreen
 import sh.hnet.music.ui.search.SearchScreen
@@ -152,6 +155,12 @@ fun MusicApp() {
             label = "destination",
         ) { current ->
             val currentStack = stacks.getValue(current)
+            val back: () -> Unit = { currentStack.removeAt(currentStack.lastIndex) }
+            // Go to artist / album from any track menu opens the page in this destination's stack
+            val trackNavigation = TrackNavigation(
+                onGoToArtist = { currentStack.add(Screen.Artist(it)) },
+                onGoToAlbum = { track -> currentStack.add(Screen.Album(Albums.keyOf(track))) },
+            )
             NavDisplay(
                 backStack = currentStack,
                 onBack = { if (currentStack.size > 1) currentStack.removeAt(currentStack.lastIndex) },
@@ -170,17 +179,35 @@ fun MusicApp() {
                         (slideOutHorizontally(spatial) { shift } + fadeOut(fastEffects))
                 },
                 entryProvider = entryProvider {
-                    entry<Screen.Library> { LibraryScreen(browse, onOpenAlbum = { currentStack.add(Screen.Album(it)) }) }
+                    entry<Screen.Library> {
+                        LibraryScreen(
+                            browse,
+                            navigation = trackNavigation,
+                            onOpenAlbum = { currentStack.add(Screen.Album(it)) },
+                            onOpenArtist = { currentStack.add(Screen.Artist(it)) },
+                        )
+                    }
                     entry<Screen.Album> { key ->
                         AlbumScreen(
                             browse,
                             key.key,
-                            onBack = { currentStack.removeAt(currentStack.lastIndex) },
+                            navigation = trackNavigation,
+                            onBack = back,
                             onOpenArtist = { currentStack.add(Screen.Artist(it)) },
                         )
                     }
                     entry<Screen.Artist> { key ->
-                        ArtistScreen(key.name, onBack = { currentStack.removeAt(currentStack.lastIndex) })
+                        ArtistScreen(
+                            browse,
+                            key.name,
+                            navigation = trackNavigation,
+                            onBack = back,
+                            onOpenAlbum = { currentStack.add(Screen.Album(it)) },
+                            onShowAllTracks = { currentStack.add(Screen.ArtistTracks(key.name)) },
+                        )
+                    }
+                    entry<Screen.ArtistTracks> { key ->
+                        ArtistTracksScreen(browse, key.name, trackNavigation, onBack = back)
                     }
                     entry<Screen.Search> { SearchScreen() }
                     entry<Screen.Settings> {

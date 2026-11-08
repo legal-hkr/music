@@ -47,8 +47,11 @@ enum class PlayState { NONE, PLAYING, PAUSED }
 /** Where a row's menu can lead; absent ones are left out of the menu, never disabled (SPEC §5.4). */
 class TrackNavigation(
     val onGoToArtist: ((String) -> Unit)?,
-    val onGoToAlbum: (() -> Unit)?,
-)
+    val onGoToAlbum: ((LibraryTrack) -> Unit)?,
+) {
+    /** The same, without Go to album (on the album's own page). */
+    fun withoutAlbum() = TrackNavigation(onGoToArtist, null)
+}
 
 /**
  * A track row (SPEC §5.1): optional number, title, supporting line, duration and a menu.
@@ -64,6 +67,8 @@ fun TrackRow(
     onClick: () -> Unit,
     number: Int? = null,
     showNumberColumn: Boolean = false,
+    /** Indent in dp, e.g. under an album row on the artist page. */
+    startPadding: Int = 0,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     val playingLabel = stringResource(R.string.desc_playing)
@@ -75,6 +80,7 @@ fun TrackRow(
         ),
         modifier = Modifier
             .clickable(onClick = onClick)
+            .padding(start = startPadding.dp)
             .semantics {
                 when (state) {
                     PlayState.PLAYING -> stateDescription = playingLabel
@@ -167,7 +173,7 @@ private fun TrackMenu(track: LibraryTrack, expanded: Boolean, navigation: TrackN
                     }
                 })
             }
-            navigation.onGoToAlbum?.let { go -> if (track.album != null) add(R.string.menu_go_to_album to { onDismiss(); go() }) }
+            navigation.onGoToAlbum?.let { go -> if (!track.album.isNullOrBlank()) add(R.string.menu_go_to_album to { onDismiss(); go(track) }) }
         }
         if (goTo.isNotEmpty()) {
             Spacer(Modifier.height(MenuDefaults.GroupSpacing))

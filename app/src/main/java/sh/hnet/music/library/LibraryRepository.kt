@@ -5,6 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -26,6 +27,15 @@ class LibraryRepository(dao: TrackDao, scope: CoroutineScope) {
         .map { it?.let(Albums::group) }
         .flowOn(Dispatchers.Default)
         .stateIn(scope, SharingStarted.Eagerly, null)
+
+    val artists: StateFlow<List<Artist>?> = combine(tracks, albums) { tracks, albums ->
+        if (tracks == null || albums == null) null else Artists.build(tracks, albums)
+    }.flowOn(Dispatchers.Default).stateIn(scope, SharingStarted.Eagerly, null)
+
+    val artistsByKey: StateFlow<Map<String, Artist>> = artists
+        .map { list -> list.orEmpty().associateBy { it.key } }
+        .flowOn(Dispatchers.Default)
+        .stateIn(scope, SharingStarted.Eagerly, emptyMap())
 
     val albumsByKey: StateFlow<Map<String, Album>> = albums
         .map { list -> list.orEmpty().associateBy { it.key } }

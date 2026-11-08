@@ -94,7 +94,6 @@
     <string name="label_view_artists">Wykonawcy</string>
     <string name="label_view_tracks">Utwory</string>
     <string name="content_description_library_view">Widok biblioteki</string>
-    <string name="msg_view_coming">Ten widok pojawi się w kolejnej wersji.</string>
     <plurals name="label_album_count">
         <item quantity="one">%s album</item>
         <item quantity="few">%s albumy</item>
@@ -122,4 +121,28 @@
     <string name="content_description_more_for">Więcej opcji: %s</string>
     <string name="desc_playing">Odtwarzany</string>
     <string name="desc_paused">Wstrzymany</string>
+    <!-- Artists and Tracks (S3) -->
+    <string name="label_sort_artist">Wykonawca</string>
+    <string name="label_sort_album">Album</string>
+    <plurals name="label_artist_count">
+        <item quantity="one">%s wykonawca</item>
+        <item quantity="few">%s wykonawców</item>
+        <item quantity="many">%s wykonawców</item>
+        <item quantity="other">%s wykonawcy</item>
+    </plurals>
+    <plurals name="label_artist_appears_on">
+        <item quantity="one">Występuje na %s albumie</item>
+        <item quantity="few">Występuje na %s albumach</item>
+        <item quantity="many">Występuje na %s albumach</item>
+        <item quantity="other">Występuje na %s albumu</item>
+    </plurals>
+    <string name="title_artist_albums">Albumy</string>
+    <string name="title_artist_appears_on">Występuje na</string>
+    <string name="title_artist_tracks">Utwory</string>
+    <plurals name="button_show_all_tracks">
+        <item quantity="one">Pokaż %s utwór</item>
+        <item quantity="few">Pokaż wszystkie %s utwory</item>
+        <item quantity="many">Pokaż wszystkie %s utworów</item>
+        <item quantity="other">Pokaż wszystkie %s utworu</item>
+    </plurals>
 </resources>

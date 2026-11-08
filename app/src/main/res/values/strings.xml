@@ -82,7 +82,6 @@
     <string name="label_view_artists">Artists</string>
     <string name="label_view_tracks">Tracks</string>
     <string name="content_description_library_view">Library view</string>
-    <string name="msg_view_coming">This view arrives with the next update.</string>
     <plurals name="label_album_count">
         <item quantity="one">%s album</item>
         <item quantity="other">%s albums</item>
@@ -108,4 +107,22 @@
     <string name="content_description_more_for">More for %s</string>
     <string name="desc_playing">Playing</string>
     <string name="desc_paused">Paused</string>
+    <!-- Artists and Tracks (S3) -->
+    <string name="label_sort_artist">Artist</string>
+    <string name="label_sort_album">Album</string>
+    <plurals name="label_artist_count">
+        <item quantity="one">%s artist</item>
+        <item quantity="other">%s artists</item>
+    </plurals>
+    <plurals name="label_artist_appears_on">
+        <item quantity="one">Appears on %s album</item>
+        <item quantity="other">Appears on %s albums</item>
+    </plurals>
+    <string name="title_artist_albums">Albums</string>
+    <string name="title_artist_appears_on">Appears on</string>
+    <string name="title_artist_tracks">Tracks</string>
+    <plurals name="button_show_all_tracks">
+        <item quantity="one">Show all %s tracks</item>
+        <item quantity="other">Show all %s tracks</item>
+    </plurals>
 </resources>

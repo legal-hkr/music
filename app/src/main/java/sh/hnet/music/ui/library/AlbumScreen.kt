@@ -51,7 +51,7 @@ import sh.hnet.music.ui.components.formatCount
 
 /** An album: header, Play and Shuffle, its tracks by disc (SPEC §4.3). */
 @Composable
-fun AlbumScreen(viewModel: BrowseViewModel, key: String, onBack: () -> Unit, onOpenArtist: (String) -> Unit) {
+fun AlbumScreen(viewModel: BrowseViewModel, key: String, navigation: TrackNavigation, onBack: () -> Unit, onOpenArtist: (String) -> Unit) {
     val album by remember(key) { viewModel.album(key) }.collectAsStateWithLifecycle(null)
     val current by viewModel.playState.collectAsStateWithLifecycle(null to false)
     val list = rememberLazyListState()
@@ -68,32 +68,12 @@ fun AlbumScreen(viewModel: BrowseViewModel, key: String, onBack: () -> Unit, onO
             navigationIcon = { TooltipIconButton(R.drawable.ic_arrow_back, stringResource(R.string.content_description_back), onBack) },
         )
         if (shown == null) return@Column
-        val navigation = TrackNavigation(onGoToArtist = onOpenArtist, onGoToAlbum = null)
+        val rowNavigation = navigation.withoutAlbum()
         val multiDisc = shown.tracks.mapNotNull { it.discNumber }.distinct().size > 1
         LazyColumn(state = list, contentPadding = PaddingValues(bottom = 24.dp), modifier = Modifier.fillMaxSize()) {
             item(key = "header") { Header(shown, onOpenArtist) }
             item(key = "actions") {
-                Row(
-                    Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Button(
-                        onClick = { viewModel.play(shown.tracks, shuffle = false) },
-                        modifier = Modifier.weight(1f).height(ButtonDefaults.MediumContainerHeight),
-                        contentPadding = ButtonDefaults.contentPaddingFor(ButtonDefaults.MediumContainerHeight),
-                    ) {
-                        Icon(painterResource(R.drawable.ic_play_arrow), contentDescription = null, modifier = Modifier.size(ButtonDefaults.iconSizeFor(ButtonDefaults.MediumContainerHeight)))
-                        Text(stringResource(R.string.button_play), style = ButtonDefaults.textStyleFor(ButtonDefaults.MediumContainerHeight), modifier = Modifier.padding(start = 8.dp))
-                    }
-                    FilledTonalButton(
-                        onClick = { viewModel.play(shown.tracks, shuffle = true) },
-                        modifier = Modifier.weight(1f).height(ButtonDefaults.MediumContainerHeight),
-                        contentPadding = ButtonDefaults.contentPaddingFor(ButtonDefaults.MediumContainerHeight),
-                    ) {
-                        Icon(painterResource(R.drawable.ic_shuffle), contentDescription = null, modifier = Modifier.size(ButtonDefaults.iconSizeFor(ButtonDefaults.MediumContainerHeight)))
-                        Text(stringResource(R.string.button_shuffle), style = ButtonDefaults.textStyleFor(ButtonDefaults.MediumContainerHeight), modifier = Modifier.padding(start = 8.dp))
-                    }
-                }
+                PlayButtons(onPlay = { viewModel.play(shown.tracks, shuffle = false) }, onShuffle = { viewModel.play(shown.tracks, shuffle = true) })
             }
             var lastDisc: Int? = null
             shown.tracks.forEachIndexed { index, track ->
@@ -114,7 +94,7 @@ fun AlbumScreen(viewModel: BrowseViewModel, key: String, onBack: () -> Unit, onO
                         track = track,
                         supporting = if (shown.showsArtistOf(track)) track.artists.joinToString(", ").ifEmpty { null } else null,
                         state = BrowseViewModel.stateOf(track, current),
-                        navigation = navigation,
+                        navigation = rowNavigation,
                         onClick = { viewModel.playFrom(shown.tracks, index) },
                         number = track.trackNumber,
                         showNumberColumn = true,

@@ -20,11 +20,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -55,6 +60,8 @@ import sh.hnet.music.library.Album
 import sh.hnet.music.library.AlbumSort
 import sh.hnet.music.ui.components.Cover
 import sh.hnet.music.ui.components.EmptyState
+import sh.hnet.music.ui.components.FastScroller
+import sh.hnet.music.ui.components.TrackNavigation
 import sh.hnet.music.ui.components.SortChip
 import sh.hnet.music.ui.components.formatCount
 
@@ -66,12 +73,14 @@ enum class LibraryView(val label: Int) {
 
 /** The Library destination: the view switch in the top bar and the chosen view (SPEC §3.2). */
 @Composable
-fun LibraryScreen(viewModel: BrowseViewModel, onOpenAlbum: (String) -> Unit) {
+fun LibraryScreen(viewModel: BrowseViewModel, navigation: TrackNavigation, onOpenAlbum: (String) -> Unit, onOpenArtist: (String) -> Unit) {
     val hasTracks by viewModel.hasTracks.collectAsStateWithLifecycle()
     var view by rememberSaveable { mutableStateOf(LibraryView.ALBUMS) }
     // Switching views is a step in history: Back returns to the previous view
     var history by rememberSaveable { mutableStateOf(listOf<LibraryView>()) }
     val albumsGrid = rememberLazyGridState()
+    val artistsList = rememberLazyListState()
+    val tracksList = rememberLazyListState()
 
     BackHandler(enabled = history.isNotEmpty()) {
         view = history.last()
@@ -97,9 +106,11 @@ fun LibraryScreen(viewModel: BrowseViewModel, onOpenAlbum: (String) -> Unit) {
             ) { shown ->
                 when (shown) {
                     LibraryView.ALBUMS -> AlbumsView(viewModel, albumsGrid, onOpenAlbum)
-                    // Artists and Tracks arrive in S3
-                    LibraryView.ARTISTS, LibraryView.TRACKS ->
-                        EmptyState(if (shown == LibraryView.ARTISTS) R.drawable.ic_person else R.drawable.ic_queue_music, stringResource(R.string.msg_view_coming))
+                    LibraryView.ARTISTS -> ArtistsView(viewModel, artistsList, onOpenArtist)
+                    LibraryView.TRACKS -> {
+                        val tracks by viewModel.tracks.collectAsStateWithLifecycle()
+                        tracks?.let { TrackList(viewModel, it, tracksList, navigation) }
+                    }
                 }
             }
         }
@@ -147,36 +158,47 @@ private fun ViewSwitch(selected: LibraryView, onSelect: (LibraryView) -> Unit) {
 private fun AlbumsView(viewModel: BrowseViewModel, state: LazyGridState, onOpenAlbum: (String) -> Unit) {
     val albums by viewModel.albums.collectAsStateWithLifecycle()
     val sort by viewModel.albumSort.collectAsStateWithLifecycle()
-    val list = albums ?: return
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(160.dp),
-        state = state,
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = Modifier.fillMaxSize(),
-    ) {
-        item(key = "header", span = { GridItemSpan(maxLineSpan) }) {
-            Row(Modifier.fillMaxWidth().heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    pluralStringResource(R.plurals.label_album_count, list.size, formatCount(list.size)),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
-                SortChip(
-                    options = AlbumSort.entries,
-                    selected = sort,
-                    label = { stringResource(it.label()) },
-                    onSelect = viewModel::setAlbumSort,
-                )
+    val sorted = albums ?: return
+    val list = sorted.items
+    Box(Modifier.fillMaxSize()) {
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(160.dp),
+            state = state,
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            item(key = "header", span = { GridItemSpan(maxLineSpan) }, contentType = "header") {
+                ListHeader(pluralStringResource(R.plurals.label_album_count, list.size, formatCount(list.size))) {
+                    SortChip(AlbumSort.entries, sort, { stringResource(it.label()) }, viewModel::setAlbumSort)
+                }
+            }
+            gridItems(list, key = { it.key }, contentType = { "album" }) { album ->
+                AlbumTile(album, Modifier.animateItem()) { onOpenAlbum(album.key) }
             }
         }
-        items(list, key = { it.key }) { album ->
-            AlbumTile(album, Modifier.animateItem()) { onOpenAlbum(album.key) }
+        FastScroller(state, sorted.sections, firstItem = 1, modifier = Modifier.align(Alignment.TopEnd))
+    }
+}
+
+@Composable
+private fun ArtistsView(viewModel: BrowseViewModel, state: LazyListState, onOpenArtist: (String) -> Unit) {
+    val artists by viewModel.artists.collectAsStateWithLifecycle()
+    val sorted = artists ?: return
+    Box(Modifier.fillMaxSize()) {
+        LazyColumn(state = state, contentPadding = PaddingValues(bottom = 24.dp), modifier = Modifier.fillMaxSize()) {
+            item(key = "header", contentType = "header") {
+                ListHeader(
+                    pluralStringResource(R.plurals.label_artist_count, sorted.items.size, formatCount(sorted.items.size)),
+                    Modifier.padding(horizontal = 16.dp),
+                )
+            }
+            items(sorted.items, key = { it.key }, contentType = { "artist" }) { artist ->
+                ArtistRow(artist) { onOpenArtist(artist.name) }
+            }
         }
+        FastScroller(state, sorted.sections, firstItem = 1, modifier = Modifier.align(Alignment.TopEnd))
     }
 }
 

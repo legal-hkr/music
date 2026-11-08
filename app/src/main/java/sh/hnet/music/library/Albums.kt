@@ -50,7 +50,7 @@ object Albums {
      * Album title + album artists; without album artist tags, title + the folder the files are in
      * (a "CD1"/"Disc 2" folder counts as its parent), so two different "Greatest Hits" don't merge.
      */
-    private fun keyOf(track: LibraryTrack): String {
+    fun keyOf(track: LibraryTrack): String {
         val title = normalize(track.album!!)
         if (track.albumArtists.isNotEmpty()) {
             return "a\u0000$title\u0000" + track.albumArtists.joinToString("\u0001") { normalize(it) }
@@ -114,6 +114,15 @@ object Albums {
             AlbumSort.RECENTLY_ADDED -> compareByDescending<Album> { it.addedAt }.then(byTitle)
         }
         return albums.sortedWith(comparator)
+    }
+
+    /** Fast-scroller label of an album in [order] (SPEC §5.5). */
+    fun section(album: Album, order: AlbumSort, locale: Locale): String = when (order) {
+        AlbumSort.TITLE -> Sections.letter(album.albumSort ?: withoutArticle(album.title), locale)
+        AlbumSort.ALBUM_ARTIST -> if (album.isVarious) Sections.OTHER else
+            Sections.letter(album.albumArtistSort ?: withoutArticle(album.shownArtists.joinToString(", ")), locale)
+        AlbumSort.YEAR -> album.year?.toString() ?: Sections.OTHER
+        AlbumSort.RECENTLY_ADDED -> Sections.month(album.addedAt, locale)
     }
 
     fun withoutArticle(text: String): String =
