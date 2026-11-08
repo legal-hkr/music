@@ -77,4 +77,6 @@ dependencies {
     implementation(libs.room.runtime)
     implementation(libs.sqlite.framework)
     ksp(libs.room.compiler)
+
+    testImplementation(libs.junit)
 }
