@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Muzyka</string>
+
+    <string name="title_folders">Foldery z muzyką</string>
+    <string name="msg_no_folders">Nie ma jeszcze żadnego folderu. Wskaż, gdzie trzymasz muzykę – aplikacja zajrzy tylko tam, gdzie jej pozwolisz.</string>
+    <string name="button_add_folder">Dodaj folder</string>
+    <string name="content_description_remove_folder">Usuń folder</string>
+</resources>
