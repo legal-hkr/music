@@ -73,7 +73,15 @@ enum class LibraryView(val label: Int) {
 
 /** The Library destination: the view switch in the top bar and the chosen view (SPEC §3.2). */
 @Composable
-fun LibraryScreen(viewModel: BrowseViewModel, navigation: TrackNavigation, onOpenAlbum: (String) -> Unit, onOpenArtist: (String) -> Unit) {
+fun LibraryScreen(
+    viewModel: BrowseViewModel,
+    summary: sh.hnet.music.ui.settings.LibrarySummary,
+    navigation: TrackNavigation,
+    onOpenAlbum: (String) -> Unit,
+    onOpenArtist: (String) -> Unit,
+    onFolderPicked: (android.net.Uri) -> Unit,
+    onSeeSkippedFiles: () -> Unit,
+) {
     val hasTracks by viewModel.hasTracks.collectAsStateWithLifecycle()
     var view by rememberSaveable { mutableStateOf(LibraryView.ALBUMS) }
     // Switching views is a step in history: Back returns to the previous view
@@ -87,10 +95,15 @@ fun LibraryScreen(viewModel: BrowseViewModel, navigation: TrackNavigation, onOpe
         history = history.dropLast(1)
     }
 
-    when (hasTracks) {
-        null -> Unit
-        false -> EmptyState(R.drawable.ic_library_music, stringResource(R.string.msg_library_filling), Modifier.statusBarsPadding())
-        true -> Column(Modifier.fillMaxSize()) {
+    when {
+        hasTracks == null -> Unit
+        // SPEC §12: no folder; folders being read; folders with nothing playable
+        hasTracks == false && summary.folders == 0 -> WelcomeState(onFolderPicked)
+        // Not in SPEC: every folder with tracks lost access, so "nothing playable" would be untrue
+        hasTracks == false && summary.unavailable > 0 -> LostAccessState(onSeeSkippedFiles)
+        hasTracks == false && summary.scanning > 0 -> EmptyState(R.drawable.ic_library_music, stringResource(R.string.msg_library_filling), Modifier.statusBarsPadding())
+        hasTracks == false -> NothingPlayableState(onSeeSkippedFiles)
+        else -> Column(Modifier.fillMaxSize()) {
             val fadeInSpec = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
             val fadeOutSpec = MaterialTheme.motionScheme.fastEffectsSpec<Float>()
             ViewSwitch(view) { chosen ->

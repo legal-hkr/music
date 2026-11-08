@@ -19,7 +19,7 @@ class MusicApplication : Application() {
         LibraryScanner(contentResolver, database.libraryFolderDao(), database.trackDao(), appScope)
     }
 
-    val library: LibraryRepository by lazy { LibraryRepository(database.trackDao(), appScope) }
+    val library: LibraryRepository by lazy { LibraryRepository(database.trackDao(), scanner, appScope) }
 
     val covers: CoverCache by lazy { CoverCache(this) }
 

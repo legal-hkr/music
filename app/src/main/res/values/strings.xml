@@ -220,4 +220,39 @@
         <item quantity="one">Show all %s artists</item>
         <item quantity="other">Show all %s artists</item>
     </plurals>
+    <!-- S7: states, lost access, playback, licences -->
+    <string name="title_welcome">Music</string>
+    <string name="msg_welcome">Music plays the files in the folders you choose. It can\'t see anything else on your phone and never goes online.</string>
+    <string name="msg_nothing_playable">None of the files in your folders can be played.</string>
+    <string name="button_see_skipped_files">See skipped files</string>
+    <string name="msg_folder_lost_access"><![CDATA[Music can\'t read <b>%s</b> anymore.]]></string>
+    <plurals name="msg_folders_lost_access">
+        <item quantity="one">Music can\'t read %d of your folders anymore.</item>
+        <item quantity="other">Music can\'t read %d of your folders anymore.</item>
+    </plurals>
+    <string name="button_fix">Fix</string>
+    <string name="content_description_settings_attention">Settings, a folder needs attention</string>
+    <string name="title_settings_playback">Playback</string>
+    <string name="label_settings_replaygain_value">ReplayGain: %s</string>
+    <string name="title_replaygain">ReplayGain</string>
+    <string name="label_rg_off">Off</string>
+    <string name="desc_rg_off">Files play at their own loudness</string>
+    <string name="label_rg_track">Track</string>
+    <string name="desc_rg_track">Every track at the same loudness</string>
+    <string name="label_rg_album">Album</string>
+    <string name="desc_rg_album">Keeps the steps between tracks of an album</string>
+    <string name="label_rg_auto">Automatic</string>
+    <string name="desc_rg_auto">Album gain when an album plays in order, track gain otherwise</string>
+    <string name="title_volume">Volume</string>
+    <string name="label_preamp">Files without ReplayGain</string>
+    <string name="desc_preamp">Pre-amp for files with no gain tags</string>
+    <string name="label_db">%s dB</string>
+    <string name="label_prevent_clipping">Prevent clipping</string>
+    <string name="desc_prevent_clipping">Lowers the gain where a track\'s peak would clip</string>
+    <string name="label_replaygain_applied_album">ReplayGain: %s dB (album)</string>
+    <string name="label_replaygain_applied_track">ReplayGain: %s dB (track)</string>
+    <string name="label_licences">Licences</string>
+    <string name="desc_licences">Open-source components used by Music</string>
+    <string name="label_apache_licence">Apache License 2.0</string>
+    <string name="button_close">Close</string>
 </resources>

@@ -77,6 +77,9 @@ interface TrackDao {
     @Query("SELECT * FROM track WHERE documentUri = :documentUri")
     fun observeTrack(documentUri: String): Flow<Track?>
 
+    @Query("SELECT * FROM track WHERE documentUri = :documentUri")
+    suspend fun track(documentUri: String): Track?
+
     @Query("SELECT * FROM skipped_file WHERE folderUri = :folderUri ORDER BY relativePath COLLATE NOCASE")
     fun observeSkipped(folderUri: String): Flow<List<SkippedFile>>
 

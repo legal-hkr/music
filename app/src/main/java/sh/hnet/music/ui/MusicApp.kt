@@ -27,6 +27,8 @@ import androidx.compose.material3.ShortNavigationBarItem
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,6 +38,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -93,6 +96,8 @@ import sh.hnet.music.ui.settings.LibraryMessages
 import sh.hnet.music.ui.settings.LibrarySettingsScreen
 import sh.hnet.music.ui.settings.LibraryViewModel
 import sh.hnet.music.ui.settings.SettingsRootScreen
+import sh.hnet.music.ui.settings.PlaybackSettingsScreen
+import sh.hnet.music.ui.settings.LicencesScreen
 
 /** The app's shell: one back stack per navigation bar destination, the bottom block, snackbars. */
 @Composable
@@ -105,6 +110,7 @@ fun MusicApp(openNowPlaying: Int = 0) {
     val playerState by playerModel.state.collectAsStateWithLifecycle()
     val currentTrack by playerModel.current.collectAsStateWithLifecycle()
     val currentDetails by playerModel.details.collectAsStateWithLifecycle()
+    val currentGain by playerModel.gain.collectAsStateWithLifecycle()
     val summary by library.summary.collectAsStateWithLifecycle()
 
     var tab by rememberSaveable { mutableStateOf(Tab.LIBRARY) }
@@ -157,11 +163,32 @@ fun MusicApp(openNowPlaying: Int = 0) {
 
     val snackbars = remember { SnackbarHostState() }
     val alreadyAdded = stringResource(R.string.msg_folder_already_added)
+    val lostOne = stringResource(R.string.msg_folder_lost_access)
+    val fix = stringResource(R.string.button_fix)
+    val resources = LocalResources.current
+    val folderRows by library.folders.collectAsStateWithLifecycle()
+    /** Settings › Library, or with [onlyFolder] the folder's own page when there's just one. */
+    fun openFolders(onlyFolder: Boolean = false) {
+        tab = Tab.SETTINGS
+        val settings = stacks.getValue(Tab.SETTINGS)
+        while (settings.size > 1) settings.removeAt(settings.lastIndex)
+        settings.add(Screen.SettingsLibrary)
+        val single = folderRows.singleOrNull()
+        if (onlyFolder && single != null) settings.add(Screen.SettingsFolder(single.folder.treeUri))
+    }
     LibraryMessages(library) { message ->
         when (message) {
             is LibraryMessage.AlreadyAdded -> snackbars.showSnackbar(
                 AnnotatedString.fromHtml(alreadyAdded.format(message.name.htmlEncode())).text,
             )
+            is LibraryMessage.LostAccess -> {
+                val text = if (message.names.size == 1) {
+                    AnnotatedString.fromHtml(lostOne.format(message.names[0].htmlEncode())).text
+                } else {
+                    resources.getQuantityString(R.plurals.msg_folders_lost_access, message.names.size, message.names.size)
+                }
+                if (snackbars.showSnackbar(text, actionLabel = fix, duration = SnackbarDuration.Long) == SnackbarResult.ActionPerformed) openFolders()
+            }
         }
     }
 
@@ -182,7 +209,8 @@ fun MusicApp(openNowPlaying: Int = 0) {
         },
         bottomBar = {
             Column {
-                if (hasQueue) {
+                // Absent while the current track can't be shown (its folder lost access, SPEC §13)
+                if (hasQueue && currentTrack != null) {
                     nowPlayingTransition.AnimatedVisibility(visible = { open -> !open }, enter = fadeIn(), exit = fadeOut()) {
                         MiniPlayer(
                             track = currentTrack,
@@ -199,9 +227,13 @@ fun MusicApp(openNowPlaying: Int = 0) {
                         val selected = item == tab
                         val label = stringResource(item.label)
                         val scanning = item == Tab.SETTINGS && summary.scanning > 0
-                        val scanningDescription = if (scanning) {
-                            pluralStringResource(R.plurals.content_description_settings_scanning, summary.scanning, summary.scanning)
-                        } else null
+                        // A dot while a folder has no access, until it's fixed or removed (SPEC §13)
+                        val attention = item == Tab.SETTINGS && !scanning && summary.unavailable > 0
+                        val scanningDescription = when {
+                            scanning -> pluralStringResource(R.plurals.content_description_settings_scanning, summary.scanning, summary.scanning)
+                            attention -> stringResource(R.string.content_description_settings_attention)
+                            else -> null
+                        }
                         ShortNavigationBarItem(
                             selected = selected,
                             onClick = {
@@ -216,7 +248,7 @@ fun MusicApp(openNowPlaying: Int = 0) {
                                 }
                             },
                             icon = {
-                                BadgedBox(badge = { if (scanning) Badge { Text(formatCount(summary.scanning)) } }) {
+                                BadgedBox(badge = { if (scanning) Badge { Text(formatCount(summary.scanning)) } else if (attention) Badge() }) {
                                     Icon(painterResource(if (selected) item.selectedIcon else item.icon), contentDescription = null)
                                 }
                             },
@@ -263,9 +295,12 @@ fun MusicApp(openNowPlaying: Int = 0) {
                     entry<Screen.Library> {
                         LibraryScreen(
                             browse,
+                            summary = summary,
                             navigation = trackNavigation,
                             onOpenAlbum = { currentStack.add(Screen.Album(it)) },
                             onOpenArtist = { currentStack.add(Screen.Artist(it)) },
+                            onFolderPicked = { library.onFolderPicked(it) },
+                            onSeeSkippedFiles = { openFolders(onlyFolder = true) },
                         )
                     }
                     entry<Screen.Album> { key ->
@@ -303,6 +338,7 @@ fun MusicApp(openNowPlaying: Int = 0) {
                         SettingsRootScreen(
                             library,
                             onOpenLibrary = { currentStack.add(Screen.SettingsLibrary) },
+                            onOpenPlayback = { currentStack.add(Screen.SettingsPlayback) },
                             onOpenAbout = { currentStack.add(Screen.SettingsAbout) },
                         )
                     }
@@ -316,9 +352,11 @@ fun MusicApp(openNowPlaying: Int = 0) {
                     entry<Screen.SettingsFolder> { key ->
                         FolderScreen(library, key.treeUri, onBack = { currentStack.removeAt(currentStack.lastIndex) })
                     }
+                    entry<Screen.SettingsPlayback> { PlaybackSettingsScreen(onBack = back) }
                     entry<Screen.SettingsAbout> {
-                        AboutScreen(onBack = { currentStack.removeAt(currentStack.lastIndex) })
+                        AboutScreen(onBack = back, onOpenLicences = { currentStack.add(Screen.SettingsLicences) })
                     }
+                    entry<Screen.SettingsLicences> { LicencesScreen(onBack = back) }
                 },
             )
         }
@@ -342,6 +380,7 @@ fun MusicApp(openNowPlaying: Int = 0) {
             NowPlayingScreen(
                 track = currentTrack,
                 details = currentDetails,
+                gain = currentGain,
                 state = playerState,
                 player = playerModel.player,
                 dragArea = dragToClose,

@@ -14,12 +14,15 @@ import sh.hnet.music.data.LibraryTrack
 import sh.hnet.music.data.TrackDao
 
 /** The library in memory, grouped once for every view; null until the database has answered. */
-class LibraryRepository(dao: TrackDao, scope: CoroutineScope) {
+class LibraryRepository(dao: TrackDao, scanner: LibraryScanner, scope: CoroutineScope) {
     private var first = true
 
     /** A scan writes in batches; between them the views regroup at most a few times a second. */
     @OptIn(FlowPreview::class)
-    val tracks: StateFlow<List<LibraryTrack>?> = dao.observeLibrary()
+    val tracks: StateFlow<List<LibraryTrack>?> = combine(dao.observeLibrary(), scanner.unavailable) { tracks, unavailable ->
+        // A folder that lost access keeps its index, but its tracks leave every view (SPEC §13)
+        if (unavailable.isEmpty()) tracks else tracks.filter { it.folderUri !in unavailable }
+    }
         .debounce { if (first) { first = false; 0L } else 400L }
         .stateIn(scope, SharingStarted.Eagerly, null)
 

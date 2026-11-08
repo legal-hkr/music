@@ -15,6 +15,11 @@ import sh.hnet.music.MusicApplication
 import sh.hnet.music.data.LibraryTrack
 import sh.hnet.music.data.Track
 import sh.hnet.music.playback.PlayerState
+import sh.hnet.music.playback.AppliedGain
+import sh.hnet.music.playback.ReplayGain
+import sh.hnet.music.playback.albumInOrder
+import sh.hnet.music.playback.gainTags
+import sh.hnet.music.library.Albums
 
 /** The mini player's and now playing's view of the player; one instance for the activity. */
 class PlayerViewModel(app: MusicApplication) : ViewModel() {
@@ -38,6 +43,14 @@ class PlayerViewModel(app: MusicApplication) : ViewModel() {
     val details: StateFlow<Track?> = player.state.map { it.currentId }
         .flatMapLatest { id -> id?.let(dao::observeTrack) ?: flowOf(null) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    /** The ReplayGain applied to the current track, as the service computes it, for the chip. */
+    val gain: StateFlow<AppliedGain?> = combine(details, app.preferences.gain, player.queue, app.library.tracksByUri) { track, settings, queue, tracks ->
+        track ?: return@combine null
+        val keyAt = { i: Int -> queue.items.getOrNull(i)?.let { tracks[it.mediaId] }?.takeIf { !it.album.isNullOrBlank() }?.let(Albums::keyOf) }
+        val shuffle = player.state.value.shuffle
+        ReplayGain.compute(track.gainTags(), settings, albumInOrder(shuffle, keyAt, queue.current, queue.items.size))
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun folderName(folderUri: String): Flow<String?> = folders.observeAll().map { list -> list.firstOrNull { it.treeUri == folderUri }?.displayName }
 

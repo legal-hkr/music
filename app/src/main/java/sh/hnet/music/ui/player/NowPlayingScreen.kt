@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.ButtonGroup
@@ -73,6 +74,7 @@ import kotlinx.coroutines.delay
 import sh.hnet.music.R
 import sh.hnet.music.data.LibraryTrack
 import sh.hnet.music.data.Track
+import sh.hnet.music.playback.AppliedGain
 import sh.hnet.music.playback.PlayerConnection
 import sh.hnet.music.playback.PlayerState
 import sh.hnet.music.ui.components.Cover
@@ -89,6 +91,7 @@ import sh.hnet.music.ui.components.formatDuration
 fun NowPlayingScreen(
     track: LibraryTrack?,
     details: Track?,
+    gain: AppliedGain?,
     state: PlayerState,
     player: PlayerConnection,
     dragArea: Modifier,
@@ -119,7 +122,7 @@ fun NowPlayingScreen(
                         Cover(track, RoundedCornerShape(28.dp), Modifier.padding(start = 24.dp).aspectRatio(1f, matchHeightConstraintsFirst = true))
                     }
                     Column(Modifier.weight(1f).padding(end = 24.dp), verticalArrangement = Arrangement.Center) {
-                        Controls(track, details, state, player, onGoToArtist, onGoToAlbum, onDetails, onQueue)
+                        Controls(track, details, gain, state, player, onGoToArtist, onGoToAlbum, onDetails, onQueue)
                     }
                 }
             } else {
@@ -131,7 +134,7 @@ fun NowPlayingScreen(
                 }
                 Spacer(Modifier.height(20.dp))
                 Column(Modifier.padding(horizontal = 24.dp).padding(bottom = 16.dp)) {
-                    Controls(track, details, state, player, onGoToArtist, onGoToAlbum, onDetails, onQueue)
+                    Controls(track, details, gain, state, player, onGoToArtist, onGoToAlbum, onDetails, onQueue)
                 }
             }
         }
@@ -143,6 +146,7 @@ fun NowPlayingScreen(
 private fun ColumnScope.Controls(
     track: LibraryTrack?,
     details: Track?,
+    gain: AppliedGain?,
     state: PlayerState,
     player: PlayerConnection,
     onGoToArtist: (String) -> Unit,
@@ -167,6 +171,20 @@ private fun ColumnScope.Controls(
     // Technical details: only here and on the details page (SPEC §2.5)
     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.heightIn(min = 32.dp)) {
         if (details != null) item { AssistChip(onClick = onDetails, label = { Text(techLabel(details)) }) }
+        // The gain actually applied, while ReplayGain is on (SPEC §9.3)
+        if (gain != null) item {
+            AssistChip(
+                onClick = onDetails,
+                label = { Text(stringResource(if (gain.album) R.string.label_replaygain_applied_album else R.string.label_replaygain_applied_track, decibels(gain.db))) },
+                leadingIcon = {
+                    Icon(
+                        painterResource(if (gain.db > 0f) R.drawable.ic_volume_up else R.drawable.ic_volume_down),
+                        contentDescription = null,
+                        modifier = Modifier.size(AssistChipDefaults.IconSize),
+                    )
+                },
+            )
+        }
     }
     Spacer(Modifier.height(12.dp))
     SeekBar(state, player)

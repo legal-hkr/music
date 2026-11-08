@@ -14,14 +14,24 @@ import sh.hnet.music.ui.components.SettingsPage
 import sh.hnet.music.ui.components.formatCount
 
 @Composable
-fun SettingsRootScreen(viewModel: LibraryViewModel, onOpenLibrary: () -> Unit, onOpenAbout: () -> Unit) {
+fun SettingsRootScreen(viewModel: LibraryViewModel, onOpenLibrary: () -> Unit, onOpenPlayback: () -> Unit, onOpenAbout: () -> Unit) {
     val summary by viewModel.summary.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val version = remember(context) { appVersion(context).first }
+    val gain by (context.applicationContext as sh.hnet.music.MusicApplication).preferences.gain.collectAsStateWithLifecycle(sh.hnet.music.playback.GainSettings())
     SettingsPage(title = stringResource(R.string.title_settings), onBack = null) {
         SettingsGroup {
             row { shapes ->
                 SettingsNavigationRow(shapes, R.drawable.ic_library_music, stringResource(R.string.title_settings_library), librarySummary(summary), onOpenLibrary)
+            }
+            row { shapes ->
+                SettingsNavigationRow(
+                    shapes,
+                    R.drawable.ic_volume_up,
+                    stringResource(R.string.title_settings_playback),
+                    stringResource(R.string.label_settings_replaygain_value, stringResource(gain.mode.label())),
+                    onOpenPlayback,
+                )
             }
             row { shapes ->
                 SettingsNavigationRow(shapes, R.drawable.ic_info, stringResource(R.string.title_settings_about), stringResource(R.string.label_version_value, version), onOpenAbout)

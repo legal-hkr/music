@@ -47,3 +47,18 @@ fun channelsText(channels: Int): String = when (channels) {
     2 -> stringResource(R.string.label_stereo)
     else -> pluralStringResource(R.plurals.label_channels, channels, channels)
 }
+
+/** "−6.5", "+1.2", "0.0": one decimal, a real minus sign, the locale's decimal separator. */
+@Composable
+fun decibels(db: Float): String {
+    val format = NumberFormat.getNumberInstance(LocalConfiguration.current.locales[0]).apply {
+        minimumFractionDigits = 1
+        maximumFractionDigits = 1
+    }
+    val sign = when {
+        db <= -0.05f -> "\u2212"
+        db >= 0.05f -> "+"
+        else -> ""
+    }
+    return sign + format.format(kotlin.math.abs(db))
+}

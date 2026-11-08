@@ -42,6 +42,9 @@ data class LibrarySummary(
 
 sealed interface LibraryMessage {
     data class AlreadyAdded(val name: String) : LibraryMessage
+
+    /** Folders found without access since the last report: once per loss (SPEC §13). */
+    data class LostAccess(val names: List<String>) : LibraryMessage
 }
 
 /** Folders, their scan state and the actions on them; one instance for the activity. */
@@ -85,6 +88,20 @@ class LibraryViewModel(private val app: MusicApplication) : ViewModel() {
             unavailable = rows.count { it.unavailable },
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, LibrarySummary())
+
+    /** Folders already reported as unreachable; reported again only after access came back. */
+    private var reportedLost = emptySet<String>()
+
+    init {
+        viewModelScope.launch {
+            folders.collect { rows ->
+                val lost = rows.filter { it.unavailable }
+                val fresh = lost.filter { it.folder.treeUri !in reportedLost }
+                reportedLost = lost.mapTo(HashSet()) { it.folder.treeUri }
+                if (fresh.isNotEmpty()) _messages.emit(LibraryMessage.LostAccess(fresh.map { it.folder.displayName }))
+            }
+        }
+    }
 
     fun skippedFiles(treeUri: String): Flow<List<SkippedFile>> = trackDao.observeSkipped(treeUri)
 

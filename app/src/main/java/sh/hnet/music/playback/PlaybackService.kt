@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
@@ -17,6 +18,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import sh.hnet.music.MusicApplication
+import sh.hnet.music.library.Albums
 import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
@@ -37,6 +39,8 @@ class PlaybackService : MediaSessionService() {
     private val store by lazy { QueueStore(this) }
     private var saveJob: Job? = null
     private var restored = false
+    private var gainSettings = GainSettings()
+    private var gainJob: Job? = null
 
     private val shuffleCommand = SessionCommand(ACTION_SHUFFLE, Bundle.EMPTY)
     private val repeatCommand = SessionCommand(ACTION_REPEAT, Bundle.EMPTY)
@@ -78,8 +82,29 @@ class PlaybackService : MediaSessionService() {
                         Player.EVENT_POSITION_DISCONTINUITY,
                     )
                 ) scheduleSave()
+                if (events.containsAny(
+                        Player.EVENT_MEDIA_ITEM_TRANSITION,
+                        Player.EVENT_TIMELINE_CHANGED,
+                        Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED,
+                    )
+                ) applyGain(player)
+            }
+
+            // A file that can't be played (gone, unreadable) is skipped rather than stopping the queue
+            override fun onPlayerError(error: PlaybackException) {
+                if (player.hasNextMediaItem()) {
+                    player.seekToNextMediaItem()
+                    player.prepare()
+                    player.play()
+                }
             }
         })
+        scope.launch {
+            (application as MusicApplication).preferences.gain.collect {
+                gainSettings = it
+                applyGain(player)
+            }
+        }
         scope.launch { restore(player) }
         // While playing, the position is saved now and then, so a killed process loses little
         scope.launch {
@@ -87,6 +112,34 @@ class PlaybackService : MediaSessionService() {
                 delay(SAVE_EVERY_MS)
                 if (player.isPlaying) scheduleSave()
             }
+        }
+    }
+
+    /**
+     * ReplayGain through the player's volume: applied when a track starts playing, so it lines up
+     * with what is heard (the volume acts on the output, not on audio buffered ahead).
+     */
+    private fun applyGain(player: Player) {
+        val item = player.currentMediaItem
+        if (item == null || gainSettings.mode == ReplayGainMode.OFF) {
+            gainJob?.cancel()
+            player.volume = 1f
+            return
+        }
+        val index = player.currentMediaItemIndex
+        val ids = (maxOf(0, index - 1)..minOf(player.mediaItemCount - 1, index + 1)).associateWith { player.getMediaItemAt(it).mediaId }
+        val shuffle = player.shuffleModeEnabled
+        val count = player.mediaItemCount
+        val settings = gainSettings
+        gainJob?.cancel()
+        gainJob = scope.launch {
+            val dao = (application as MusicApplication).database.trackDao()
+            val (track, neighbours) = withContext(Dispatchers.IO) {
+                dao.track(item.mediaId) to dao.libraryTracks(ids.values.toList()).associateBy { it.documentUri }
+            }
+            val inOrder = albumInOrder(shuffle, { i -> ids[i]?.let(neighbours::get)?.takeIf { !it.album.isNullOrBlank() }?.let(Albums::keyOf) }, index, count)
+            val applied = track?.let { ReplayGain.compute(it.gainTags(), settings, inOrder) }
+            if (player.currentMediaItem?.mediaId == item.mediaId) player.volume = applied?.linear ?: 1f
         }
     }
 

@@ -13,12 +13,13 @@ import kotlinx.coroutines.launch
 import sh.hnet.music.R
 import sh.hnet.music.ui.components.SettingsGroup
 import sh.hnet.music.ui.components.SettingsInfoRow
+import sh.hnet.music.ui.components.SettingsNavigationRow
 import sh.hnet.music.ui.components.SettingsNote
 import sh.hnet.music.ui.components.SettingsPage
 
 /** Settings › About: the version (long press copies it) and what the app does and doesn't do. */
 @Composable
-fun AboutScreen(onBack: () -> Unit) {
+fun AboutScreen(onBack: () -> Unit, onOpenLicences: () -> Unit) {
     val context = LocalContext.current
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
@@ -34,6 +35,9 @@ fun AboutScreen(onBack: () -> Unit) {
                         Toast.makeText(context, copied, Toast.LENGTH_SHORT).show()
                     }
                 }
+            }
+            row { shapes ->
+                SettingsNavigationRow(shapes, R.drawable.ic_description, stringResource(R.string.label_licences), stringResource(R.string.desc_licences), onOpenLicences)
             }
         }
         SettingsNote(stringResource(R.string.msg_about_privacy))
