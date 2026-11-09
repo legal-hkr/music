@@ -76,8 +76,20 @@ class PlaybackService : MediaSessionService() {
         player.addListener(object : Player.Listener {
             // Shuffle off needs nothing more: shuffling never changes the list, so the current track is
             // back at its own place and what followed it there comes next (owner's decision)
-            override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) = refreshButtons()
+            override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+                refreshButtons()
+                // The switch may arrive after the new queue it was meant for: shuffle that queue now
+                if (shuffleModeEnabled && player.mediaItemCount > 0 && (player.shuffleOrder as? QueueShuffleOrder)?.fresh == true) shuffleFromCurrent(player)
+            }
             override fun onRepeatModeChanged(repeatMode: Int) = refreshButtons()
+
+            // A new queue while shuffle is on (Shuffle on an album, or anything played shuffled):
+            // shuffled from its first track the moment it is the player's
+            override fun onTimelineChanged(timeline: androidx.media3.common.Timeline, reason: Int) {
+                if (reason == Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED && player.shuffleModeEnabled && player.mediaItemCount > 0 &&
+                    (player.shuffleOrder as? QueueShuffleOrder)?.fresh == true
+                ) shuffleFromCurrent(player)
+            }
             override fun onEvents(player: Player, events: Player.Events) {
                 if (events.containsAny(
                         Player.EVENT_TIMELINE_CHANGED,

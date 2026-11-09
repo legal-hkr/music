@@ -143,9 +143,8 @@ class PlayerConnection(private val context: Context) {
         withController { c ->
             shuffle?.let { c.shuffleModeEnabled = it }
             val index = if (shuffle == true) tracks.indices.random() else start.coerceIn(tracks.indices)
+            // Played shuffled, the service shuffles the new queue from this track once it has it
             c.setMediaItems(tracks.mapIndexed { i, track -> track.toMediaItem(playlistEntries?.getOrNull(i)) }, index, 0)
-            // A new queue played shuffled: from the chosen track on, all the others after it
-            if (c.shuffleModeEnabled) reshuffle(c)
             c.prepare()
             c.play()
         }

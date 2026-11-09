@@ -68,4 +68,13 @@ class QueueShuffleOrderTest {
         val order = QueueShuffleOrder(IntArray(0)).cloneAndClear().cloneAndInsert(0, 4)
         assertEquals(listOf(0, 1, 2, 3), order.walk())
     }
+
+    @Test
+    fun `a queue just put in place is fresh until shuffled or added to`() {
+        val filled = QueueShuffleOrder(intArrayOf(1, 0)).cloneAndClear().cloneAndInsert(0, 5) as QueueShuffleOrder
+        assertEquals(true, filled.fresh)
+        assertEquals(false, (filled.cloneAndInsert(5, 1) as QueueShuffleOrder).fresh)
+        assertEquals(false, QueueShuffleOrder.fromCurrent(5, 2).fresh)
+        assertEquals(false, (QueueShuffleOrder(intArrayOf(0, 1)).cloneAndInsert(2, 1) as QueueShuffleOrder).fresh)
+    }
 }

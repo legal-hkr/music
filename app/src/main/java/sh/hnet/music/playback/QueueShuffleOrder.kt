@@ -20,7 +20,15 @@ import kotlin.random.Random
  * Pure index arithmetic, unit-tested.
  */
 @OptIn(UnstableApi::class)
-class QueueShuffleOrder(private val order: IntArray) : ShuffleOrder {
+class QueueShuffleOrder(
+    private val order: IntArray,
+    /**
+     * Not shuffled yet: the list order of a queue just put in place (cleared, then filled). The
+     * service shuffles such a queue as soon as it is the player's, when shuffle is on – a new queue
+     * played shuffled, whatever order the app's commands arrive in.
+     */
+    val fresh: Boolean = false,
+) : ShuffleOrder {
     /** Where each list index stands in the shuffled order. */
     private val positions = IntArray(order.size).also { for (i in order.indices) it[order[i]] = i }
 
@@ -51,7 +59,8 @@ class QueueShuffleOrder(private val order: IntArray) : ShuffleOrder {
             // At the very start of the list: before the track that was first there
             else -> positions[0]
         }
-        return QueueShuffleOrder((shifted.subList(0, at) + inserted + shifted.subList(at, shifted.size)).toIntArray())
+        // Filling a cleared queue keeps it fresh; anything added to a queue in use doesn't
+        return QueueShuffleOrder((shifted.subList(0, at) + inserted + shifted.subList(at, shifted.size)).toIntArray(), fresh && order.isEmpty())
     }
 
     override fun cloneAndRemove(indexFrom: Int, indexToExclusive: Int): ShuffleOrder {
@@ -60,10 +69,11 @@ class QueueShuffleOrder(private val order: IntArray) : ShuffleOrder {
             order.filter { it < indexFrom || it >= indexToExclusive }
                 .map { if (it >= indexToExclusive) it - removed else it }
                 .toIntArray(),
+            fresh,
         )
     }
 
-    override fun cloneAndClear(): ShuffleOrder = QueueShuffleOrder(IntArray(0))
+    override fun cloneAndClear(): ShuffleOrder = QueueShuffleOrder(IntArray(0), fresh = true)
 
     /** The order as list indices, first to last (saved with the queue). */
     fun toList(): List<Int> = order.toList()
