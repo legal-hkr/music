@@ -2,6 +2,7 @@
 
 package sh.hnet.music.ui.player
 
+import androidx.compose.foundation.layout.offset
 import android.content.Context
 import android.database.ContentObserver
 import android.media.AudioManager
@@ -81,11 +82,11 @@ import sh.hnet.music.playback.PlayerState
 import kotlin.math.roundToInt
 
 /**
- * How much play overlaps previous and next (owner's choice: 8 dp, previous and next further out than
- * the spec's 16), up to [MAX_OVERLAP] where the row is too narrow (360 dp), and the ring between them.
+ * How much play overlaps previous and next (16 dp, the spec's, which the owner came back to after
+ * trying 8), up to [MAX_OVERLAP] where the row is too narrow (360 dp), and the ring between them.
  */
-private val OVERLAP = 8.dp
-private val MAX_OVERLAP = 16.dp
+private val OVERLAP = 16.dp
+private val MAX_OVERLAP = 24.dp
 private val MODE_BUTTON = 48.dp
 private val RING = 6.dp
 private val SIDE = 72.dp
@@ -110,9 +111,12 @@ fun Transport(state: PlayerState, player: PlayerConnection) = BoxWithConstraints
         ModeToggle(state.shuffle, R.drawable.ic_shuffle, stringResource(R.string.content_description_shuffle), shuffleState) { player.setShuffle(it) }
 
         Box(Modifier.width(SIDE * 2 + PLAY - overlap * 2).height(PLAY)) {
+            // The symbols move outward by half of how far play overlaps the side buttons – its ring is
+            // the page's colour, so it reads as space, not as covering (owner's decision)
+            val iconShift = overlap / 2
             val previousLabel = stringResource(R.string.content_description_previous)
             FilledTonalIconButton(onClick = player::previous, modifier = Modifier.size(SIDE).align(Alignment.CenterStart)) {
-                Icon(painterResource(R.drawable.ic_skip_previous), contentDescription = previousLabel, modifier = Modifier.size(32.dp))
+                Icon(painterResource(R.drawable.ic_skip_previous), contentDescription = previousLabel, modifier = Modifier.offset(x = -iconShift).size(32.dp))
             }
             val endReason = stringResource(R.string.desc_end_of_queue)
             FilledTonalIconButton(
@@ -120,7 +124,7 @@ fun Transport(state: PlayerState, player: PlayerConnection) = BoxWithConstraints
                 enabled = state.hasNext,
                 modifier = Modifier.size(SIDE).align(Alignment.CenterEnd).semantics { if (state.ended) stateDescription = endReason },
             ) {
-                Icon(painterResource(R.drawable.ic_skip_next), contentDescription = stringResource(R.string.content_description_next), modifier = Modifier.size(32.dp))
+                Icon(painterResource(R.drawable.ic_skip_next), contentDescription = stringResource(R.string.content_description_next), modifier = Modifier.offset(x = iconShift).size(32.dp))
             }
             // Drawn last: on top, and it takes the touches where it overlaps
             val radius by animateDpAsState(if (state.isPlaying) PLAY / 2 else 28.dp, MaterialTheme.motionScheme.defaultSpatialSpec(), label = "playShape")
