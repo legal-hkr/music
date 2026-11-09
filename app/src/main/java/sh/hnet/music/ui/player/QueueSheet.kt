@@ -2,6 +2,10 @@
 
 package sh.hnet.music.ui.player
 
+import androidx.compose.runtime.withFrameNanos
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.media3.common.Player
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -94,9 +98,11 @@ private fun rowsOf(queue: QueueSnapshot): List<Row> {
 }
 
 /**
- * The queue over now playing (SPEC §10): what plays next, the current track marked; drag to
- * reorder (not while shuffled: the order shown is then the shuffle's), swipe to remove with Undo,
- * clear with a confirmation.
+ * The queue over now playing (SPEC §10), the whole of it in play order (owner's decision): played
+ * tracks muted above the current one (tap plays one again; they don't move), the current track,
+ * which the sheet opens on, then what follows – reordered by drag (never
+ * above the current track; not while shuffled, when the order shown is the shuffle's). Swipe to
+ * remove with Undo, clear with a confirmation. Repeat one lists the current track only.
  */
 @Composable
 fun QueueSheet(
@@ -111,28 +117,27 @@ fun QueueSheet(
     onSaveAsPlaylist: (List<LibraryTrack>) -> Unit,
 ) {
     val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
-    val listState = rememberLazyListState()
+    // Played tracks are listed above the current one, which the sheet opens on (owner's decision)
+    val listState = rememberLazyListState(initialFirstVisibleItemIndex = if (repeatMode == Player.REPEAT_MODE_ONE) 0 else queue.current.coerceAtLeast(0))
     // By key, not position: while a row is dragged the positions change but the current track doesn't
     val currentKey = remember(queue) { rowsOf(queue).getOrNull(queue.current)?.key }
     val currentKeyNow by rememberUpdatedState(currentKey)
 
     val scope = rememberCoroutineScope()
     val snackbars = remember { SnackbarHostState() }
+    // The whole queue in play order: played tracks, the current one, what follows. Rows before the
+    // current one (playedCount of them) can be played again but not moved, and nothing moves above
+    // the current track. Drag is off while shuffled, so a row's position is the player's index.
     val rows = remember { mutableStateListOf<Row>() }
+    var playedCount by remember { mutableStateOf(0) }
+    val playedNow by rememberUpdatedState(playedCount)
     var dragFrom by remember { mutableStateOf(-1) }
-    // The list starts at the current track (it is playing, so it comes first); played tracks stay
-    // in the player for Previous but aren't listed. Row position + base = the player's index.
-    var base by remember { mutableStateOf(0) }
     var confirmClear by remember { mutableStateOf(false) }
     val reorder = rememberReorderState(
         listState = listState,
-        // Nothing passes the current track, which stays first
-        canMove = { key -> key != currentKeyNow },
-        // Not shuffled while dragging is possible, so position + base is the player's index
-        onStart = { key ->
-            base = queue.current.coerceAtLeast(0)
-            dragFrom = base + rows.indexOfFirst { it.key == key }
-        },
+        // Only what follows the current track moves, and only among itself
+        canMove = { key -> key != currentKeyNow && rows.indexOfFirst { it.key == key } > playedNow },
+        onStart = { key -> dragFrom = rows.indexOfFirst { it.key == key } },
         onMove = { from, to ->
             val a = rows.indexOfFirst { it.key == from }
             val b = rows.indexOfFirst { it.key == to }
@@ -140,21 +145,31 @@ fun QueueSheet(
         },
         onDrop = { key ->
             val to = rows.indexOfFirst { it.key == key }
-            if (dragFrom >= 0 && to >= 0) player.move(dragFrom, base + to)
+            if (dragFrom >= 0 && to >= 0) player.move(dragFrom, to)
             dragFrom = -1
         },
     )
     // The player leads, except while a row is being dragged
     LaunchedEffect(queue, repeatMode, reorder.draggedKey) {
         if (reorder.draggedKey == null) {
-            val firstBefore = rows.firstOrNull()?.key
-            val shown = rowsOf(queue).drop(queue.current.coerceAtLeast(0))
+            val currentBefore = rows.getOrNull(playedCount)?.key
+            val all = rowsOf(queue)
+            val current = queue.current.coerceAtLeast(0)
             rows.clear()
-            // Repeat one: the current track is all that plays; the rest comes back when it's off
-            rows.addAll(if (repeatMode == Player.REPEAT_MODE_ONE) shown.take(1) else shown)
-            // The current track is always the first row: after Previous it comes back above the row
-            // that was first, and the list would otherwise stay anchored to that one
-            if (rows.firstOrNull()?.key != firstBefore) listState.scrollToItem(0)
+            if (repeatMode == Player.REPEAT_MODE_ONE) {
+                // Repeat one: the current track is all that plays; the rest comes back when it's off
+                rows.addAll(all.drop(current).take(1))
+                playedCount = 0
+            } else {
+                rows.addAll(all)
+                playedCount = current
+            }
+            // A new current track (Next, the end of one, a played one tapped) comes to the top
+            if (rows.getOrNull(playedCount)?.key != currentBefore) {
+                // After the next frame, when the room at the list's end is laid out too
+                withFrameNanos { }
+                listState.scrollToItem(playedCount)
+            }
         }
     }
     val removedText = stringResource(R.string.msg_removed_from_queue)
@@ -170,10 +185,20 @@ fun QueueSheet(
                 Header(queue, repeatMode, tracks) {
                     onSaveAsPlaylist(queue.items.drop(queue.current.coerceAtLeast(0)).mapNotNull { tracks[it.mediaId] })
                 }
-                LazyColumn(state = listState, contentPadding = PaddingValues(bottom = 24.dp), modifier = Modifier.fillMaxWidth()) {
-                    itemsIndexed(rows, key = { _, row -> row.key }) { position, row ->
+                // The list fills the sheet, and with played tracks above the current one it ends in
+                // enough room for the current track to scroll to the top: the sheet opens halfway and
+                // shows the list's top, so the current track must be able to stand there however few
+                // tracks follow it. Rows are at least ROW_MIN tall, so the estimate of what follows
+                // errs on the small side and the room on the large one.
+                BoxWithConstraints(Modifier.fillMaxSize()) {
+                val following = rows.size - playedCount
+                val room = if (playedCount == 0) 0.dp else (maxHeight - ROW_MIN * following - CLEAR_MIN).coerceAtLeast(0.dp)
+                LazyColumn(state = listState, contentPadding = PaddingValues(bottom = 24.dp), modifier = Modifier.fillMaxSize()) {
+                    val entry: @Composable LazyItemScope.(Int, Row) -> Unit = { position, row ->
                         val isCurrent = row.key == currentKey
-                        val movable = !shuffle && !isCurrent
+                        val played = position < playedCount
+                        // Played rows and the current one stay put; nothing moves above the current one
+                        val movable = !shuffle && !isCurrent && !played
                         val track = tracks[row.item.mediaId]
                         val title = track?.displayTitle ?: row.item.title.orEmpty()
                         val rowModifier = Modifier
@@ -184,10 +209,11 @@ fun QueueSheet(
                                 row = row,
                                 track = track,
                                 isCurrent = isCurrent,
+                                played = played,
                                 // The current track stays where it is: no handle, no long-press drag
                                 reorderable = movable,
                                 onClick = { player.jumpTo(row.item.index) },
-                                onMoveUp = if (movable && position > 1) ({ player.move(row.item.index, row.item.index - 1) }) else null,
+                                onMoveUp = if (movable && position > playedCount + 1) ({ player.move(row.item.index, row.item.index - 1) }) else null,
                                 onMoveDown = if (movable && position < rows.lastIndex) ({ player.move(row.item.index, row.item.index + 1) }) else null,
                                 onRemove = if (!isCurrent) ({ removeWithUndo(player, row.item.index, track, title, removedText, undo, snackbars, scope) { sheetState.expand() } }) else null,
                                 modifier = if (movable) Modifier.longPressDrag(reorder, row.key) else Modifier,
@@ -225,6 +251,11 @@ fun QueueSheet(
                             ) { content() }
                         }
                     }
+                    val currentRow = rows.getOrNull(playedCount)
+                    itemsIndexed(rows.take(playedCount), key = { _, row -> row.key }) { position, row -> entry(position, row) }
+                    // The current track scrolls with the list (owner's decision; the sheet opens on it)
+                    if (currentRow != null) item(key = currentRow.key) { entry(playedCount, currentRow) }
+                    itemsIndexed(rows.drop(playedCount + 1), key = { _, row -> row.key }) { i, row -> entry(playedCount + 1 + i, row) }
                     if (rows.size > 1) {
                         item(key = "clear") {
                             OutlinedButton(
@@ -237,6 +268,8 @@ fun QueueSheet(
                             }
                         }
                     }
+                    if (room > 0.dp) item(key = "room") { Spacer(Modifier.height(room)) }
+                }
                 }
             }
             SnackbarHost(snackbars, Modifier.align(Alignment.BottomCenter)) { data ->
@@ -323,6 +356,8 @@ private fun QueueRow(
     row: Row,
     track: LibraryTrack?,
     isCurrent: Boolean,
+    /** Before the current track: its text muted (played; tap plays it again). */
+    played: Boolean,
     reorderable: Boolean,
     onClick: () -> Unit,
     onMoveUp: (() -> Unit)?,
@@ -339,8 +374,13 @@ private fun QueueRow(
     val downLabel = stringResource(R.string.label_move_down)
     val removeLabel = stringResource(R.string.label_remove_from_queue)
     val reorderLabel = stringResource(R.string.content_description_reorder, title)
+    // Played rows on the sheet's own background, only their text muted (owner trying it out)
     val container = if (isCurrent) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerLow
-    val content = if (isCurrent) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
+    val content = when {
+        isCurrent -> MaterialTheme.colorScheme.onSecondaryContainer
+        played -> MaterialTheme.colorScheme.onSurfaceVariant
+        else -> MaterialTheme.colorScheme.onSurface
+    }
     Surface(
         color = container,
         contentColor = content,
@@ -401,3 +441,7 @@ private fun QueueRow(
         }
     }
 }
+
+/** The least height of a queue row and of the Clear queue button with its padding (QueueRow, the clear item). */
+private val ROW_MIN = 64.dp
+private val CLEAR_MIN = 72.dp
