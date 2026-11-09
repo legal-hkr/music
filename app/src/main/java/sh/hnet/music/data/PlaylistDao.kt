@@ -52,6 +52,19 @@ interface PlaylistDao {
     @Update
     suspend fun updateEntries(entries: List<PlaylistEntry>)
 
+    @Query("SELECT id FROM playlist WHERE builtin = :builtin")
+    suspend fun builtinId(builtin: String): Long?
+
+    /** The tracks in Starred (SPEC-now-playing-v2 §3). */
+    @Query("SELECT e.documentUri FROM playlist_entry e JOIN playlist p ON p.id = e.playlistId WHERE p.builtin = 'starred' AND e.documentUri IS NOT NULL")
+    fun observeStarred(): Flow<List<String>>
+
+    @Query("SELECT COALESCE(MIN(position), 0) FROM playlist_entry WHERE playlistId = :playlistId")
+    suspend fun firstPosition(playlistId: Long): Int
+
+    @Query("SELECT * FROM playlist_entry WHERE playlistId = :playlistId AND documentUri = :documentUri")
+    suspend fun entriesOf(playlistId: Long, documentUri: String): List<PlaylistEntry>
+
     @Query("SELECT COALESCE(MAX(position), -1) FROM playlist_entry WHERE playlistId = :playlistId")
     suspend fun lastPosition(playlistId: Long): Int
 

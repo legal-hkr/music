@@ -326,7 +326,7 @@ private fun PlaylistRow(
         trailingContent = {
             Box {
                 TooltipIconButton(R.drawable.ic_more_vert, stringResource(R.string.content_description_more_for, name), { menuOpen = true })
-                PlaylistMenu(menuOpen, playable = summary.tracks.isNotEmpty(), { menuOpen = false }, onPlay, onPlayNext, onAddToQueue, onRename, onExport, onDelete)
+                PlaylistMenu(menuOpen, playable = summary.tracks.isNotEmpty(), builtin = summary.starred, { menuOpen = false }, onPlay, onPlayNext, onAddToQueue, onRename, onExport, onDelete)
             }
         },
     ) {
@@ -361,6 +361,8 @@ fun MissingLine(count: Int) {
 private fun PlaylistMenu(
     expanded: Boolean,
     playable: Boolean,
+    /** Starred: Export only after the play group (§6). */
+    builtin: Boolean,
     onDismiss: () -> Unit,
     onPlay: () -> Unit,
     onPlayNext: () -> Unit,
@@ -372,7 +374,7 @@ private fun PlaylistMenu(
     val context = LocalContext.current
     val playsNext = stringResource(R.string.msg_plays_next)
     val addedToQueue = stringResource(R.string.msg_added_to_queue)
-    val groups = if (playable) 3 else 2
+    val groups = (if (playable) 1 else 0) + 1 + (if (builtin) 0 else 1)
     var group = 0
     DropdownMenuPopup(expanded = expanded, onDismissRequest = onDismiss) {
         if (playable) {
@@ -388,12 +390,15 @@ private fun PlaylistMenu(
             Spacer(Modifier.height(MenuDefaults.GroupSpacing))
         }
         DropdownMenuGroup(shapes = MenuDefaults.groupShape(group++, groups)) {
-            MenuItem(stringResource(R.string.menu_rename), R.drawable.ic_edit, 0, 2) { onDismiss(); onRename() }
-            MenuItem(stringResource(R.string.menu_export), R.drawable.ic_file_export, 1, 2) { onDismiss(); onExport() }
+            val items = if (builtin) 1 else 2
+            if (!builtin) MenuItem(stringResource(R.string.menu_rename), R.drawable.ic_edit, 0, items) { onDismiss(); onRename() }
+            MenuItem(stringResource(R.string.menu_export), R.drawable.ic_file_export, items - 1, items) { onDismiss(); onExport() }
         }
-        Spacer(Modifier.height(MenuDefaults.GroupSpacing))
-        DropdownMenuGroup(shapes = MenuDefaults.groupShape(group, groups)) {
-            MenuItem(stringResource(R.string.menu_delete), R.drawable.ic_delete, 0, 1, error = true) { onDismiss(); onDelete() }
+        if (!builtin) {
+            Spacer(Modifier.height(MenuDefaults.GroupSpacing))
+            DropdownMenuGroup(shapes = MenuDefaults.groupShape(group, groups)) {
+                MenuItem(stringResource(R.string.menu_delete), R.drawable.ic_delete, 0, 1, error = true) { onDismiss(); onDelete() }
+            }
         }
     }
 }
@@ -408,6 +413,10 @@ fun PlaylistPicture(summary: PlaylistSummary, size: Dp) {
     val shape = RoundedCornerShape(if (size >= 96.dp) 28.dp else 12.dp)
     Box(Modifier.size(size).clip(shape)) {
         when {
+            // Starred: its own tile instead of the mosaic (SPEC-now-playing-v2 §6)
+            summary.starred -> Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.primaryContainer), contentAlignment = Alignment.Center) {
+                Icon(painterResource(R.drawable.ic_star_filled), contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(size * 0.57f))
+            }
             covers.size == 4 -> Column {
                 for (row in 0..1) Row {
                     for (column in 0..1) {

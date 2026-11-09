@@ -16,7 +16,7 @@ import java.io.IOException
  * system picker: read once (no lasting permission), written only where the user chose.
  */
 class PlaylistTransfer(
-    context: Context,
+    private val context: Context,
     private val playlists: PlaylistRepository,
     private val dao: PlaylistDao,
     private val folders: LibraryFolderDao,
@@ -91,7 +91,9 @@ class PlaylistTransfer(
                     ExportLine(entry.path ?: entry.shownTitle, entry.title, entry.artists, entry.album, entry.durationMs)
                 }
             }
-            val bytes = PlaylistFiles.write(format, playlist.name, lines)
+            // Starred is stored under a fixed name; the file gets the one the app shows
+            val name = if (playlist.builtin == sh.hnet.music.data.Playlist.STARRED) context.getString(sh.hnet.music.R.string.label_starred_playlist) else playlist.name
+            val bytes = PlaylistFiles.write(format, name, lines)
             (resolver.openOutputStream(uri, "wt") ?: throw IOException("No output")).use { it.write(bytes) }
             Result.Exported(fileName)
         } catch (e: IOException) {

@@ -74,6 +74,7 @@ import kotlinx.coroutines.delay
 import sh.hnet.music.R
 import sh.hnet.music.ui.library.AddRequest
 import sh.hnet.music.ui.library.LocalAddToPlaylist
+import sh.hnet.music.ui.library.LocalStarring
 import sh.hnet.music.data.LibraryTrack
 import sh.hnet.music.data.Track
 import sh.hnet.music.playback.AppliedGain
@@ -169,7 +170,10 @@ private fun ColumnScope.Controls(
                 Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
-        if (track != null) TrackActions(track, onGoToArtist, onGoToAlbum, onDetails)
+        if (track != null) {
+            StarButton(track)
+            TrackActions(track, onGoToArtist, onGoToAlbum, onDetails)
+        }
     }
     Spacer(Modifier.height(12.dp))
     // Technical details: only here and on the details page (SPEC §2.5)
@@ -253,6 +257,31 @@ private fun SeekBar(state: PlayerState, player: PlayerConnection, libraryDuratio
     }
 }
 
+/**
+ * The star (SPEC-now-playing-v2 §3.1): follows the current track and changes made elsewhere; the
+ * icon is the feedback, no snackbar.
+ */
+@Composable
+private fun StarButton(track: LibraryTrack) {
+    val starring = LocalStarring.current ?: return
+    val starred = starring.isStarred(track)
+    val state = stringResource(if (starred) R.string.desc_starred else R.string.desc_not_starred)
+    IconToggleButton(
+        checked = starred,
+        onCheckedChange = { starring.set(track, it) },
+        colors = IconButtonDefaults.iconToggleButtonColors(
+            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            checkedContentColor = MaterialTheme.colorScheme.primary,
+        ),
+        modifier = Modifier.semantics { stateDescription = state },
+    ) {
+        Icon(
+            painterResource(if (starred) R.drawable.ic_star_filled else R.drawable.ic_star),
+            contentDescription = stringResource(if (starred) R.string.content_description_unstar else R.string.content_description_star),
+        )
+    }
+}
+
 /** Track actions (SPEC §9.4): Add to playlist, Go to artist / album, then Track details. */
 @Composable
 private fun TrackActions(track: LibraryTrack, onGoToArtist: (String) -> Unit, onGoToAlbum: (LibraryTrack) -> Unit, onDetails: () -> Unit) {
@@ -283,8 +312,17 @@ private fun TrackActions(track: LibraryTrack, onGoToArtist: (String) -> Unit, on
                 if (!track.album.isNullOrBlank()) add(Triple(R.string.menu_go_to_album, R.drawable.ic_album) { open = false; onGoToAlbum(track) })
             }
             val groups = if (goTo.isEmpty()) 2 else 3
+            val starring = LocalStarring.current
             DropdownMenuGroup(shapes = MenuDefaults.groupShape(0, groups)) {
-                Item(stringResource(R.string.menu_add_to_playlist), R.drawable.ic_playlist_add, 0, 1) { open = false; addToPlaylist(AddRequest.Track(track)) }
+                val count = if (starring != null) 2 else 1
+                Item(stringResource(R.string.menu_add_to_playlist), R.drawable.ic_playlist_add, 0, count) { open = false; addToPlaylist(AddRequest.Track(track)) }
+                if (starring != null) {
+                    val starred = starring.isStarred(track)
+                    Item(stringResource(if (starred) R.string.menu_unstar else R.string.menu_star), if (starred) R.drawable.ic_star_filled else R.drawable.ic_star, 1, count) {
+                        open = false
+                        starring.set(track, !starred)
+                    }
+                }
             }
             Spacer(Modifier.height(MenuDefaults.GroupSpacing))
             if (goTo.isNotEmpty()) {

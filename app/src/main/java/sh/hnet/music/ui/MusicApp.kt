@@ -37,6 +37,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.foundation.layout.navigationBarsPadding
 import sh.hnet.music.ui.library.PlaylistActionsHost
 import sh.hnet.music.ui.library.LocalAddToPlaylist
+import sh.hnet.music.ui.library.LocalStarring
+import sh.hnet.music.ui.library.Starring
 import sh.hnet.music.ui.library.AddRequest
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
@@ -216,7 +218,9 @@ fun MusicApp(openNowPlaying: Int = 0) {
     val fastEffects: FiniteAnimationSpec<Float> = motion.fastEffectsSpec()
     val shift = with(LocalDensity.current) { 30.dp.roundToPx() }
 
-    CompositionLocalProvider(LocalAddToPlaylist provides { addRequest = it }) {
+    val starredState = browse.starred.collectAsStateWithLifecycle()
+    val starring = remember(browse) { Starring(starredState) { track, on -> browse.setStarred(track, on) } }
+    CompositionLocalProvider(LocalAddToPlaylist provides { addRequest = it }, LocalStarring provides starring) {
     SharedTransitionLayout {
     Box(Modifier.fillMaxSize()) {
     Scaffold(

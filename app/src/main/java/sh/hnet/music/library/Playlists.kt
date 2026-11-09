@@ -3,6 +3,7 @@ package sh.hnet.music.library
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
@@ -30,6 +31,8 @@ data class PlaylistSummary(
     val entryIds: List<Long>,
     val missing: Int,
 ) {
+    val starred: Boolean get() = playlist.builtin == Playlist.STARRED
+
     val durationMs: Long get() = tracks.sumOf { it.durationMs }
 
     /**
@@ -86,7 +89,11 @@ class PlaylistRepository(
     private val library: LibraryRepository,
     scanner: LibraryScanner,
     scope: CoroutineScope,
+    /** Starred's name in the app's language ("Starred", "Ulubione"); never stored. */
+    private val starredName: () -> String,
 ) {
+    private fun Playlist.shown() = if (builtin == Playlist.STARRED) copy(name = starredName()) else this
+
     init {
         // Missing entries find their tracks again (§6.3) once the library has settled: after every
         // scan and every change of access, never while a scan is still adding tracks
@@ -126,17 +133,42 @@ class PlaylistRepository(
     val playlists: StateFlow<List<PlaylistSummary>?> =
         combine(dao.observePlaylists(), dao.observeEntryRefs(), library.tracksByUri) { playlists, refs, tracks ->
             val byPlaylist = refs.groupBy(EntryRef::playlistId)
-            playlists.map { playlist ->
+            playlists.map { stored ->
+                val playlist = stored.shown()
                 val entries = byPlaylist[playlist.id].orEmpty()
                 val playable = entries.mapNotNull { ref -> ref.documentUri?.let(tracks::get)?.let { ref.id to it } }
                 PlaylistSummary(playlist, playable.map { it.second }, playable.map { it.first }, entries.size - playable.size)
             }
         }.flowOn(Dispatchers.Default).stateIn(scope, SharingStarted.Eagerly, null)
 
+    /** The library tracks in Starred, for the star on now playing and in menus. */
+    val starred: StateFlow<Set<String>> = dao.observeStarred()
+        .map { it.toHashSet() as Set<String> }
+        .flowOn(Dispatchers.Default)
+        .stateIn(scope, SharingStarted.Eagerly, emptySet())
+
+    /** Stars [track]: it goes to the top of Starred, newest first (§6); made on first use. */
+    suspend fun star(track: LibraryTrack) {
+        if (track.documentUri in starred.value) return
+        val id = dao.builtinId(Playlist.STARRED) ?: run {
+            val now = System.currentTimeMillis()
+            dao.insert(Playlist(name = "Starred", createdAt = now, changedAt = now, builtin = Playlist.STARRED))
+        }
+        dao.append(id, listOf(entryOf(id, dao.firstPosition(id) - 1, track)), System.currentTimeMillis())
+    }
+
+    /** Unstars [documentUri]; the removed entries come back with [restoreEntry] (Undo). */
+    suspend fun unstar(documentUri: String): List<PlaylistEntry> {
+        val id = dao.builtinId(Playlist.STARRED) ?: return emptyList()
+        val entries = dao.entriesOf(id, documentUri)
+        if (entries.isNotEmpty()) dao.removeEntries(id, entries.map { it.id }, System.currentTimeMillis())
+        return entries
+    }
+
     /** One playlist with every entry, each resolved to its library track or missing (null). */
     fun page(id: Long): Flow<PlaylistPage?> =
         combine(dao.observePlaylist(id), dao.observeEntries(id), library.tracksByUri) { playlist, entries, tracks ->
-            playlist?.let { PlaylistPage(it, entries.map { entry -> PlaylistRow(entry, entry.documentUri?.let(tracks::get)) }) }
+            playlist?.let { PlaylistPage(it.shown(), entries.map { entry -> PlaylistRow(entry, entry.documentUri?.let(tracks::get)) }) }
         }.flowOn(Dispatchers.Default)
 
     /** Appends [tracks] (§7.3: at the end, duplicates allowed); the result says how many were there already. */
@@ -172,7 +204,7 @@ class PlaylistRepository(
     /** Whether another playlist has [name]; names compare trimmed, ignoring case and diacritics (§7.4). */
     fun nameTaken(name: String, except: Long? = null): Boolean {
         val wanted = nameKey(name)
-        return playlists.value.orEmpty().any { it.playlist.id != except && nameKey(it.playlist.name) == wanted }
+        return playlists.value.orEmpty().any { !it.starred && it.playlist.id != except && nameKey(it.playlist.name) == wanted }
     }
 
     suspend fun create(name: String): Long {
@@ -203,7 +235,13 @@ class PlaylistRepository(
 
         fun nameKey(name: String) = SearchIndex.normalize(name.trim())
 
-        fun sort(list: List<PlaylistSummary>, sort: PlaylistSort, locale: Locale): List<PlaylistSummary> = when (sort) {
+        /** Starred first whatever the sort, and only while it has entries (§6); then the others. */
+        fun sort(list: List<PlaylistSummary>, sort: PlaylistSort, locale: Locale): List<PlaylistSummary> {
+            val starred = list.filter { it.starred && (it.tracks.isNotEmpty() || it.missing > 0) }
+            return starred + sortOwn(list.filter { !it.starred }, sort, locale)
+        }
+
+        private fun sortOwn(list: List<PlaylistSummary>, sort: PlaylistSort, locale: Locale): List<PlaylistSummary> = when (sort) {
             PlaylistSort.RECENTLY_CHANGED -> list.sortedByDescending { it.playlist.changedAt }
             PlaylistSort.RECENTLY_ADDED -> list.sortedByDescending { it.playlist.createdAt }
             PlaylistSort.NAME -> {

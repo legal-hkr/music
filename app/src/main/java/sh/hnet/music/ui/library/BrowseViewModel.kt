@@ -145,9 +145,9 @@ class BrowseViewModel(private val app: MusicApplication) : ViewModel() {
         viewModelScope.launch { app.playlists.restoreEntries(id, entries) }
     }
 
-    /** Every playlist, recently changed first: the Add to playlist sheet's order (§7.2). */
+    /** Every playlist but Starred (starring is how tracks get in), recently changed first (§7.2). */
     val playlistsByChange: StateFlow<List<PlaylistSummary>> = app.playlists.playlists
-        .map { it.orEmpty().sortedByDescending { summary -> summary.playlist.changedAt } }
+        .map { it.orEmpty().filter { summary -> !summary.starred }.sortedByDescending { summary -> summary.playlist.changedAt } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     suspend fun importPlaylist(uri: android.net.Uri): PlaylistTransfer.Result = app.transfer.import(uri)
@@ -158,6 +158,16 @@ class BrowseViewModel(private val app: MusicApplication) : ViewModel() {
     }
 
     val exportFormat: StateFlow<PlaylistFormat> = app.preferences.exportFormat.stateIn(viewModelScope, SharingStarted.Eagerly, PlaylistFormat.M3U8)
+
+    /** The tracks in Starred (SPEC-now-playing-v2 §3). */
+    val starred: StateFlow<Set<String>> = app.playlists.starred
+
+    fun setStarred(track: LibraryTrack, on: Boolean) {
+        viewModelScope.launch { if (on) app.playlists.star(track) else app.playlists.unstar(track.documentUri) }
+    }
+
+    /** Unstars and returns what came out, for Undo (§6: swiping in Starred). */
+    suspend fun unstar(documentUri: String): List<PlaylistEntry> = app.playlists.unstar(documentUri)
 
     fun playNext(tracks: List<LibraryTrack>) = player.playNext(tracks)
 

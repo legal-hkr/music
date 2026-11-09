@@ -137,7 +137,8 @@ fun PlaylistScreen(
     val rows = remember { mutableStateListOf<PlaylistRow>() }
     val reorder = rememberReorderState(
         listState = list,
-        canMove = { key -> key is Long },
+        // Starred keeps the order of starring (newest first): nothing moves there (SPEC-now-playing-v2 §6)
+        canMove = { key -> key is Long && shown?.summary?.starred != true },
         onStart = {},
         onMove = { from, to ->
             val a = rows.indexOfFirst { it.entry.id == from }
@@ -153,7 +154,20 @@ fun PlaylistScreen(
         }
     }
 
+    val unstarredText = stringResource(R.string.msg_unstarred)
     fun remove(row: PlaylistRow) = messageScope.launch {
+        // In Starred, a swipe unstars (§6); a missing entry there is only removed
+        val track = row.track
+        if (shown?.summary?.starred == true && track != null) {
+            val entries = viewModel.unstar(track.documentUri)
+            if (entries.isEmpty()) return@launch
+            snackbars.currentSnackbarData?.dismiss()
+            val message = AnnotatedString.fromHtml(unstarredText.format(track.displayTitle.htmlEncode())).text
+            if (snackbars.showSnackbar(message, actionLabel = undo, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed) {
+                entries.forEach { viewModel.restoreEntry(it) }
+            }
+            return@launch
+        }
         val entry = viewModel.removeEntry(row.entry.id) ?: return@launch
         val name = shown?.playlist?.name.orEmpty()
         snackbars.currentSnackbarData?.dismiss()
@@ -180,6 +194,7 @@ fun PlaylistScreen(
                 item(key = "actions") {
                     Actions(
                         playable = summary.tracks.isNotEmpty(),
+                        builtin = summary.starred,
                         missing = summary.missing,
                         onRemoveMissing = { removingMissing = true },
                         onPlay = { viewModel.playPlaylist(summary, shuffle = false) },
@@ -221,15 +236,16 @@ fun PlaylistScreen(
                             .reorderableItem(reorder, key),
                     ) {
                         SwipeToRemove(enabled = reorder.draggedKey == null, onRemove = { remove(row) }) {
+                            val starredList = summary.starred
                             val handle: @Composable () -> Unit = {
-                                Box(Modifier.size(48.dp).dragHandle(reorder, key), contentAlignment = Alignment.Center) {
+                                if (!starredList) Box(Modifier.size(48.dp).dragHandle(reorder, key), contentAlignment = Alignment.Center) {
                                     Icon(painterResource(R.drawable.ic_drag_indicator), contentDescription = null)
                                 }
                             }
                             val rowModifier = Modifier
-                                .longPressDrag(reorder, key)
+                                .then(if (starredList) Modifier else Modifier.longPressDrag(reorder, key))
                                 .background(MaterialTheme.colorScheme.surface)
-                                .semantics { customActions = moves }
+                                                .semantics { if (!starredList) customActions = moves }
                             val track = row.track
                             if (track != null) {
                                 val state = when {
@@ -244,7 +260,8 @@ fun PlaylistScreen(
                                     navigation = navigation,
                                     onClick = { viewModel.playPlaylist(summary, start = summary.entryIds.indexOf(key)) },
                                     modifier = rowModifier,
-                                    onRemoveFromPlaylist = { remove(row) },
+                                    // Starred: the track menu's Unstar does it
+                                    onRemoveFromPlaylist = if (starredList) null else ({ remove(row) }),
                                     endContent = handle,
                                 )
                             } else {
@@ -384,6 +401,8 @@ private fun Header(page: PlaylistPage) {
 @Composable
 private fun Actions(
     playable: Boolean,
+    /** Starred: Export (and Remove missing tracks) only (§6). */
+    builtin: Boolean,
     missing: Int,
     onRemoveMissing: () -> Unit,
     onPlay: () -> Unit,
@@ -414,22 +433,25 @@ private fun Actions(
             FilledTonalIconButton(onClick = { menuOpen = true }, modifier = Modifier.size(height)) {
                 Icon(painterResource(R.drawable.ic_more_horiz), contentDescription = label)
             }
-            // Rename | Remove missing tracks (only while some are missing) | Delete (§5.2)
-            val groups = if (missing > 0) 3 else 2
+            // Rename | Remove missing tracks (only while some are missing) | Delete (§5.2); Starred: no Rename, no Delete
+            val groups = 1 + (if (missing > 0) 1 else 0) + (if (builtin) 0 else 1)
             DropdownMenuPopup(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                 DropdownMenuGroup(shapes = MenuDefaults.groupShape(0, groups)) {
-                    MenuItem(stringResource(R.string.menu_rename), R.drawable.ic_edit, 0, 2) { menuOpen = false; onRename() }
-                    MenuItem(stringResource(R.string.menu_export), R.drawable.ic_file_export, 1, 2) { menuOpen = false; onExport() }
+                    val items = if (builtin) 1 else 2
+                    if (!builtin) MenuItem(stringResource(R.string.menu_rename), R.drawable.ic_edit, 0, items) { menuOpen = false; onRename() }
+                    MenuItem(stringResource(R.string.menu_export), R.drawable.ic_file_export, items - 1, items) { menuOpen = false; onExport() }
                 }
-                Spacer(Modifier.height(MenuDefaults.GroupSpacing))
                 if (missing > 0) {
+                    Spacer(Modifier.height(MenuDefaults.GroupSpacing))
                     DropdownMenuGroup(shapes = MenuDefaults.groupShape(1, groups)) {
                         MenuItem(stringResource(R.string.menu_remove_missing), R.drawable.ic_link_off, 0, 1) { menuOpen = false; onRemoveMissing() }
                     }
-                    Spacer(Modifier.height(MenuDefaults.GroupSpacing))
                 }
-                DropdownMenuGroup(shapes = MenuDefaults.groupShape(groups - 1, groups)) {
-                    MenuItem(stringResource(R.string.menu_delete), R.drawable.ic_delete, 0, 1, error = true) { menuOpen = false; onDelete() }
+                if (!builtin) {
+                    Spacer(Modifier.height(MenuDefaults.GroupSpacing))
+                    DropdownMenuGroup(shapes = MenuDefaults.groupShape(groups - 1, groups)) {
+                        MenuItem(stringResource(R.string.menu_delete), R.drawable.ic_delete, 0, 1, error = true) { menuOpen = false; onDelete() }
+                    }
                 }
             }
         }

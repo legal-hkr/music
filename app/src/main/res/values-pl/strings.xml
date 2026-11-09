@@ -431,4 +431,13 @@
     <string name="content_description_queue">Kolejka</string>
     <string name="content_description_replay">Odtwórz kolejkę od początku</string>
     <string name="desc_end_of_queue">Koniec kolejki</string>
+    <!-- Starred -->
+    <string name="label_starred_playlist">Ulubione</string>
+    <string name="menu_star">Dodaj do ulubionych</string>
+    <string name="menu_unstar">Usuń z ulubionych</string>
+    <string name="content_description_star">Dodaj do ulubionych</string>
+    <string name="content_description_unstar">Usuń z ulubionych</string>
+    <string name="desc_starred">W ulubionych</string>
+    <string name="desc_not_starred">Poza ulubionymi</string>
+    <string name="msg_unstarred"><![CDATA[Usunięto <b>%s</b> z ulubionych]]></string>
 </resources>

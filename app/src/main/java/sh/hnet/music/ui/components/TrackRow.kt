@@ -41,6 +41,7 @@ import sh.hnet.music.MusicApplication
 import sh.hnet.music.R
 import sh.hnet.music.ui.library.AddRequest
 import sh.hnet.music.ui.library.LocalAddToPlaylist
+import sh.hnet.music.ui.library.LocalStarring
 import sh.hnet.music.data.LibraryTrack
 
 /** How a track relates to what plays now. */
@@ -140,6 +141,7 @@ private fun TrackMenu(track: LibraryTrack, expanded: Boolean, navigation: TrackN
     val playsNext = stringResource(R.string.msg_plays_next)
     val addedToQueue = stringResource(R.string.msg_added_to_queue)
     val addToPlaylist = LocalAddToPlaylist.current
+    val starring = LocalStarring.current
     DropdownMenuPopup(expanded = expanded, onDismissRequest = onDismiss) {
         if (choosingArtist) {
             DropdownMenuGroup(shapes = MenuDefaults.groupShape(0, 1)) {
@@ -173,19 +175,27 @@ private fun TrackMenu(track: LibraryTrack, expanded: Boolean, navigation: TrackN
         }
         val groupCount = 1 + (if (goTo.isNotEmpty()) 1 else 0) + (if (onRemoveFromPlaylist != null) 1 else 0)
         DropdownMenuGroup(shapes = MenuDefaults.groupShape(0, groupCount)) {
-            MenuItem(stringResource(R.string.menu_play_next), R.drawable.ic_queue_play_next, 0, 3) {
+            val items = if (starring != null) 4 else 3
+            MenuItem(stringResource(R.string.menu_play_next), R.drawable.ic_queue_play_next, 0, items) {
                 onDismiss()
                 player.playNext(track)
                 Toast.makeText(context, playsNext, Toast.LENGTH_SHORT).show()
             }
-            MenuItem(stringResource(R.string.menu_add_to_queue), R.drawable.ic_queue_music, 1, 3) {
+            MenuItem(stringResource(R.string.menu_add_to_queue), R.drawable.ic_queue_music, 1, items) {
                 onDismiss()
                 player.addToQueue(track)
                 Toast.makeText(context, addedToQueue, Toast.LENGTH_SHORT).show()
             }
-            MenuItem(stringResource(R.string.menu_add_to_playlist), R.drawable.ic_playlist_add, 2, 3) {
+            MenuItem(stringResource(R.string.menu_add_to_playlist), R.drawable.ic_playlist_add, 2, items) {
                 onDismiss()
                 addToPlaylist(AddRequest.Track(track))
+            }
+            if (starring != null) {
+                val starred = starring.isStarred(track)
+                MenuItem(stringResource(if (starred) R.string.menu_unstar else R.string.menu_star), if (starred) R.drawable.ic_star_filled else R.drawable.ic_star, 3, items) {
+                    onDismiss()
+                    starring.set(track, !starred)
+                }
             }
         }
         if (goTo.isNotEmpty()) {

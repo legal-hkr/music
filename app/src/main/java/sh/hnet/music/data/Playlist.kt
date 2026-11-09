@@ -12,7 +12,14 @@ data class Playlist(
     val createdAt: Long,
     /** Entries added, removed or moved, renamed or replaced: the default sort (§4.3). */
     val changedAt: Long,
-)
+    /** A built-in playlist ([STARRED]) or null for the user's own; built-in ones can't be renamed or deleted. */
+    val builtin: String? = null,
+) {
+    companion object {
+        /** Starred (SPEC-now-playing-v2 §6): shown as "Starred" / "Ulubione" from resources, whatever is stored. */
+        const val STARRED = "starred"
+    }
+}
 
 /**
  * One entry of a playlist, in [position] order. It points to a library track by [documentUri] and
