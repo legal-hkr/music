@@ -2,6 +2,10 @@
 
 package sh.hnet.music.ui.library
 
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import sh.hnet.music.ui.components.ConfirmDestructiveDialog
+import sh.hnet.music.ui.components.moveActions
 import sh.hnet.music.ui.components.LocalBottomOverlay
 import androidx.activity.compose.BackHandler
 import android.widget.Toast
@@ -24,7 +28,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.ButtonDefaults
@@ -51,19 +54,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -252,7 +252,7 @@ fun PlaylistScreen(
                 }
                 itemsIndexed(rows, key = { _, row -> row.entry.id }, contentType = { _, row -> if (row.track != null) "track" else "missing" }) { position, row ->
                     val key = row.entry.id
-                    val moves = moveActions(position, rows.size) { to ->
+                    val moves = moveActions(position, rows.size, toEnds = true) { to ->
                         val ids = rows.map { it.entry.id }.toMutableList()
                         ids.add(to, ids.removeAt(position))
                         viewModel.reorderPlaylist(id, ids)
@@ -311,22 +311,17 @@ fun PlaylistScreen(
         val missingIds = shown.rows.filter { it.track == null }.map { it.entry.id }
         val removed = pluralStringResource(R.plurals.msg_removed_n, missingIds.size, missingIds.size)
         // Confirmed, no Undo: what goes is the automatic comeback, which the text says (§6.4)
-        AlertDialog(
-            onDismissRequest = { removingMissing = false },
-            icon = { Icon(painterResource(R.drawable.ic_link_off), contentDescription = null, tint = MaterialTheme.colorScheme.error) },
-            title = { Text(pluralStringResource(R.plurals.title_remove_missing, missingIds.size, missingIds.size)) },
-            text = { Text(boldNamesResource(R.string.msg_remove_missing, shown.playlist.name)) },
-            dismissButton = { TextButton(onClick = { removingMissing = false }) { Text(stringResource(R.string.button_cancel)) } },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        removingMissing = false
-                        viewModel.removeEntries(id, missingIds)
-                        Toast.makeText(context, removed, Toast.LENGTH_SHORT).show()
-                    },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                ) { Text(stringResource(R.string.button_remove)) }
+        ConfirmDestructiveDialog(
+            icon = R.drawable.ic_link_off,
+            title = pluralStringResource(R.plurals.title_remove_missing, missingIds.size, missingIds.size),
+            text = boldNamesResource(R.string.msg_remove_missing, shown.playlist.name),
+            confirmLabel = stringResource(R.string.button_remove),
+            onConfirm = {
+                removingMissing = false
+                viewModel.removeEntries(id, missingIds)
+                Toast.makeText(context, removed, Toast.LENGTH_SHORT).show()
             },
+            onDismiss = { removingMissing = false },
         )
     }
     if (renaming && shown != null) {
@@ -354,28 +349,6 @@ private val LOADING = PlaylistPage(sh.hnet.music.data.Playlist(id = -1, name = "
 private fun bucketOf(index: Int): String {
     val start = index / 100 * 100 + 1
     return "$start–${start + 99}"
-}
-
-/** "artists – album", always both: a playlist mixes albums (§5.3). */
-private fun playlistLine(artists: List<String>, album: String?): String? =
-    listOfNotNull(artists.joinToString(", ").ifEmpty { null }, album?.ifBlank { null }).joinToString(" – ").ifEmpty { null }
-
-@Composable
-private fun moveActions(position: Int, count: Int, move: (Int) -> Unit): List<CustomAccessibilityAction> {
-    val up = stringResource(R.string.label_move_up)
-    val down = stringResource(R.string.label_move_down)
-    val top = stringResource(R.string.label_move_to_top)
-    val bottom = stringResource(R.string.label_move_to_bottom)
-    return buildList {
-        if (position > 0) {
-            add(CustomAccessibilityAction(up) { move(position - 1); true })
-            add(CustomAccessibilityAction(top) { move(0); true })
-        }
-        if (position < count - 1) {
-            add(CustomAccessibilityAction(down) { move(position + 1); true })
-            add(CustomAccessibilityAction(bottom) { move(count - 1); true })
-        }
-    }
 }
 
 /** End-to-start swipe with the error container behind, as in the queue (§5.5). */
@@ -546,3 +519,6 @@ private fun MissingRow(row: PlaylistRow, modifier: Modifier, number: Int?, onRem
     }
 }
 
+/** "artists – album", always both: a playlist mixes albums (§5.3). */
+private fun playlistLine(artists: List<String>, album: String?): String? =
+    listOfNotNull(artists.joinToString(", ").ifEmpty { null }, album?.ifBlank { null }).joinToString(" – ").ifEmpty { null }

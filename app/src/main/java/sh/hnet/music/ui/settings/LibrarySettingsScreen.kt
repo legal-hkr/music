@@ -2,6 +2,10 @@
 
 package sh.hnet.music.ui.settings
 
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.text.AnnotatedString
+import sh.hnet.music.ui.components.SingleChoiceDialog
 import android.net.Uri
 import android.text.format.DateUtils
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -10,15 +14,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -26,17 +24,12 @@ import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.ListItemShapes
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -45,7 +38,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -182,38 +174,17 @@ private fun skipValue(seconds: Int): String =
 
 /** Skip short files (§5.2): a single choice, as the export dialog; Save applies it at once, no rescan. */
 @Composable
-private fun SkipShortDialog(initial: Int, onDismiss: () -> Unit, onSave: (Int) -> Unit) {
-    var chosen by rememberSaveable { mutableIntStateOf(initial) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.label_skip_short)) },
-        text = {
-            Column {
-                Text(stringResource(R.string.msg_skip_short_explain), modifier = Modifier.padding(bottom = 8.dp))
-                Column(Modifier.selectableGroup()) {
-                    SKIP_SHORT_CHOICES.forEach { seconds ->
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .selectable(selected = chosen == seconds, role = Role.RadioButton) { chosen = seconds }
-                                .heightIn(min = 48.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            RadioButton(selected = chosen == seconds, onClick = null)
-                            Spacer(Modifier.width(16.dp))
-                            Text(
-                                if (seconds == 0) stringResource(R.string.label_skip_off) else stringResource(R.string.label_shorter_than, seconds),
-                                style = MaterialTheme.typography.bodyLarge,
-                            )
-                        }
-                    }
-                }
-            }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.button_cancel)) } },
-        confirmButton = { TextButton(onClick = { onSave(chosen) }) { Text(stringResource(R.string.button_save)) } },
+private fun SkipShortDialog(initial: Int, onDismiss: () -> Unit, onSave: (Int) -> Unit) =
+    SingleChoiceDialog(
+        title = AnnotatedString(stringResource(R.string.label_skip_short)),
+        options = SKIP_SHORT_CHOICES,
+        initial = initial,
+        label = { seconds -> if (seconds == 0) stringResource(R.string.label_skip_off) else stringResource(R.string.label_shorter_than, seconds) },
+        confirmLabel = stringResource(R.string.button_save),
+        onConfirm = onSave,
+        onDismiss = onDismiss,
+        description = stringResource(R.string.msg_skip_short_explain),
     )
-}
 
 @Composable
 private fun FolderRowItem(shapes: ListItemShapes, row: FolderRow, onClick: () -> Unit) {

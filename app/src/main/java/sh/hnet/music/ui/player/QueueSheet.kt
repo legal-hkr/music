@@ -2,6 +2,10 @@
 
 package sh.hnet.music.ui.player
 
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import sh.hnet.music.ui.components.DestructiveButton
+import sh.hnet.music.ui.components.ConfirmDestructiveDialog
 import sh.hnet.music.ui.components.PlayingIndicator
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.foundation.layout.height
@@ -28,14 +32,12 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarDuration
@@ -45,12 +47,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
@@ -261,14 +260,12 @@ fun QueueSheet(
                     itemsIndexed(rows.drop(playedCount + 1), key = { _, row -> row.key }) { i, row -> entry(playedCount + 1 + i, row) }
                     if (rows.size > 1) {
                         item(key = "clear") {
-                            OutlinedButton(
-                                onClick = { confirmClear = true },
-                                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp),
-                            ) {
-                                Icon(painterResource(R.drawable.ic_clear_all), contentDescription = null, modifier = Modifier.size(18.dp))
-                                Text(stringResource(R.string.button_clear_queue), modifier = Modifier.padding(start = 8.dp))
-                            }
+                            DestructiveButton(
+                                stringResource(R.string.button_clear_queue),
+                                R.drawable.ic_clear_all,
+                                { confirmClear = true },
+                                Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
+                            )
                         }
                     }
                     if (room > 0.dp) item(key = "room") { Spacer(Modifier.height(room)) }
@@ -283,19 +280,13 @@ fun QueueSheet(
 
     if (confirmClear) {
         val following = (rows.size - 1).coerceAtLeast(0)
-        AlertDialog(
-            onDismissRequest = { confirmClear = false },
-            icon = { Icon(painterResource(R.drawable.ic_clear_all), contentDescription = null, tint = MaterialTheme.colorScheme.error) },
-            title = { Text(stringResource(R.string.title_clear_queue)) },
-            text = { Text(pluralStringResource(R.plurals.msg_clear_queue, following, following)) },
-            dismissButton = { TextButton(onClick = { confirmClear = false }) { Text(stringResource(R.string.button_cancel)) } },
-            confirmButton = {
-                TextButton(
-                    onClick = { confirmClear = false; player.clearAroundCurrent() },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                ) { Text(stringResource(R.string.button_clear)) }
-            },
-        )
+        ConfirmDestructiveDialog(
+            icon = R.drawable.ic_clear_all,
+            title = AnnotatedString(stringResource(R.string.title_clear_queue)),
+            confirmLabel = stringResource(R.string.button_clear),
+            onConfirm = { confirmClear = false; player.clearAroundCurrent() },
+            onDismiss = { confirmClear = false },
+        ) { Text(pluralStringResource(R.plurals.msg_clear_queue, following, following)) }
     }
 }
 

@@ -29,7 +29,7 @@ fun SettingsRootScreen(
 ) {
     val summary by viewModel.summary.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val version = remember(context) { appVersion(context).first }
+    val version = sh.hnet.music.BuildConfig.VERSION_NAME.removePrefix("v")
     val gain by (context.applicationContext as sh.hnet.music.MusicApplication).preferences.gain.collectAsStateWithLifecycle(sh.hnet.music.playback.GainSettings())
     // Read on every composition: changing it recreates the activity anyway
     val startView by (context.applicationContext as sh.hnet.music.MusicApplication).preferences.startView.collectAsStateWithLifecycle(sh.hnet.music.ui.library.LibraryView.ALBUMS)
@@ -89,10 +89,4 @@ private fun librarySummary(summary: LibrarySummary): String = when {
         pluralStringResource(R.plurals.label_folder_count, summary.folders, formatCount(summary.folders)),
         pluralStringResource(R.plurals.label_track_count, summary.tracks, formatCount(summary.tracks)),
     )
-}
-
-/** Version name and code from the installed package (no BuildConfig needed). */
-fun appVersion(context: android.content.Context): Pair<String, Long> {
-    val info = context.packageManager.getPackageInfo(context.packageName, 0)
-    return info.versionName.orEmpty().removePrefix("v") to info.longVersionCode
 }

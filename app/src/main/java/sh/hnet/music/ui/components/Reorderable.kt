@@ -1,5 +1,8 @@
 package sh.hnet.music.ui.components
 
+import sh.hnet.music.R
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.RectangleShape
@@ -174,6 +177,28 @@ fun Modifier.dragHandle(state: ReorderState, key: Any): Modifier = pointerInput(
             }
         } finally {
             state.end()
+        }
+    }
+}
+
+/**
+ * Move up / Move down (and, with [toEnds], Move to top / bottom) for TalkBack on a reorderable row
+ * at [position] of [count]; [move] takes the new position.
+ */
+@Composable
+fun moveActions(position: Int, count: Int, toEnds: Boolean = false, move: (Int) -> Unit): List<CustomAccessibilityAction> {
+    val up = stringResource(R.string.label_move_up)
+    val down = stringResource(R.string.label_move_down)
+    val top = stringResource(R.string.label_move_to_top)
+    val bottom = stringResource(R.string.label_move_to_bottom)
+    return buildList {
+        if (position > 0) {
+            add(CustomAccessibilityAction(up) { move(position - 1); true })
+            if (toEnds) add(CustomAccessibilityAction(top) { move(0); true })
+        }
+        if (position < count - 1) {
+            add(CustomAccessibilityAction(down) { move(position + 1); true })
+            if (toEnds) add(CustomAccessibilityAction(bottom) { move(count - 1); true })
         }
     }
 }

@@ -2,6 +2,9 @@
 
 package sh.hnet.music.ui.settings
 
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import sh.hnet.music.ui.components.ConfirmDestructiveDialog
 import android.content.Context
 import android.net.Uri
 import android.text.format.DateUtils
@@ -12,28 +15,20 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemShapes
 import androidx.compose.material3.LoadingIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -216,32 +211,26 @@ private fun RestoreConfirmDialog(picked: BackupManager.Picked, onDismiss: () -> 
     val current by app.playlists.playlists.collectAsStateWithLifecycle()
     val currentCount = current.orEmpty().count { !it.starred || it.tracks.isNotEmpty() || it.missing > 0 }
     val backup = valid.backup
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        icon = { Icon(painterResource(R.drawable.ic_settings_backup_restore), contentDescription = null, tint = MaterialTheme.colorScheme.error) },
-        title = { Text(stringResource(R.string.title_restore_confirm)) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(boldNamesResource(R.string.msg_restore_from, picked.fileName, backupDate(context, backup.createdAt), backup.appVersion))
-                val playlists = resources.getString(R.string.msg_restore_playlists, valid.playlists, valid.tracks)
-                listOf(
-                    stringResource(R.string.msg_restore_settings),
-                    if (valid.hasStarred) resources.getString(R.string.msg_restore_with_starred, playlists) else playlists,
-                ).forEach { item ->
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text("–")
-                        Text(item)
-                    }
+    ConfirmDestructiveDialog(
+        icon = R.drawable.ic_settings_backup_restore,
+        title = AnnotatedString(stringResource(R.string.title_restore_confirm)),
+        confirmLabel = stringResource(R.string.button_replace),
+        onConfirm = { onConfirm(valid) },
+        onDismiss = onDismiss,
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(boldNamesResource(R.string.msg_restore_from, picked.fileName, backupDate(context, backup.createdAt), backup.appVersion))
+            val playlists = resources.getString(R.string.msg_restore_playlists, valid.playlists, valid.tracks)
+            listOf(
+                stringResource(R.string.msg_restore_settings),
+                if (valid.hasStarred) resources.getString(R.string.msg_restore_with_starred, playlists) else playlists,
+            ).forEach { item ->
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text("–")
+                    Text(item)
                 }
-                Text(stringResource(R.string.msg_restore_replaces, currentCount))
             }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.button_cancel)) } },
-        confirmButton = {
-            TextButton(
-                onClick = { onConfirm(valid) },
-                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
-            ) { Text(stringResource(R.string.button_replace)) }
-        },
-    )
+            Text(stringResource(R.string.msg_restore_replaces, currentCount))
+        }
+    }
 }

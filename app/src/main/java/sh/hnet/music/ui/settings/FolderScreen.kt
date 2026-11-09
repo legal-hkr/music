@@ -2,27 +2,23 @@
 
 package sh.hnet.music.ui.settings
 
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import sh.hnet.music.ui.components.DestructiveButton
+import sh.hnet.music.ui.components.ConfirmDestructiveDialog
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -119,33 +115,20 @@ fun FolderScreen(viewModel: LibraryViewModel, treeUri: String, onBack: () -> Uni
                 }
             }
         }
-        OutlinedButton(
-            onClick = { confirmRemove = true },
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-        ) {
-            Icon(painterResource(R.drawable.ic_delete), contentDescription = null, modifier = Modifier.size(18.dp))
-            Text(stringResource(R.string.button_remove_folder), modifier = Modifier.padding(start = 8.dp))
-        }
+        DestructiveButton(stringResource(R.string.button_remove_folder), R.drawable.ic_delete, { confirmRemove = true }, Modifier.padding(top = 8.dp))
     }
 
     if (confirmRemove && row != null) {
-        AlertDialog(
-            onDismissRequest = { confirmRemove = false },
-            icon = { Icon(painterResource(R.drawable.ic_delete), contentDescription = null, tint = MaterialTheme.colorScheme.error) },
-            title = { Text(boldNamesResource(R.string.title_remove_folder, name)) },
-            text = { Text(pluralStringResource(R.plurals.msg_remove_folder, row.tracks, formatCount(row.tracks))) },
-            dismissButton = { TextButton(onClick = { confirmRemove = false }) { Text(stringResource(R.string.button_cancel)) } },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        confirmRemove = false
-                        viewModel.removeFolder(treeUri)
-                        onBack()
-                    },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                ) { Text(stringResource(R.string.button_remove)) }
+        ConfirmDestructiveDialog(
+            icon = R.drawable.ic_delete,
+            title = boldNamesResource(R.string.title_remove_folder, name),
+            confirmLabel = stringResource(R.string.button_remove),
+            onConfirm = {
+                confirmRemove = false
+                viewModel.removeFolder(treeUri)
+                onBack()
             },
-        )
+            onDismiss = { confirmRemove = false },
+        ) { Text(pluralStringResource(R.plurals.msg_remove_folder, row.tracks, formatCount(row.tracks))) }
     }
 }

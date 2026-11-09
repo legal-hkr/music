@@ -2,6 +2,7 @@
 
 package sh.hnet.music.ui.settings
 
+import sh.hnet.music.ui.components.moveActions
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -190,17 +191,6 @@ private fun ViewRow(
         modifier = modifier.fillMaxWidth().semantics { customActions = moves },
     ) {
         Text(name)
-    }
-}
-
-/** Move up / Move down for TalkBack (§4.1). */
-@Composable
-private fun moveActions(position: Int, count: Int, move: (Int) -> Unit): List<CustomAccessibilityAction> {
-    val up = stringResource(R.string.label_move_up)
-    val down = stringResource(R.string.label_move_down)
-    return buildList {
-        if (position > 0) add(CustomAccessibilityAction(up) { move(position - 1); true })
-        if (position < count - 1) add(CustomAccessibilityAction(down) { move(position + 1); true })
     }
 }
 

@@ -2,6 +2,9 @@
 
 package sh.hnet.music.ui.library
 
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import sh.hnet.music.ui.components.SingleChoiceDialog
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
@@ -9,35 +12,25 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContract
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
@@ -45,7 +38,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.unit.dp
@@ -165,32 +157,16 @@ fun rememberPlaylistExport(viewModel: BrowseViewModel, snackbars: SnackbarHostSt
 
 /** The format choice (§10): a single-choice list of the format names (owner's decision: no explanations). */
 @Composable
-private fun ExportDialog(name: String, initial: PlaylistFormat, onDismiss: () -> Unit, onExport: (PlaylistFormat) -> Unit) {
-    var chosen by rememberSaveable { mutableStateOf(initial) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(boldTitle(name)) },
-        text = {
-            Column(Modifier.selectableGroup()) {
-                PlaylistFormat.entries.forEach { format ->
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .selectable(selected = chosen == format, role = Role.RadioButton) { chosen = format }
-                            .heightIn(min = 48.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        RadioButton(selected = chosen == format, onClick = null)
-                        Spacer(Modifier.width(16.dp))
-                        Text(format.name, style = MaterialTheme.typography.bodyLarge)
-                    }
-                }
-            }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.button_cancel)) } },
-        confirmButton = { TextButton(onClick = { onExport(chosen) }) { Text(stringResource(R.string.button_export)) } },
+private fun ExportDialog(name: String, initial: PlaylistFormat, onDismiss: () -> Unit, onExport: (PlaylistFormat) -> Unit) =
+    SingleChoiceDialog(
+        title = boldTitle(name),
+        options = PlaylistFormat.entries,
+        initial = initial,
+        label = { it.name },
+        confirmLabel = stringResource(R.string.button_export),
+        onConfirm = onExport,
+        onDismiss = onDismiss,
     )
-}
 
 @Composable
 private fun boldTitle(name: String) = sh.hnet.music.ui.components.boldNamesResource(R.string.title_export, name)
