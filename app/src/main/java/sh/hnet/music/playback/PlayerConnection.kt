@@ -244,12 +244,14 @@ class PlayerConnection(private val context: Context) {
     /** Moves an item in the player's list; called once, when a dragged row is dropped. */
     fun move(from: Int, to: Int) = withController { c -> if (from != to) c.moveMediaItem(from, to) }
 
-    /** Clears everything except the current track, which keeps playing (SPEC §10). */
-    fun clearAroundCurrent() = withController { c ->
-        val current = c.currentMediaItemIndex
-        if (current + 1 < c.mediaItemCount) c.removeMediaItems(current + 1, c.mediaItemCount)
-        if (current > 0) c.removeMediaItems(0, current)
-    }
+    /**
+     * Clears everything except the current track, which keeps playing (SPEC §10). Done by the service,
+     * which keeps what went – items and shuffled order – for [undoClear].
+     */
+    fun clearAroundCurrent() = withController { it.sendCustomCommand(SessionCommand(QueueCommands.ACTION_CLEAR, Bundle.EMPTY), Bundle.EMPTY) }
+
+    /** Undo of [clearAroundCurrent]: the queue exactly as it was, shuffled order included. */
+    fun undoClear() = withController { it.sendCustomCommand(SessionCommand(QueueCommands.ACTION_UNDO_CLEAR, Bundle.EMPTY), Bundle.EMPTY) }
 
     private fun item(track: LibraryTrack): MediaItem = track.toMediaItem()
 

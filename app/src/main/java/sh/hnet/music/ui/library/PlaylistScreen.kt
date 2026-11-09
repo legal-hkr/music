@@ -2,6 +2,7 @@
 
 package sh.hnet.music.ui.library
 
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import sh.hnet.music.ui.components.ConfirmDestructiveDialog
@@ -116,7 +117,6 @@ fun PlaylistScreen(
     val list = rememberLazyListState()
     val titleShown by remember { derivedStateOf { list.firstVisibleItemIndex > 0 } }
     var renaming by rememberSaveable { mutableStateOf(false) }
-    var removingMissing by rememberSaveable { mutableStateOf(false) }
     // Change order (owner's decision): the page reads like an album's, handles only in this mode;
     // [orderBefore] is what Cancel puts back (each drop is saved as it happens)
     var reordering by rememberSaveable { mutableStateOf(false) }
@@ -127,6 +127,7 @@ fun PlaylistScreen(
     val removedText = stringResource(R.string.msg_removed_from_playlist)
     val deletedText = stringResource(R.string.msg_playlist_deleted)
     val undo = stringResource(R.string.button_undo)
+    val resources = LocalResources.current
 
     // Deleted elsewhere (another tab's page, the Playlists view): close with a note
     LaunchedEffect(page) {
@@ -223,7 +224,18 @@ fun PlaylistScreen(
                             reordering = true
                         },
                         missing = summary.missing,
-                        onRemoveMissing = { removingMissing = true },
+                        // At once, with Undo (owner's decision, as ComfyChair): what goes is the comeback when the files return
+                        onRemoveMissing = {
+                            val missingIds = shown.rows.filter { it.track == null }.map { it.entry.id }
+                            val text = resources.getQuantityString(R.plurals.msg_removed_n, missingIds.size, missingIds.size)
+                            messageScope.launch {
+                                val old = viewModel.removeEntriesForUndo(id, missingIds)
+                                snackbars.currentSnackbarData?.dismiss()
+                                if (snackbars.showSnackbar(text, actionLabel = undo, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed) {
+                                    viewModel.restoreEntries(id, old)
+                                }
+                            }
+                        },
                         onPlay = { viewModel.playPlaylist(summary, shuffle = false) },
                         onShuffle = { viewModel.playPlaylist(summary, shuffle = true) },
                         onRename = { renaming = true },
@@ -307,23 +319,6 @@ fun PlaylistScreen(
         }
     }
 
-    if (removingMissing && shown != null) {
-        val missingIds = shown.rows.filter { it.track == null }.map { it.entry.id }
-        val removed = pluralStringResource(R.plurals.msg_removed_n, missingIds.size, missingIds.size)
-        // Confirmed, no Undo: what goes is the automatic comeback, which the text says (§6.4)
-        ConfirmDestructiveDialog(
-            icon = R.drawable.ic_link_off,
-            title = pluralStringResource(R.plurals.title_remove_missing, missingIds.size, missingIds.size),
-            text = boldNamesResource(R.string.msg_remove_missing, shown.playlist.name),
-            confirmLabel = stringResource(R.string.button_remove),
-            onConfirm = {
-                removingMissing = false
-                viewModel.removeEntries(id, missingIds)
-                Toast.makeText(context, removed, Toast.LENGTH_SHORT).show()
-            },
-            onDismiss = { removingMissing = false },
-        )
-    }
     if (renaming && shown != null) {
         val renamed = stringResource(R.string.msg_renamed)
         NameDialog(

@@ -191,6 +191,13 @@ class BrowseViewModel(private val app: MusicApplication) : ViewModel() {
 
     fun undoAdd(id: Long, entryIds: List<Long>) = removeEntries(id, entryIds)
 
+    /** Removes [entryIds]; the playlist's entries before, for Undo. */
+    suspend fun removeEntriesForUndo(id: Long, entryIds: List<Long>): List<PlaylistEntry> = app.playlists.removeEntriesForUndo(id, entryIds)
+
+    fun restoreEntries(id: Long, entries: List<PlaylistEntry>) {
+        viewModelScope.launch { app.playlists.restoreEntries(id, entries) }
+    }
+
     fun removeEntries(id: Long, entryIds: List<Long>) {
         viewModelScope.launch { app.playlists.removeEntries(id, entryIds) }
     }

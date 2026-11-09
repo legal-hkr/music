@@ -43,6 +43,10 @@ class PlaybackService : MediaSessionService() {
     private val shuffleCommand = SessionCommand(ACTION_SHUFFLE, Bundle.EMPTY)
     private val repeatCommand = SessionCommand(ACTION_REPEAT, Bundle.EMPTY)
     private val reshuffleCommand = SessionCommand(QueueShuffleOrder.ACTION_RESHUFFLE, Bundle.EMPTY)
+    private val clearCommand = SessionCommand(QueueCommands.ACTION_CLEAR, Bundle.EMPTY)
+    private val undoClearCommand = SessionCommand(QueueCommands.ACTION_UNDO_CLEAR, Bundle.EMPTY)
+    /** The last Clear queue, until its Undo or the next one. */
+    private var cleared: ClearedQueue? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -197,6 +201,37 @@ class PlaybackService : MediaSessionService() {
         }
     }
 
+    /** Clear queue (SPEC §10): all but the current track goes, kept with the shuffle order for Undo. */
+    private fun clearQueue(player: ExoPlayer) {
+        val count = player.mediaItemCount
+        val current = player.currentMediaItemIndex
+        if (count < 2 || current !in 0 until count) return
+        cleared = ClearedQueue(
+            before = (0 until current).map(player::getMediaItemAt),
+            after = (current + 1 until count).map(player::getMediaItemAt),
+            currentId = player.getMediaItemAt(current).mediaId,
+            order = (player.shuffleOrder as? QueueShuffleOrder)?.toList()?.toIntArray()?.takeIf { it.size == count },
+        )
+        if (current + 1 < count) player.removeMediaItems(current + 1, count)
+        if (current > 0) player.removeMediaItems(0, current)
+    }
+
+    /**
+     * Undo of Clear queue: the same items in the same places and, when the current track is still the
+     * one it was cleared around, the same shuffled order; otherwise shuffled anew from the current one.
+     */
+    private fun undoClear(player: ExoPlayer) {
+        val undo = cleared ?: return
+        cleared = null
+        if (player.mediaItemCount == 0) return
+        val same = player.mediaItemCount == 1 && player.currentMediaItem?.mediaId == undo.currentId
+        if (undo.before.isNotEmpty()) player.addMediaItems(0, undo.before)
+        if (undo.after.isNotEmpty()) player.addMediaItems(player.currentMediaItemIndex + 1, undo.after)
+        val order = undo.order
+        player.shuffleOrder = if (same && order != null && order.size == player.mediaItemCount) QueueShuffleOrder(order)
+        else QueueShuffleOrder.fromCurrent(player.mediaItemCount, player.currentMediaItemIndex)
+    }
+
     private fun refreshButtons() {
         val current = session ?: return
         current.setMediaButtonPreferences(buttons(current.player))
@@ -236,6 +271,8 @@ class PlaybackService : MediaSessionService() {
                         .add(shuffleCommand)
                         .add(repeatCommand)
                         .add(reshuffleCommand)
+                        .add(clearCommand)
+                        .add(undoClearCommand)
                         .build(),
                 )
                 .build()
@@ -255,6 +292,8 @@ class PlaybackService : MediaSessionService() {
                 // Not conditional on shuffle being on: the controller's switch may arrive after this
                 // command; with shuffle off the order is simply unused
                 QueueShuffleOrder.ACTION_RESHUFFLE -> exoPlayer?.let(::shuffleFromCurrent)
+                QueueCommands.ACTION_CLEAR -> exoPlayer?.let(::clearQueue)
+                QueueCommands.ACTION_UNDO_CLEAR -> exoPlayer?.let(::undoClear)
                 ACTION_REPEAT -> player.repeatMode = PlayerConnection.nextRepeatMode(player.repeatMode)
                 else -> return Futures.immediateFuture(SessionResult(SessionError.ERROR_NOT_SUPPORTED))
             }

@@ -133,7 +133,6 @@ fun QueueSheet(
     var playedCount by remember { mutableIntStateOf(0) }
     val playedNow by rememberUpdatedState(playedCount)
     var dragFrom by remember { mutableIntStateOf(-1) }
-    var confirmClear by remember { mutableStateOf(false) }
     val reorder = rememberReorderState(
         listState = listState,
         // Only what follows the current track moves, and only among itself
@@ -176,6 +175,17 @@ fun QueueSheet(
     }
     val removedText = stringResource(R.string.msg_removed_from_queue)
     val undo = stringResource(R.string.button_undo)
+    val clearedText = stringResource(R.string.msg_queue_cleared)
+    /** Clear queue: at once, with Undo (owner's decision, as ComfyChair), which brings it back exactly. */
+    fun clearWithUndo() {
+        player.clearAroundCurrent()
+        scope.launch {
+            snackbars.currentSnackbarData?.dismiss()
+            if (snackbars.showSnackbar(clearedText, actionLabel = undo, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed) {
+                player.undoClear()
+            }
+        }
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -263,7 +273,7 @@ fun QueueSheet(
                             DestructiveButton(
                                 stringResource(R.string.button_clear_queue),
                                 R.drawable.ic_clear_all,
-                                { confirmClear = true },
+                                { clearWithUndo() },
                                 Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
                             )
                         }
@@ -278,16 +288,6 @@ fun QueueSheet(
         }
     }
 
-    if (confirmClear) {
-        val following = (rows.size - 1).coerceAtLeast(0)
-        ConfirmDestructiveDialog(
-            icon = R.drawable.ic_clear_all,
-            title = AnnotatedString(stringResource(R.string.title_clear_queue)),
-            confirmLabel = stringResource(R.string.button_clear),
-            onConfirm = { confirmClear = false; player.clearAroundCurrent() },
-            onDismiss = { confirmClear = false },
-        ) { Text(pluralStringResource(R.plurals.msg_clear_queue, following, following)) }
-    }
 }
 
 /** Removes at once and offers Undo, which puts the track back where it was. */

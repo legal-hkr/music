@@ -199,12 +199,6 @@
     <string name="msg_removed_from_queue"><![CDATA[Removed <b>%s</b> from the queue]]></string>
     <string name="button_undo">Undo</string>
     <string name="button_clear_queue">Clear queue</string>
-    <string name="title_clear_queue">Clear the queue?</string>
-    <plurals name="msg_clear_queue">
-        <item quantity="one">The %d track after the one playing now is removed. The current track keeps playing.</item>
-        <item quantity="other">The %d tracks after the one playing now are removed. The current track keeps playing.</item>
-    </plurals>
-    <string name="button_clear">Clear</string>
     <!-- Search (S6) -->
     <string name="hint_search">Search your library</string>
     <string name="content_description_clear_search">Clear search</string>
@@ -337,11 +331,6 @@
     <string name="msg_playlist_replaced"><![CDATA[Replaced <b>%s</b>]]></string>
     <!-- Playlists, stage 4 -->
     <string name="menu_remove_missing">Remove missing tracks</string>
-    <plurals name="title_remove_missing">
-        <item quantity="one">Remove %d missing track?</item>
-        <item quantity="other">Remove %d missing tracks?</item>
-    </plurals>
-    <string name="msg_remove_missing"><![CDATA[They leave <b>%s</b> for good, even if the files come back later.]]></string>
     <plurals name="msg_removed_n">
         <item quantity="one">Removed %d track</item>
         <item quantity="other">Removed %d tracks</item>
@@ -495,4 +484,5 @@
     <string name="label_sort_most_played">Most played</string>
     <string name="label_count_with_length">%1$s (%2$s)</string>
     <string name="label_artist_with_year">%1$s (%2$s)</string>
+    <string name="msg_queue_cleared">Queue cleared</string>
 </resources>

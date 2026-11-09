@@ -189,6 +189,13 @@ class PlaylistRepository(
     /** Undo of [add]: exactly the entries it made. */
     suspend fun removeEntries(id: Long, entryIds: List<Long>) = dao.removeEntries(id, entryIds, System.currentTimeMillis())
 
+    /** Removes [entryIds]; returns every entry the playlist had, for Undo ([restoreEntries]). */
+    suspend fun removeEntriesForUndo(id: Long, entryIds: List<Long>): List<PlaylistEntry> {
+        val old = dao.entries(id)
+        dao.removeEntries(id, entryIds, System.currentTimeMillis())
+        return old
+    }
+
     /** Replaces every entry with [tracks]; returns the old ones for Undo. */
     suspend fun replace(id: Long, tracks: List<LibraryTrack>): List<PlaylistEntry> {
         val old = dao.entries(id)
