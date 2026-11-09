@@ -40,6 +40,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import sh.hnet.music.R
+import sh.hnet.music.ui.library.PlaylistListRow
+import sh.hnet.music.ui.library.rememberPlaylistRowActions
+import androidx.compose.material3.SnackbarHostState
+import kotlinx.coroutines.CoroutineScope
 import sh.hnet.music.ui.components.EmptyState
 import sh.hnet.music.ui.components.TooltipIconButton
 import sh.hnet.music.ui.components.TrackNavigation
@@ -53,7 +57,7 @@ import sh.hnet.music.ui.library.trackLine
 
 private const val SHOWN = 3
 
-private enum class Group { ALBUMS, ARTISTS, TRACKS }
+private enum class Group { ALBUMS, ARTISTS, TRACKS, PLAYLISTS }
 
 /** The Search destination (SPEC §8): one field over albums, artists and tracks. */
 @Composable
@@ -63,7 +67,11 @@ fun SearchScreen(
     navigation: TrackNavigation,
     onOpenAlbum: (String) -> Unit,
     onOpenArtist: (String) -> Unit,
+    onOpenPlaylist: (Long) -> Unit,
+    snackbars: SnackbarHostState,
+    messageScope: CoroutineScope,
 ) {
+    val playlistActions = rememberPlaylistRowActions(browse, snackbars, messageScope)
     val query by viewModel.query.collectAsStateWithLifecycle()
     val results by viewModel.results.collectAsStateWithLifecycle()
     val focusRequest by viewModel.focusRequest.collectAsStateWithLifecycle()
@@ -131,6 +139,12 @@ fun SearchScreen(
                             // Search results aren't a playlist: the tapped track alone (SPEC §5.6)
                             onClick = { keyboard?.hide(); browse.playFrom(listOf(track), 0) },
                         )
+                    }
+                }
+                // Last, as in the Library's switch (SPEC-playlists §11)
+                group(Group.PLAYLISTS, results.playlists.size, Group.PLAYLISTS in expanded, R.string.label_view_playlists, R.plurals.button_show_all_playlists, { expanded = expanded + it }) {
+                    items((if (Group.PLAYLISTS in expanded) results.playlists else results.playlists.take(SHOWN)), key = { "p:" + it.playlist.id }) { summary ->
+                        PlaylistListRow(summary, browse, playlistActions) { keyboard?.hide(); onOpenPlaylist(summary.playlist.id) }
                     }
                 }
             }

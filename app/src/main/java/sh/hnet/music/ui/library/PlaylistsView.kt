@@ -100,7 +100,7 @@ fun PlaylistsView(viewModel: BrowseViewModel, state: LazyListState, snackbars: S
     val scope = rememberCoroutineScope()
     var creating by rememberSaveable { mutableStateOf(false) }
     val resources = LocalResources.current
-    val export = rememberPlaylistExport(viewModel, snackbars, messageScope)
+    val actions = rememberPlaylistRowActions(viewModel, snackbars, messageScope)
     var importing by remember { mutableStateOf(false) }
     var importSlow by remember { mutableStateOf(false) }
     var importError by remember { mutableStateOf<ErrorDetails?>(null) }
@@ -136,9 +136,6 @@ fun PlaylistsView(viewModel: BrowseViewModel, state: LazyListState, snackbars: S
             }
         }
     }
-    var renaming by rememberSaveable { mutableStateOf<Long?>(null) }
-    val deletedText = stringResource(R.string.msg_playlist_deleted)
-    val undo = stringResource(R.string.button_undo)
 
     Box(Modifier.fillMaxSize()) {
         if (list.isEmpty()) {
@@ -154,26 +151,7 @@ fun PlaylistsView(viewModel: BrowseViewModel, state: LazyListState, snackbars: S
                     }
                 }
                 items(list, key = { it.playlist.id }, contentType = { "playlist" }) { summary ->
-                    PlaylistRow(
-                        summary,
-                        modifier = Modifier.animateItem(),
-                        onClick = { onOpenPlaylist(summary.playlist.id) },
-                        onPlay = { viewModel.playPlaylist(summary) },
-                        onPlayNext = { viewModel.playNext(summary.tracks) },
-                        onAddToQueue = { viewModel.addToQueue(summary.tracks) },
-                        onRename = { renaming = summary.playlist.id },
-                        onExport = { export.start(summary.playlist.id, summary.playlist.name) },
-                        onDelete = {
-                            messageScope.launch {
-                                val deleted = viewModel.deletePlaylist(summary.playlist.id) ?: return@launch
-                                snackbars.currentSnackbarData?.dismiss()
-                                val text = AnnotatedString.fromHtml(deletedText.format(deleted.playlist.name.htmlEncode())).text
-                                if (snackbars.showSnackbar(text, actionLabel = undo, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed) {
-                                    viewModel.restorePlaylist(deleted)
-                                }
-                            }
-                        },
-                    )
+                    PlaylistListRow(summary, viewModel, actions, Modifier.animateItem()) { onOpenPlaylist(summary.playlist.id) }
                 }
             }
         }
@@ -205,8 +183,25 @@ fun PlaylistsView(viewModel: BrowseViewModel, state: LazyListState, snackbars: S
             scope.launch { onOpenPlaylist(viewModel.createPlaylist(name)) }
         }
     }
+}
+
+/** What a playlist row's menu does (§4.4), shared by the Playlists view and search results (§11). */
+class PlaylistRowActions internal constructor(
+    val rename: (id: Long) -> Unit,
+    val export: (id: Long, name: String) -> Unit,
+    val delete: (id: Long) -> Unit,
+)
+
+/** The row menu's actions with their dialogs (rename, export) and the deletion's Undo. */
+@Composable
+fun rememberPlaylistRowActions(viewModel: BrowseViewModel, snackbars: SnackbarHostState, messageScope: CoroutineScope): PlaylistRowActions {
+    val export = rememberPlaylistExport(viewModel, snackbars, messageScope)
+    val playlists by viewModel.playlists.collectAsStateWithLifecycle()
+    var renaming by rememberSaveable { mutableStateOf<Long?>(null) }
+    val deletedText = stringResource(R.string.msg_playlist_deleted)
+    val undo = stringResource(R.string.button_undo)
     renaming?.let { id ->
-        val current = list.firstOrNull { it.playlist.id == id }?.playlist
+        val current = playlists?.firstOrNull { it.playlist.id == id }?.playlist
         if (current == null) {
             renaming = null
         } else {
@@ -227,6 +222,38 @@ fun PlaylistsView(viewModel: BrowseViewModel, state: LazyListState, snackbars: S
             }
         }
     }
+    return remember(export) {
+        PlaylistRowActions(
+            rename = { renaming = it },
+            export = export.start,
+            delete = { id ->
+                messageScope.launch {
+                    val deleted = viewModel.deletePlaylist(id) ?: return@launch
+                    snackbars.currentSnackbarData?.dismiss()
+                    val text = AnnotatedString.fromHtml(deletedText.format(deleted.playlist.name.htmlEncode())).text
+                    if (snackbars.showSnackbar(text, actionLabel = undo, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed) {
+                        viewModel.restorePlaylist(deleted)
+                    }
+                }
+            },
+        )
+    }
+}
+
+/** A playlist row with its whole menu (§4.2, §4.4). */
+@Composable
+fun PlaylistListRow(summary: PlaylistSummary, viewModel: BrowseViewModel, actions: PlaylistRowActions, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    PlaylistRow(
+        summary,
+        modifier = modifier,
+        onClick = onClick,
+        onPlay = { viewModel.playPlaylist(summary) },
+        onPlayNext = { viewModel.playNext(summary.tracks) },
+        onAddToQueue = { viewModel.addToQueue(summary.tracks) },
+        onRename = { actions.rename(summary.playlist.id) },
+        onExport = { actions.export(summary.playlist.id, summary.playlist.name) },
+        onDelete = { actions.delete(summary.playlist.id) },
+    )
 }
 
 /** A one-line snackbar's height with its margin. */

@@ -20,6 +20,8 @@ import sh.hnet.music.library.AlbumSort
 import sh.hnet.music.library.Albums
 import sh.hnet.music.library.Artists
 import sh.hnet.music.library.SearchIndex
+import sh.hnet.music.library.PlaylistRepository
+import sh.hnet.music.library.PlaylistSort
 import sh.hnet.music.library.SearchResults
 import sh.hnet.music.library.TrackSort
 import sh.hnet.music.library.Tracks
@@ -29,7 +31,7 @@ import java.util.Locale
  * The Search destination's state. The query lives only here, in memory: nothing typed is stored
  * (SPEC §8), it just survives switching tabs.
  */
-class SearchViewModel(app: MusicApplication) : ViewModel() {
+class SearchViewModel(private val app: MusicApplication) : ViewModel() {
     private val repository = app.library
 
     /** The search field's text. */
@@ -55,8 +57,11 @@ class SearchViewModel(app: MusicApplication) : ViewModel() {
     }.flowOn(Dispatchers.Default).stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     @OptIn(FlowPreview::class)
-    val results: StateFlow<SearchResults> = combine(query.debounce(150), index) { query, index ->
-        index?.search(query) ?: SearchResults()
+    val results: StateFlow<SearchResults> = combine(query.debounce(150), index, app.playlists.playlists) { query, index, playlists ->
+        val found = index?.search(query) ?: SearchResults()
+        // Playlists in name order before ranking, as the other kinds use the library's order
+        val byName = PlaylistRepository.sort(playlists.orEmpty(), PlaylistSort.NAME, Locale.getDefault())
+        found.copy(playlists = index?.searchPlaylists(byName, query).orEmpty())
     }.flowOn(Dispatchers.Default).stateIn(viewModelScope, SharingStarted.Eagerly, SearchResults())
 
     fun clear() = field.clearText()

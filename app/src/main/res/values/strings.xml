@@ -364,4 +364,9 @@
     <string name="error_export_write"><![CDATA[Music couldn\'t write <b>%s</b>.]]></string>
     <string name="button_show">Show</string>
     <string name="button_copy">Copy</string>
+    <!-- Playlists, stage 6 -->
+    <plurals name="button_show_all_playlists">
+        <item quantity="one">Show all %s playlists</item>
+        <item quantity="other">Show all %s playlists</item>
+    </plurals>
 </resources>

@@ -416,4 +416,11 @@
     <string name="error_export_write"><![CDATA[Nie udało się zapisać pliku <b>%s</b>.]]></string>
     <string name="button_show">Pokaż</string>
     <string name="button_copy">Kopiuj</string>
+    <!-- Playlists, stage 6 -->
+    <plurals name="button_show_all_playlists">
+        <item quantity="one">Pokaż %s playlistę</item>
+        <item quantity="few">Pokaż wszystkie %s playlisty</item>
+        <item quantity="many">Pokaż wszystkie %s playlist</item>
+        <item quantity="other">Pokaż wszystkie %s playlisty</item>
+    </plurals>
 </resources>

@@ -8,8 +8,9 @@ data class SearchResults(
     val albums: List<Album> = emptyList(),
     val artists: List<Artist> = emptyList(),
     val tracks: List<LibraryTrack> = emptyList(),
+    val playlists: List<PlaylistSummary> = emptyList(),
 ) {
-    val isEmpty: Boolean get() = albums.isEmpty() && artists.isEmpty() && tracks.isEmpty()
+    val isEmpty: Boolean get() = albums.isEmpty() && artists.isEmpty() && tracks.isEmpty() && playlists.isEmpty()
 }
 
 /**
@@ -28,6 +29,13 @@ class SearchIndex(albums: List<Album>, artists: List<Artist>, tracks: List<Libra
         val terms = words(query)
         if (terms.isEmpty()) return SearchResults()
         return SearchResults(rank(albums, terms), rank(artists, terms), rank(tracks, terms))
+    }
+
+    /** Playlists by name, with the same rules (SPEC-playlists §11); few, so not indexed ahead. */
+    fun searchPlaylists(playlists: List<PlaylistSummary>, query: String): List<PlaylistSummary> {
+        val terms = words(query)
+        if (terms.isEmpty()) return emptyList()
+        return rank(playlists.map { Entry(it, words(it.playlist.name), normalize(it.playlist.name)) }, terms)
     }
 
     /** Matching items, word-start matches first; the input order (the library's sort) otherwise. */

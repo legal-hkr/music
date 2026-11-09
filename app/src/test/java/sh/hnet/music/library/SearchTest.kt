@@ -43,4 +43,13 @@ class SearchTest {
     fun emptyQueryFindsNothing() {
         assertTrue(index.search("  - ").isEmpty)
     }
+
+    @Test
+    fun playlistsMatchByNameWithoutDiacritics() {
+        fun playlist(id: Long, name: String) = PlaylistSummary(sh.hnet.music.data.Playlist(id, name, 0, 0), emptyList(), emptyList(), 0)
+        val playlists = listOf(playlist(1, "Na wieczór"), playlist(2, "Wieczorem"), playlist(3, "Bieganie"))
+        // Both start a word with "wiecz": the input order stays (the app passes them in name order)
+        assertEquals(listOf("Na wieczór", "Wieczorem"), index.searchPlaylists(playlists, "wiecz").map { it.playlist.name })
+        assertTrue(index.searchPlaylists(playlists, "łódź").isEmpty())
+    }
 }

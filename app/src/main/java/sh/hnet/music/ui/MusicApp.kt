@@ -361,6 +361,10 @@ fun MusicApp(openNowPlaying: Int = 0) {
                             navigation = trackNavigation,
                             onOpenAlbum = { currentStack.add(Screen.Album(it)) },
                             onOpenArtist = { currentStack.add(Screen.Artist(it)) },
+                            // Pushed on the Search stack (§11)
+                            onOpenPlaylist = { currentStack.add(Screen.Playlist(it)) },
+                            snackbars = snackbars,
+                            messageScope = scope,
                         )
                     }
                     entry<Screen.Settings> {
