@@ -63,7 +63,8 @@ object LibraryFolders {
             if (volumeId == "primary") it.isPrimary else it.uuid.equals(volumeId, ignoreCase = true)
         }
         val volumeName = volume?.getDescription(context) ?: volumeId
-        return (listOf(volumeName) + path).joinToString(" › ")
+        // A path, as files show it: no arrow-like separators
+        return (listOf(volumeName) + path).joinToString("/")
     }
 
     private fun displayName(resolver: ContentResolver, treeUri: Uri): String {

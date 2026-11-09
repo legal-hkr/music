@@ -22,7 +22,7 @@
     <string name="title_settings">Ustawienia</string>
     <string name="title_settings_about">O aplikacji</string>
     <string name="label_version_value">Wersja %s</string>
-    <string name="label_library_summary">%1$s – %2$s</string>
+    <string name="label_library_summary">%1$s (%2$s)</string>
     <plurals name="label_folder_count">
         <item quantity="one">%s folder</item>
         <item quantity="few">%s foldery</item>
@@ -47,7 +47,7 @@
 
     <!-- Settings › Library -->
     <string name="title_music_folders">Foldery z muzyką</string>
-    <string name="label_folder_counts">%1$s – %2$s</string>
+    <string name="label_folder_counts">%1$s (%2$s)</string>
     <plurals name="label_skipped_count">
         <item quantity="one">%s pominięty</item>
         <item quantity="few">%s pominięte</item>
