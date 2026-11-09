@@ -49,7 +49,6 @@ import sh.hnet.music.ui.components.SettingsGroupHeader
 import sh.hnet.music.ui.components.SettingsRadioRow
 import sh.hnet.music.ui.components.dragHandle
 import sh.hnet.music.ui.components.groupShapes
-import sh.hnet.music.ui.components.longPressDrag
 import sh.hnet.music.ui.components.rememberReorderState
 import sh.hnet.music.ui.components.reorderableItem
 import sh.hnet.music.ui.components.settingsRowColors
@@ -138,7 +137,6 @@ fun LibraryViewsScreen(viewModel: BrowseViewModel, onBack: () -> Unit) {
             ) {
                 ViewRow(
                     view, position, rows.size, dragged = reorder.draggedKey == view, moves = moves,
-                    modifier = Modifier.longPressDrag(reorder, view),
                     handleModifier = Modifier.dragHandle(reorder, view),
                 )
             }

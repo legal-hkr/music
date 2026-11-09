@@ -81,7 +81,6 @@ import sh.hnet.music.playback.QueueSnapshot
 import sh.hnet.music.ui.components.Cover
 import sh.hnet.music.ui.components.dragHandle
 import sh.hnet.music.ui.components.durationText
-import sh.hnet.music.ui.components.longPressDrag
 import sh.hnet.music.ui.components.reorderableItem
 import sh.hnet.music.ui.components.rememberReorderState
 
@@ -211,13 +210,12 @@ fun QueueSheet(
                                 track = track,
                                 isCurrent = isCurrent,
                                 played = played,
-                                // The current track stays where it is: no handle, no long-press drag
+                                // The current track stays where it is: no handle
                                 reorderable = movable,
                                 onClick = { player.jumpTo(row.item.index) },
                                 onMoveUp = if (movable && position > playedCount + 1) ({ player.move(row.item.index, row.item.index - 1) }) else null,
                                 onMoveDown = if (movable && position < rows.lastIndex) ({ player.move(row.item.index, row.item.index + 1) }) else null,
                                 onRemove = if (!isCurrent) ({ removeWithUndo(player, row.item.index, track, title, removedText, undo, snackbars, scope) { sheetState.expand() } }) else null,
-                                modifier = if (movable) Modifier.longPressDrag(reorder, row.key) else Modifier,
                                 handleModifier = Modifier.dragHandle(reorder, row.key),
                             )
                         }
@@ -364,7 +362,7 @@ private fun QueueRow(
     onMoveUp: (() -> Unit)?,
     onMoveDown: (() -> Unit)?,
     onRemove: (() -> Unit)?,
-    /** The row's drag (long press anywhere on it). */
+    /** The row's own modifier (only the handle drags – owner's decision). */
     modifier: Modifier = Modifier,
     /** The handle's drag. */
     handleModifier: Modifier = Modifier,

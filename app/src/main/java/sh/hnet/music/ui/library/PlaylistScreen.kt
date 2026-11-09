@@ -90,7 +90,6 @@ import sh.hnet.music.ui.components.TrackRow
 import sh.hnet.music.ui.components.boldNamesResource
 import sh.hnet.music.ui.components.dragHandle
 import sh.hnet.music.ui.components.formatDuration
-import sh.hnet.music.ui.components.longPressDrag
 import sh.hnet.music.ui.components.rememberReorderState
 import sh.hnet.music.ui.components.reorderableItem
 
@@ -99,7 +98,7 @@ private const val HEAD_ITEMS = 2
 
 /**
  * A playlist (SPEC-playlists §5): header, Play / Shuffle / actions, the entries in order. Reordering
- * is always on (handle or long press), a swipe removes with Undo; missing entries stay in place.
+ * is by the handle only, in Change order; a swipe removes with Undo; missing entries stay in place.
  */
 @Composable
 fun PlaylistScreen(
@@ -272,7 +271,6 @@ fun PlaylistScreen(
                                 }
                             }
                             val rowModifier = Modifier
-                                .then(if (reordering) Modifier.longPressDrag(reorder, key) else Modifier)
                                 .background(MaterialTheme.colorScheme.surface)
                                 .semantics { if (reordering) customActions = moves }
                             val track = row.track

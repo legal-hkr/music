@@ -6,7 +6,6 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.drag
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListState
@@ -176,17 +175,5 @@ fun Modifier.dragHandle(state: ReorderState, key: Any): Modifier = pointerInput(
         } finally {
             state.end()
         }
-    }
-}
-
-/** The whole row: starts dragging after a long press. */
-fun Modifier.longPressDrag(state: ReorderState, key: Any): Modifier = pointerInput(state, key) {
-    detectDragGesturesAfterLongPress(
-        onDragStart = { state.start(key) },
-        onDragEnd = { state.end() },
-        onDragCancel = { state.end() },
-    ) { change, amount ->
-        change.consume()
-        state.drag(amount.y)
     }
 }
