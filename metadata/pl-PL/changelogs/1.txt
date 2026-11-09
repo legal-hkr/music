@@ -3,6 +3,7 @@ v0.1.0
 Pierwsza wersja:
 - Gra muzykę tylko z folderów, które wskażesz, i nigdy nie łączy się z siecią
 - FLAC, ALAC, AAC, MP3, Ogg i Opus, bez przerw między utworami, z ReplayGain
-- Albumy, wykonawcy, utwory i wyszukiwanie, także dla składanek
+- Albumy, wykonawcy, utwory, playlisty i wyszukiwanie, w wybranej kolejności
 - Playlisty z importem i eksportem oraz Ulubione
-- Kolejka z dowolną kolejnością, zapamiętywana po zamknięciu
+- Kolejka z losowaniem i powtarzaniem, zapamiętywana po zamknięciu
+- Kopia zapasowa ustawień i playlist

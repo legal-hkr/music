@@ -21,7 +21,9 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // R8: unused code and resources out, the rest renamed (rules in proguard-rules.pro)
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

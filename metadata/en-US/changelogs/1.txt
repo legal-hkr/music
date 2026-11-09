@@ -3,6 +3,7 @@ v0.1.0
 First version:
 - Plays music only from the folders you choose, never goes online
 - FLAC, ALAC, AAC, MP3, Ogg and Opus, gapless, with ReplayGain
-- Albums, artists, tracks and search, compilations included
-- Playlists with import and export, and a Starred playlist
-- Queue you can reorder, kept across restarts
+- Albums, artists, tracks, playlists and search, in the order you like
+- Playlists with import and export, and Starred
+- A queue with shuffle and repeat, kept across restarts
+- Backup and restore of settings and playlists
