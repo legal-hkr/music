@@ -490,4 +490,5 @@
     <string name="title_reorder">Change order</string>
     <string name="content_description_cancel_reorder">Cancel changes</string>
     <string name="button_done">Done</string>
+    <string name="label_filter_with_albums">With albums only</string>
 </resources>

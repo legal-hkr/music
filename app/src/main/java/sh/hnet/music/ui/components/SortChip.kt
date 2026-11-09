@@ -2,6 +2,8 @@
 
 package sh.hnet.music.ui.components
 
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AssistChip
@@ -29,6 +31,22 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import sh.hnet.music.R
+
+/**
+ * A filter chip for a list's header row, beside or instead of the sort chip: on, it shows a check
+ * and the selected colours (FilterChip's own).
+ */
+@Composable
+fun FilterToggleChip(label: String, selected: Boolean, onToggle: () -> Unit) {
+    FilterChip(
+        selected = selected,
+        onClick = onToggle,
+        label = { Text(label, maxLines = 1) },
+        leadingIcon = if (selected) {
+            { Icon(painterResource(R.drawable.ic_check), contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) }
+        } else null,
+    )
+}
 
 /** The sort chip of a list's header row (SPEC §4.2): the current order, a single-choice menu. */
 @Composable

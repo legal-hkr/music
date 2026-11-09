@@ -41,6 +41,8 @@ data class BackupSettings(
     val playback: Playback = Playback(),
     val exportFormat: String? = null,
     val skipShorterThanSeconds: Int = 0,
+    /** The Artists view's "With albums only"; absent in backups from before it existed. */
+    val artistsWithAlbumsOnly: Boolean? = null,
 ) {
     @Serializable
     data class Sorts(val albums: String? = null, val tracks: String? = null, val playlists: String? = null)

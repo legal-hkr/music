@@ -543,4 +543,5 @@
     <string name="title_reorder">Zmień kolejność</string>
     <string name="content_description_cancel_reorder">Cofnij zmiany</string>
     <string name="button_done">Gotowe</string>
+    <string name="label_filter_with_albums">Tylko z albumami</string>
 </resources>

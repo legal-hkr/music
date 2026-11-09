@@ -2,6 +2,7 @@
 
 package sh.hnet.music.ui.library
 
+import sh.hnet.music.ui.components.FilterToggleChip
 import sh.hnet.music.ui.components.LocalBottomOverlay
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
@@ -259,6 +260,7 @@ private fun AlbumsView(viewModel: BrowseViewModel, state: LazyGridState, onOpenA
 @Composable
 private fun ArtistsView(viewModel: BrowseViewModel, state: LazyListState, onOpenArtist: (String) -> Unit) {
     val artists by viewModel.artists.collectAsStateWithLifecycle()
+    val withAlbumsOnly by viewModel.artistsWithAlbumsOnly.collectAsStateWithLifecycle()
     val sorted = artists ?: return
     Box(Modifier.fillMaxSize()) {
         LazyColumn(state = state, contentPadding = PaddingValues(bottom = 24.dp + LocalBottomOverlay.current), modifier = Modifier.fillMaxSize()) {
@@ -266,7 +268,11 @@ private fun ArtistsView(viewModel: BrowseViewModel, state: LazyListState, onOpen
                 ListHeader(
                     pluralStringResource(R.plurals.label_artist_count, sorted.items.size, formatCount(sorted.items.size)),
                     Modifier.padding(horizontal = 16.dp),
-                )
+                ) {
+                    FilterToggleChip(stringResource(R.string.label_filter_with_albums), withAlbumsOnly) {
+                        viewModel.setArtistsWithAlbumsOnly(!withAlbumsOnly)
+                    }
+                }
             }
             items(sorted.items, key = { it.key }, contentType = { "artist" }) { artist ->
                 ArtistRow(artist) { onOpenArtist(artist.name) }

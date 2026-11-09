@@ -99,8 +99,22 @@ class BrowseViewModel(private val app: MusicApplication) : ViewModel() {
         }
     }.flowOn(Dispatchers.Default).stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val artists: StateFlow<Sorted<Artist>?> = repository.artists
-        .map { it?.let { list -> Artists.sort(list, Locale.getDefault()) } }
+    /** The Artists view's filter: only artists with an album of their own (on by default). */
+    val artistsWithAlbumsOnly: StateFlow<Boolean> = app.preferences.artistsWithAlbumsOnly
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    fun setArtistsWithAlbumsOnly(on: Boolean) {
+        viewModelScope.launch { app.preferences.setArtistsWithAlbumsOnly(on) }
+    }
+
+    /**
+     * The Artists view's list: with the filter on, only artists with at least one album under their
+     * own name – those who are only on compilations or others' albums stay out (they are still on
+     * those albums' pages, in Search and on their own page).
+     */
+    val artists: StateFlow<Sorted<Artist>?> = combine(repository.artists, artistsWithAlbumsOnly) { list, withAlbums ->
+        list?.let { all -> Artists.sort(if (withAlbums) all.filter { it.ownAlbums.isNotEmpty() } else all, Locale.getDefault()) }
+    }
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

@@ -88,6 +88,7 @@ class Preferences(private val context: Context) {
             playback = BackupSettings.Playback(replayGain = prefs[gainModeKey], preampDb = prefs[preampKey], preventClipping = prefs[preventClippingKey]),
             exportFormat = prefs[exportFormatKey],
             skipShorterThanSeconds = prefs[skipShortKey] ?: 0,
+            artistsWithAlbumsOnly = prefs[artistsWithAlbumsKey],
         )
     }
 
@@ -108,11 +109,19 @@ class Preferences(private val context: Context) {
         backup.playback.preampDb?.let { prefs[preampKey] = it }
         backup.playback.preventClipping?.let { prefs[preventClippingKey] = it }
         backup.exportFormat?.let { prefs[exportFormatKey] = it }
+        backup.artistsWithAlbumsOnly?.let { prefs[artistsWithAlbumsKey] = it }
         backup.skipShorterThanSeconds.takeIf { it in SKIP_SHORT_CHOICES && it != 0 }?.let { prefs[skipShortKey] = it }
     }
 
     /** Whether any setting was ever stored (the first run has none). */
     suspend fun hasAnySetting(): Boolean = context.settings.data.first().asMap().keys.any { it != lastViewKey }
+
+    private val artistsWithAlbumsKey = booleanPreferencesKey("artists_with_albums_only")
+
+    /** The Artists view lists only artists with an album of their own (owner's decision); on by default. */
+    val artistsWithAlbumsOnly: Flow<Boolean> = context.settings.data.map { it[artistsWithAlbumsKey] ?: true }
+
+    suspend fun setArtistsWithAlbumsOnly(on: Boolean) = context.settings.edit { it[artistsWithAlbumsKey] = on }
 
     private val skipShortKey = intPreferencesKey("skip_short_seconds")
 
