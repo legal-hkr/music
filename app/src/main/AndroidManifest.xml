@@ -25,7 +25,11 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:launchMode="singleTop">
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            tools:ignore="DiscouragedApi,LockedOrientationActivity">
+            <!-- Portrait only (owner's decision): the layout has no landscape arrangement. Android 16+
+                 ignores it only on large screens (smallest width 600 dp and up), not on phones. -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
