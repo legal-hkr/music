@@ -119,18 +119,16 @@ class PlaybackService : MediaSessionService() {
         val trackDao = (application as MusicApplication).database.trackDao()
         val counter = PlayCounter(player) { uri -> scope.launch(Dispatchers.IO) { trackDao.countPlay(uri) } }
         player.addListener(counter)
-        scope.launch {
-            while (true) {
-                delay(1_000)
-                if (player.isPlaying) counter.check()
-            }
-        }
         scope.launch { restore(player) }
-        // While playing, the position is saved now and then, so a killed process loses little
+        // One clock while playing: the play count checked every second, the position saved every
+        // SAVE_EVERY_MS so a killed process loses little
         scope.launch {
+            var tick = 0L
             while (true) {
-                delay(SAVE_EVERY_MS)
-                if (player.isPlaying) scheduleSave()
+                delay(TICK_MS)
+                if (!player.isPlaying) continue
+                counter.check()
+                if (++tick % (SAVE_EVERY_MS / TICK_MS) == 0L) scheduleSave()
             }
         }
     }
@@ -279,6 +277,7 @@ class PlaybackService : MediaSessionService() {
     }
 
     private companion object {
+        const val TICK_MS = 1_000L
         const val SAVE_EVERY_MS = 10_000L
         const val ACTION_SHUFFLE = "sh.hnet.music.SHUFFLE"
         const val ACTION_REPEAT = "sh.hnet.music.REPEAT"

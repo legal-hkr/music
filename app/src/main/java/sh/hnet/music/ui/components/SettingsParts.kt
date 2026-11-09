@@ -271,30 +271,6 @@ fun SettingsLinkRow(shapes: ListItemShapes, @DrawableRes icon: Int, title: Strin
     }
 }
 
-/** A row doing something at once (or after its confirmation); [destructive] tints its icon in error. */
-@Composable
-fun SettingsActionRow(
-    shapes: ListItemShapes,
-    @DrawableRes icon: Int,
-    title: String,
-    onClick: () -> Unit,
-    supporting: String? = null,
-    destructive: Boolean = false,
-) {
-    val colors = settingsRowColors()
-    SegmentedListItem(
-        onClick = onClick,
-        shapes = shapes,
-        colors = colors,
-        leadingContent = {
-            Icon(painterResource(icon), contentDescription = null, tint = if (destructive) MaterialTheme.colorScheme.error else colors.leadingContentColor)
-        },
-        supportingContent = supporting?.let { { Text(it) } },
-    ) {
-        Text(title)
-    }
-}
-
 /** One choice of a single-choice group (put the group in a selectableGroup); the chosen one keeps the component's selected colours. */
 @Composable
 fun SettingsRadioRow(shapes: ListItemShapes, title: String, selected: Boolean, onSelect: () -> Unit, supporting: String? = null) {
@@ -314,21 +290,6 @@ fun SettingsRadioRow(shapes: ListItemShapes, title: String, selected: Boolean, o
 @Composable
 fun SettingsDescription(text: String) {
     Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 16.dp))
-}
-
-/** A value to read: a label above, the value under it. */
-@Composable
-fun SettingsInfoRow(shapes: ListItemShapes, label: String, value: String, @DrawableRes icon: Int? = null, onLongClick: (() -> Unit)? = null) {
-    SegmentedListItem(
-        onClick = {},
-        onLongClick = onLongClick,
-        shapes = shapes,
-        colors = settingsRowColors(),
-        leadingContent = icon?.let { { RowIcon(it) } },
-        supportingContent = { Text(value) },
-    ) {
-        Text(label)
-    }
 }
 
 /** Secondary text under a group. */

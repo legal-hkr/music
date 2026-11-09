@@ -146,6 +146,8 @@ class ReplayGainSink(sink: AudioSink) : ForwardingAudioSink(sink) {
 
     override fun handleBuffer(buffer: ByteBuffer, presentationTimeUs: Long, encodedAccessUnitCount: Int): Boolean {
         if (encoding == C.ENCODING_INVALID) return super.handleBuffer(buffer, presentationTimeUs, encodedAccessUnitCount)
+        // Already float and nothing to scale (ReplayGain off, or 0 dB): passed on as it is, no copy
+        if (encoding == C.ENCODING_PCM_FLOAT && gain == 1f && source == null) return super.handleBuffer(buffer, presentationTimeUs, encodedAccessUnitCount)
         val inBytes = bytesPerSample(encoding)
         // The same buffer comes back until it's consumed; a new one (or the same object reused by
         // the codec for the next output) is converted once

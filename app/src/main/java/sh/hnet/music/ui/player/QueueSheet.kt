@@ -54,6 +54,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -130,9 +131,9 @@ fun QueueSheet(
     // current one (playedCount of them) can be played again but not moved, and nothing moves above
     // the current track. Drag is off while shuffled, so a row's position is the player's index.
     val rows = remember { mutableStateListOf<Row>() }
-    var playedCount by remember { mutableStateOf(0) }
+    var playedCount by remember { mutableIntStateOf(0) }
     val playedNow by rememberUpdatedState(playedCount)
-    var dragFrom by remember { mutableStateOf(-1) }
+    var dragFrom by remember { mutableIntStateOf(-1) }
     var confirmClear by remember { mutableStateOf(false) }
     val reorder = rememberReorderState(
         listState = listState,
