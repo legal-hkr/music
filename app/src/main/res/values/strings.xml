@@ -146,8 +146,8 @@
     <string name="desc_seek_position">%1$s of %2$s</string>
     <string name="label_seek_back">Back 10 seconds</string>
     <string name="label_seek_forward">Forward 10 seconds</string>
-    <string name="label_tech_lossless">%1$s – %2$s bit / %3$s kHz</string>
-    <string name="label_tech_lossy">%1$s – %2$s kb/s</string>
+    <string name="label_tech_lossless">%1$s %2$s bit / %3$s kHz</string>
+    <string name="label_tech_lossy">%1$s %2$s kb/s</string>
     <string name="label_tech_kbps">%s kb/s</string>
     <string name="label_mono">mono</string>
     <string name="label_stereo">stereo</string>
@@ -188,8 +188,8 @@
     <!-- Queue (S5) -->
     <string name="title_queue">Queue</string>
     <plurals name="label_queue_remaining">
-        <item quantity="one">%1$d more track – %2$s</item>
-        <item quantity="other">%1$d more tracks – %2$s</item>
+        <item quantity="one">%1$d more track (%2$s)</item>
+        <item quantity="other">%1$d more tracks (%2$s)</item>
     </plurals>
     <string name="label_queue_none_remaining">No more tracks</string>
     <string name="content_description_reorder">Reorder %s</string>
@@ -288,7 +288,7 @@
     <string name="msg_removed_from_playlist"><![CDATA[Removed <b>%1$s</b> from <b>%2$s</b>]]></string>
     <string name="msg_playlist_gone">This playlist was deleted.</string>
     <string name="label_not_available">Not available</string>
-    <string name="label_not_available_artist">Not available – %s</string>
+    <string name="label_not_available_artist">Not available: %s</string>
     <string name="desc_not_available">Not available</string>
     <string name="label_move_to_top">Move to top</string>
     <string name="label_move_to_bottom">Move to bottom</string>
@@ -296,8 +296,8 @@
     <string name="menu_add_to_playlist">Add to playlist</string>
     <string name="title_add_to_playlist">Add to playlist</string>
     <plurals name="label_adding_tracks">
-        <item quantity="one">%1$s – %2$d track</item>
-        <item quantity="other">%1$s – %2$d tracks</item>
+        <item quantity="one">%1$s (%2$d track)</item>
+        <item quantity="other">%1$s (%2$d tracks)</item>
     </plurals>
     <string name="label_has_this_track">Has this track</string>
     <string name="msg_added_to_playlist"><![CDATA[Added to <b>%s</b>]]></string>
@@ -476,7 +476,7 @@
     <string name="button_backup_choose_another">Choose another file</string>
     <string name="button_backup_change">Change</string>
     <string name="label_backup_unnamed_file">unnamed</string>
-    <string name="label_backup_file_summary">Playlists: %1$d, tracks: %2$d – %3$s</string>
+    <string name="label_backup_file_summary">Playlists: %1$d, tracks: %2$d (%3$s)</string>
     <string name="error_backup_unreadable_title">Can’t read the file</string>
     <string name="error_backup_unreadable_body">%1$s couldn’t be opened. Choose another one.</string>
     <string name="error_backup_not_ours_title">Not a Music backup</string>
@@ -494,4 +494,5 @@
     <string name="label_queue_repeat_one">Repeating this track</string>
     <string name="label_sort_most_played">Most played</string>
     <string name="label_count_with_length">%1$s (%2$s)</string>
+    <string name="label_artist_with_year">%1$s (%2$s)</string>
 </resources>

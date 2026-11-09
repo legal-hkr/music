@@ -166,8 +166,8 @@
     <string name="desc_seek_position">%1$s z %2$s</string>
     <string name="label_seek_back">10 sekund wstecz</string>
     <string name="label_seek_forward">10 sekund naprzód</string>
-    <string name="label_tech_lossless">%1$s – %2$s bit / %3$s kHz</string>
-    <string name="label_tech_lossy">%1$s – %2$s kb/s</string>
+    <string name="label_tech_lossless">%1$s %2$s bit / %3$s kHz</string>
+    <string name="label_tech_lossy">%1$s %2$s kb/s</string>
     <string name="label_tech_kbps">%s kb/s</string>
     <string name="label_mono">mono</string>
     <string name="label_stereo">stereo</string>
@@ -210,10 +210,10 @@
     <!-- Queue (S5) -->
     <string name="title_queue">Kolejka</string>
     <plurals name="label_queue_remaining">
-        <item quantity="one">Jeszcze %1$d utwór – %2$s</item>
-        <item quantity="few">Jeszcze %1$d utwory – %2$s</item>
-        <item quantity="many">Jeszcze %1$d utworów – %2$s</item>
-        <item quantity="other">Jeszcze %1$d utworu – %2$s</item>
+        <item quantity="one">Jeszcze %1$d utwór (%2$s)</item>
+        <item quantity="few">Jeszcze %1$d utwory (%2$s)</item>
+        <item quantity="many">Jeszcze %1$d utworów (%2$s)</item>
+        <item quantity="other">Jeszcze %1$d utworu (%2$s)</item>
     </plurals>
     <string name="label_queue_none_remaining">To ostatni utwór w kolejce</string>
     <string name="content_description_reorder">Przestaw: %s</string>
@@ -324,7 +324,7 @@
     <string name="msg_removed_from_playlist"><![CDATA[Usunięto <b>%1$s</b> z playlisty <b>%2$s</b>]]></string>
     <string name="msg_playlist_gone">Ta playlista została usunięta.</string>
     <string name="label_not_available">Niedostępny</string>
-    <string name="label_not_available_artist">Niedostępny – %s</string>
+    <string name="label_not_available_artist">Niedostępny: %s</string>
     <string name="desc_not_available">Niedostępny</string>
     <string name="label_move_to_top">Przenieś na początek</string>
     <string name="label_move_to_bottom">Przenieś na koniec</string>
@@ -332,10 +332,10 @@
     <string name="menu_add_to_playlist">Dodaj do playlisty</string>
     <string name="title_add_to_playlist">Dodaj do playlisty</string>
     <plurals name="label_adding_tracks">
-        <item quantity="one">%1$s – %2$d utwór</item>
-        <item quantity="few">%1$s – %2$d utwory</item>
-        <item quantity="many">%1$s – %2$d utworów</item>
-        <item quantity="other">%1$s – %2$d utworu</item>
+        <item quantity="one">%1$s (%2$d utwór)</item>
+        <item quantity="few">%1$s (%2$d utwory)</item>
+        <item quantity="many">%1$s (%2$d utworów)</item>
+        <item quantity="other">%1$s (%2$d utworu)</item>
     </plurals>
     <string name="label_has_this_track">Ma ten utwór</string>
     <string name="msg_added_to_playlist"><![CDATA[Dodano do playlisty <b>%s</b>]]></string>
@@ -529,7 +529,7 @@
     <string name="button_backup_choose_another">Wybierz inny plik</string>
     <string name="button_backup_change">Zmień</string>
     <string name="label_backup_unnamed_file">bez nazwy</string>
-    <string name="label_backup_file_summary">Playlisty: %1$d, utwory: %2$d – %3$s</string>
+    <string name="label_backup_file_summary">Playlisty: %1$d, utwory: %2$d (%3$s)</string>
     <string name="error_backup_unreadable_title">Nie można odczytać pliku</string>
     <string name="error_backup_unreadable_body">Nie udało się otworzyć pliku %1$s. Wybierz inny.</string>
     <string name="error_backup_not_ours_title">To nie jest kopia Muzyki</string>
@@ -547,4 +547,5 @@
     <string name="label_queue_repeat_one">Powtarzanie tego utworu</string>
     <string name="label_sort_most_played">Najczęściej słuchane</string>
     <string name="label_count_with_length">%1$s (%2$s)</string>
+    <string name="label_artist_with_year">%1$s (%2$s)</string>
 </resources>

@@ -194,7 +194,7 @@ private fun SmallAlbumTile(album: Album, onClick: () -> Unit) {
     }
 }
 
-/** An album as a row: cover, title, "album artist – year" (Appears on, search results). */
+/** An album as a row: cover, title, "album artist (year)" (Appears on, search results). */
 @Composable
 fun AlbumRow(album: Album, onClick: () -> Unit) {
     val artist = albumArtistText(album)
@@ -202,7 +202,14 @@ fun AlbumRow(album: Album, onClick: () -> Unit) {
         onClick = onClick,
         leadingContent = { Cover(album.coverTrack, RoundedCornerShape(12.dp), Modifier.size(48.dp)) },
         supportingContent = {
-            Text(listOfNotNull(artist.ifEmpty { null }, album.year?.toString()).joinToString(" – "), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            // "Album artist (year)"; either alone when the other is unknown
+            val year = album.year?.toString()
+            val line = when {
+                artist.isEmpty() -> year.orEmpty()
+                year == null -> artist
+                else -> stringResource(R.string.label_artist_with_year, artist, year)
+            }
+            Text(line, maxLines = 1, overflow = TextOverflow.Ellipsis)
         },
         trailingContent = { Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = null) },
     ) {
