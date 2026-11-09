@@ -2,6 +2,7 @@
 
 package sh.hnet.music.ui.player
 
+import sh.hnet.music.ui.components.PlayingIndicator
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -109,6 +110,7 @@ fun QueueSheet(
     shuffle: Boolean,
     /** Repeat one: only the current track is listed (it is the whole queue until switched off). */
     repeatMode: Int,
+    isPlaying: Boolean,
     tracks: Map<String, LibraryTrack>,
     player: PlayerConnection,
     onDismiss: () -> Unit,
@@ -209,6 +211,7 @@ fun QueueSheet(
                                 row = row,
                                 track = track,
                                 isCurrent = isCurrent,
+                                isPlaying = isPlaying,
                                 played = played,
                                 // The current track stays where it is: no handle
                                 reorderable = movable,
@@ -355,6 +358,8 @@ private fun QueueRow(
     row: Row,
     track: LibraryTrack?,
     isCurrent: Boolean,
+    /** The player is playing (the current row's bars move) or paused (they stand). */
+    isPlaying: Boolean,
     /** Before the current track: its text muted (played; tap plays it again). */
     played: Boolean,
     reorderable: Boolean,
@@ -408,7 +413,7 @@ private fun QueueRow(
                     Modifier.size(40.dp).background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(painterResource(R.drawable.ic_graphic_eq), contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(20.dp))
+                    PlayingIndicator(isPlaying, MaterialTheme.colorScheme.onPrimaryContainer)
                 }
             } else {
                 Cover(track, RoundedCornerShape(12.dp), Modifier.size(40.dp))

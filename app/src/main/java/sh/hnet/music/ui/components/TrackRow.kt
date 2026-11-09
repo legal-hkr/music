@@ -100,7 +100,7 @@ fun TrackRow(
             {
                 Box(Modifier.width(24.dp), contentAlignment = Alignment.Center) {
                     if (state != PlayState.NONE) {
-                        Icon(painterResource(R.drawable.ic_graphic_eq), contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                        PlayingIndicator(state == PlayState.PLAYING, MaterialTheme.colorScheme.primary)
                     } else if (number != null) {
                         Text(number.toString(), style = tabular, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
@@ -111,7 +111,7 @@ fun TrackRow(
         trailingContent = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (state != PlayState.NONE && !showNumberColumn) {
-                    Icon(painterResource(R.drawable.ic_graphic_eq), contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                    PlayingIndicator(state == PlayState.PLAYING, MaterialTheme.colorScheme.primary)
                     Spacer(Modifier.width(8.dp))
                 }
                 Text(formatDuration(track.durationMs), style = tabular, color = MaterialTheme.colorScheme.onSurfaceVariant)
