@@ -88,7 +88,9 @@ fun ArtistScreen(
             navigationIcon = { TooltipIconButton(R.drawable.ic_arrow_back, stringResource(R.string.content_description_back), onBack) },
         )
         if (shown == null) return@Column
-        val byTitle = remember(shown) { Tracks.sort(shown.tracks, sh.hnet.music.library.TrackSort.TITLE, Locale.getDefault()).items }
+        // Most played first, then by title (owner's decision); unplayed artists read as before
+        val counts by viewModel.playCounts.collectAsStateWithLifecycle()
+        val byPlays = remember(shown, counts) { Tracks.sort(shown.tracks, sh.hnet.music.library.TrackSort.MOST_PLAYED, Locale.getDefault(), counts).items }
         LazyColumn(state = list, contentPadding = PaddingValues(bottom = 24.dp + LocalBottomOverlay.current), modifier = Modifier.fillMaxSize()) {
             item(key = "header") { Header(shown) }
             item(key = "actions") {
@@ -130,21 +132,21 @@ fun ArtistScreen(
             }
             if (shown.tracks.isNotEmpty()) {
                 item(key = "tracksTitle") { SectionTitle(stringResource(R.string.title_artist_tracks)) }
-                byTitle.take(TRACKS_SHOWN).forEachIndexed { index, track ->
+                byPlays.take(TRACKS_SHOWN).forEachIndexed { index, track ->
                     item(key = "tracks:${track.documentUri}") {
                         TrackRow(
                             track = track,
                             supporting = trackLine(track),
                             state = BrowseViewModel.stateOf(track, current),
                             navigation = navigation,
-                            onClick = { viewModel.playFrom(byTitle, index) },
+                            onClick = { viewModel.playFrom(byPlays, index) },
                         )
                     }
                 }
-                if (byTitle.size > TRACKS_SHOWN) {
+                if (byPlays.size > TRACKS_SHOWN) {
                     item(key = "showAll") {
                         TextButton(onClick = onShowAllTracks, modifier = Modifier.padding(horizontal = 4.dp)) {
-                            Text(pluralStringResource(R.plurals.button_show_all_tracks, byTitle.size, formatCount(byTitle.size)))
+                            Text(pluralStringResource(R.plurals.button_show_all_tracks, byPlays.size, formatCount(byPlays.size)))
                         }
                     }
                 }

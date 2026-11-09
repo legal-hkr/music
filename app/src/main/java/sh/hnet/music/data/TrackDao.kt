@@ -41,9 +41,25 @@ interface TrackDao {
         }
         if (skipped.isNotEmpty()) {
             upsertSkipped(skipped)
-            deleteTracks(skipped.map { it.documentUri })
+            // A track that no longer reads leaves the library, its play count with it
+            val uris = skipped.map { it.documentUri }
+            deleteTracks(uris)
+            deletePlayCounts(uris)
         }
     }
+
+    @Query("DELETE FROM play_count WHERE documentUri IN (:uris)")
+    suspend fun deletePlayCounts(uris: List<String>)
+
+    @Query("DELETE FROM play_count WHERE documentUri IN (SELECT documentUri FROM track WHERE folderUri = :folderUri)")
+    suspend fun deletePlayCountsOfFolder(folderUri: String)
+
+    /** One more listen of [documentUri] (at least half of it in one play). */
+    @Query("INSERT INTO play_count (documentUri, count) VALUES (:documentUri, 1) ON CONFLICT (documentUri) DO UPDATE SET count = count + 1")
+    suspend fun countPlay(documentUri: String)
+
+    @Query("SELECT * FROM play_count")
+    fun observePlayCounts(): Flow<List<PlayCount>>
 
     /** Files gone from the folder; [uris] in chunks well below SQLite's variable limit. */
     @Transaction
@@ -51,11 +67,14 @@ interface TrackDao {
         uris.chunked(500).forEach {
             deleteTracks(it)
             deleteSkipped(it)
+            deletePlayCounts(it)
         }
     }
 
     @Transaction
     suspend fun removeFolder(folderUri: String) {
+        // Before the tracks, which say which counts are the folder's
+        deletePlayCountsOfFolder(folderUri)
         deleteTracksOfFolder(folderUri)
         deleteSkippedOfFolder(folderUri)
     }

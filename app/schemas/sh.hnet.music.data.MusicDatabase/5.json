@@ -1,0 +1,479 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 5,
+    "identityHash": "854a492cc1142ce471a3e5d4bf112c98",
+    "entities": [
+      {
+        "tableName": "library_folder",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`treeUri` TEXT NOT NULL, `displayName` TEXT NOT NULL, `addedAt` INTEGER NOT NULL, PRIMARY KEY(`treeUri`))",
+        "fields": [
+          {
+            "fieldPath": "treeUri",
+            "columnName": "treeUri",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "displayName",
+            "columnName": "displayName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "addedAt",
+            "columnName": "addedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "treeUri"
+          ]
+        }
+      },
+      {
+        "tableName": "track",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`documentUri` TEXT NOT NULL, `folderUri` TEXT NOT NULL, `relativePath` TEXT NOT NULL, `size` INTEGER NOT NULL, `lastModified` INTEGER NOT NULL, `codec` TEXT NOT NULL, `sampleRate` INTEGER NOT NULL, `channels` INTEGER NOT NULL, `bitsPerSample` INTEGER, `durationMs` INTEGER NOT NULL, `bitrateKbps` INTEGER, `opusOutputGainDb` REAL, `title` TEXT, `artists` TEXT NOT NULL, `album` TEXT, `albumArtists` TEXT NOT NULL, `trackNumber` INTEGER, `trackTotal` INTEGER, `discNumber` INTEGER, `discTotal` INTEGER, `date` TEXT, `year` INTEGER, `genres` TEXT NOT NULL, `composers` TEXT NOT NULL, `titleSort` TEXT, `artistSort` TEXT, `albumSort` TEXT, `albumArtistSort` TEXT, `compilation` INTEGER NOT NULL, `trackGainDb` REAL, `trackPeak` REAL, `albumGainDb` REAL, `albumPeak` REAL, `hasEmbeddedCover` INTEGER NOT NULL, PRIMARY KEY(`documentUri`))",
+        "fields": [
+          {
+            "fieldPath": "documentUri",
+            "columnName": "documentUri",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "folderUri",
+            "columnName": "folderUri",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "relativePath",
+            "columnName": "relativePath",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "size",
+            "columnName": "size",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastModified",
+            "columnName": "lastModified",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "codec",
+            "columnName": "codec",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sampleRate",
+            "columnName": "sampleRate",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "channels",
+            "columnName": "channels",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bitsPerSample",
+            "columnName": "bitsPerSample",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "durationMs",
+            "columnName": "durationMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bitrateKbps",
+            "columnName": "bitrateKbps",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "opusOutputGainDb",
+            "columnName": "opusOutputGainDb",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "artists",
+            "columnName": "artists",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "album",
+            "columnName": "album",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "albumArtists",
+            "columnName": "albumArtists",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "trackNumber",
+            "columnName": "trackNumber",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "trackTotal",
+            "columnName": "trackTotal",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "discNumber",
+            "columnName": "discNumber",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "discTotal",
+            "columnName": "discTotal",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "year",
+            "columnName": "year",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "genres",
+            "columnName": "genres",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "composers",
+            "columnName": "composers",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "titleSort",
+            "columnName": "titleSort",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "artistSort",
+            "columnName": "artistSort",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "albumSort",
+            "columnName": "albumSort",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "albumArtistSort",
+            "columnName": "albumArtistSort",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "compilation",
+            "columnName": "compilation",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "trackGainDb",
+            "columnName": "trackGainDb",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "trackPeak",
+            "columnName": "trackPeak",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "albumGainDb",
+            "columnName": "albumGainDb",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "albumPeak",
+            "columnName": "albumPeak",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "hasEmbeddedCover",
+            "columnName": "hasEmbeddedCover",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "documentUri"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_track_folderUri",
+            "unique": false,
+            "columnNames": [
+              "folderUri"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_track_folderUri` ON `${TABLE_NAME}` (`folderUri`)"
+          },
+          {
+            "name": "index_track_album",
+            "unique": false,
+            "columnNames": [
+              "album"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_track_album` ON `${TABLE_NAME}` (`album`)"
+          },
+          {
+            "name": "index_track_albumArtists",
+            "unique": false,
+            "columnNames": [
+              "albumArtists"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_track_albumArtists` ON `${TABLE_NAME}` (`albumArtists`)"
+          }
+        ]
+      },
+      {
+        "tableName": "skipped_file",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`documentUri` TEXT NOT NULL, `folderUri` TEXT NOT NULL, `relativePath` TEXT NOT NULL, `size` INTEGER NOT NULL, `lastModified` INTEGER NOT NULL, `reason` TEXT NOT NULL, PRIMARY KEY(`documentUri`))",
+        "fields": [
+          {
+            "fieldPath": "documentUri",
+            "columnName": "documentUri",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "folderUri",
+            "columnName": "folderUri",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "relativePath",
+            "columnName": "relativePath",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "size",
+            "columnName": "size",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastModified",
+            "columnName": "lastModified",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reason",
+            "columnName": "reason",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "documentUri"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_skipped_file_folderUri",
+            "unique": false,
+            "columnNames": [
+              "folderUri"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_skipped_file_folderUri` ON `${TABLE_NAME}` (`folderUri`)"
+          }
+        ]
+      },
+      {
+        "tableName": "playlist",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `changedAt` INTEGER NOT NULL, `builtin` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "changedAt",
+            "columnName": "changedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "builtin",
+            "columnName": "builtin",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "playlist_entry",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `playlistId` INTEGER NOT NULL, `position` INTEGER NOT NULL, `documentUri` TEXT, `folderUri` TEXT, `path` TEXT, `title` TEXT, `artists` TEXT NOT NULL, `album` TEXT, `durationMs` INTEGER)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "playlistId",
+            "columnName": "playlistId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "documentUri",
+            "columnName": "documentUri",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "folderUri",
+            "columnName": "folderUri",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "path",
+            "columnName": "path",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "artists",
+            "columnName": "artists",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "album",
+            "columnName": "album",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "durationMs",
+            "columnName": "durationMs",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_playlist_entry_playlistId",
+            "unique": false,
+            "columnNames": [
+              "playlistId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_playlist_entry_playlistId` ON `${TABLE_NAME}` (`playlistId`)"
+          },
+          {
+            "name": "index_playlist_entry_documentUri",
+            "unique": false,
+            "columnNames": [
+              "documentUri"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_playlist_entry_documentUri` ON `${TABLE_NAME}` (`documentUri`)"
+          }
+        ]
+      },
+      {
+        "tableName": "play_count",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`documentUri` TEXT NOT NULL, `count` INTEGER NOT NULL, PRIMARY KEY(`documentUri`))",
+        "fields": [
+          {
+            "fieldPath": "documentUri",
+            "columnName": "documentUri",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "count",
+            "columnName": "count",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "documentUri"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '854a492cc1142ce471a3e5d4bf112c98')"
+    ]
+  }
+}

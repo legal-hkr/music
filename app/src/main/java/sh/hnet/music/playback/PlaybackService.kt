@@ -103,6 +103,16 @@ class PlaybackService : MediaSessionService() {
         scope.launch {
             (application as MusicApplication).preferences.gain.collect { gainSink.settings = it }
         }
+        // Play counts: a listen of at least half a track (checked every second while playing)
+        val trackDao = (application as MusicApplication).database.trackDao()
+        val counter = PlayCounter(player) { uri -> scope.launch(Dispatchers.IO) { trackDao.countPlay(uri) } }
+        player.addListener(counter)
+        scope.launch {
+            while (true) {
+                delay(1_000)
+                if (player.isPlaying) counter.check()
+            }
+        }
         scope.launch { restore(player) }
         // While playing, the position is saved now and then, so a killed process loses little
         scope.launch {

@@ -57,4 +57,12 @@ class ArtistsTracksTest {
         assertEquals(listOf("Druga", "Help", "Lato", "Pierwsza", "Singiel", "Zima"), byTitle.items.map { it.title })
         assertEquals("D", byTitle.sections.first())
     }
+
+    @Test
+    fun tracksByPlaysThenTitle() {
+        val counts = mapOf("doc:c/1" to 3, "doc:b/1" to 7, "doc:a/2" to 3)
+        val sorted = Tracks.sort(library, TrackSort.MOST_PLAYED, pl, counts)
+        // Most played first, ties and never-played ones by title
+        assertEquals(listOf("Help", "Druga", "Lato", "Pierwsza", "Singiel", "Zima"), sorted.items.map { it.title })
+    }
 }

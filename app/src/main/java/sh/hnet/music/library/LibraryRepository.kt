@@ -65,6 +65,12 @@ class LibraryRepository(dao: TrackDao, scanner: LibraryScanner, skipShortSeconds
         .flowOn(Dispatchers.Default)
         .stateIn(scope, SharingStarted.Eagerly, emptyMap())
 
+    /** Play counts by document URI (tracks never listened to aren't there). */
+    val playCounts: StateFlow<Map<String, Int>> = dao.observePlayCounts()
+        .map { counts -> counts.associate { it.documentUri to it.count } }
+        .flowOn(Dispatchers.Default)
+        .stateIn(scope, SharingStarted.Eagerly, emptyMap())
+
     val albumsByKey: StateFlow<Map<String, Album>> = albums
         .map { list -> list.orEmpty().associateBy { it.key } }
         .flowOn(Dispatchers.Default)

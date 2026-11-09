@@ -65,6 +65,7 @@ fun TrackSort.label(): Int = when (this) {
     TrackSort.ARTIST -> R.string.label_sort_artist
     TrackSort.ALBUM -> R.string.label_sort_album
     TrackSort.RECENTLY_ADDED -> R.string.label_sort_recently_added
+    TrackSort.MOST_PLAYED -> R.string.label_sort_most_played
 }
 
 /** "Artists – Album", each part left out when missing (SPEC §5.1). */

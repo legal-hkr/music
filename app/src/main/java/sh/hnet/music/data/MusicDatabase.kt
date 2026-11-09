@@ -9,9 +9,9 @@ import androidx.room3.ColumnTypeConverters
 import androidx.sqlite.driver.AndroidSQLiteDriver
 
 @Database(
-    entities = [LibraryFolder::class, Track::class, SkippedFile::class, Playlist::class, PlaylistEntry::class],
-    version = 4,
-    autoMigrations = [AutoMigration(from = 1, to = 2), AutoMigration(from = 2, to = 3), AutoMigration(from = 3, to = 4)],
+    entities = [LibraryFolder::class, Track::class, SkippedFile::class, Playlist::class, PlaylistEntry::class, PlayCount::class],
+    version = 5,
+    autoMigrations = [AutoMigration(from = 1, to = 2), AutoMigration(from = 2, to = 3), AutoMigration(from = 3, to = 4), AutoMigration(from = 4, to = 5)],
 )
 @ColumnTypeConverters(Converters::class)
 abstract class MusicDatabase : RoomDatabase() {

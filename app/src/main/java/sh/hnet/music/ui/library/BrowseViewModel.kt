@@ -87,6 +87,9 @@ class BrowseViewModel(private val app: MusicApplication) : ViewModel() {
     val albumSort: StateFlow<AlbumSort> = app.preferences.albumSort
         .stateIn(viewModelScope, SharingStarted.Eagerly, AlbumSort.ALBUM_ARTIST)
 
+    /** Play counts by document URI, for an artist's Tracks section. */
+    val playCounts: StateFlow<Map<String, Int>> get() = repository.playCounts
+
     val trackSort: StateFlow<TrackSort> = app.preferences.trackSort
         .stateIn(viewModelScope, SharingStarted.Eagerly, TrackSort.TITLE)
 
@@ -118,8 +121,8 @@ class BrowseViewModel(private val app: MusicApplication) : ViewModel() {
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val tracks: StateFlow<Sorted<LibraryTrack>?> = combine(repository.tracks, trackSort) { tracks, sort ->
-        tracks?.let { Tracks.sort(it, sort, Locale.getDefault()) }
+    val tracks: StateFlow<Sorted<LibraryTrack>?> = combine(repository.tracks, trackSort, repository.playCounts) { tracks, sort, counts ->
+        tracks?.let { Tracks.sort(it, sort, Locale.getDefault(), counts) }
     }.flowOn(Dispatchers.Default).stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val hasTracks: StateFlow<Boolean?> = repository.tracks
@@ -131,8 +134,8 @@ class BrowseViewModel(private val app: MusicApplication) : ViewModel() {
     fun artist(name: String): Flow<Artist?> = repository.artistsByKey.map { it[Artists.key(name)] }
 
     /** An artist's tracks in the Tracks view's order (the "Show all" page). */
-    fun artistTracks(name: String): Flow<Sorted<LibraryTrack>?> = combine(artist(name), trackSort) { artist, sort ->
-        artist?.let { Tracks.sort(it.tracks, sort, Locale.getDefault()) }
+    fun artistTracks(name: String): Flow<Sorted<LibraryTrack>?> = combine(artist(name), trackSort, repository.playCounts) { artist, sort, counts ->
+        artist?.let { Tracks.sort(it.tracks, sort, Locale.getDefault(), counts) }
     }.flowOn(Dispatchers.Default)
 
     val playlistSort: StateFlow<PlaylistSort> = app.preferences.playlistSort

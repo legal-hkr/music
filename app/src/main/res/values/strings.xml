@@ -492,4 +492,5 @@
     <string name="button_done">Done</string>
     <string name="label_filter_all_artists">All artists</string>
     <string name="label_queue_repeat_one">Repeating this track</string>
+    <string name="label_sort_most_played">Most played</string>
 </resources>
