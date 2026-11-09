@@ -1,6 +1,8 @@
 package sh.hnet.music.library
 
 import android.content.ContentResolver
+import android.content.SharedPreferences
+import androidx.core.content.edit
 import android.os.ParcelFileDescriptor
 import androidx.core.net.toUri
 import kotlinx.coroutines.CoroutineScope
@@ -45,6 +47,8 @@ class LibraryScanner(
     private val folders: LibraryFolderDao,
     private val tracks: TrackDao,
     private val scope: CoroutineScope,
+    /** Where the last scan's end is kept (not a setting: Restore defaults leaves it). */
+    private val stamps: SharedPreferences,
 ) {
     /** Folders waiting in or going through the running scan, by tree URI. Empty when idle. */
     private val _progress = MutableStateFlow<Map<String, FolderScan>>(emptyMap())
@@ -56,6 +60,11 @@ class LibraryScanner(
 
     /** Folders whose last listing failed although the grant was there (e.g. an SD card taken out). */
     private var listingFailed = emptySet<String>()
+
+    private val _lastScan = MutableStateFlow(stamps.getLong(LAST_SCAN, 0L).takeIf { it > 0 })
+
+    /** When the last scan of all folders ended (Settings › Music folders › Scan now); null before the first. */
+    val lastScan: StateFlow<Long?> = _lastScan.asStateFlow()
 
     private val mutex = Mutex()
     private var rescanRequested = false
@@ -95,6 +104,9 @@ class LibraryScanner(
                 if (!scanFolder(folder, all)) failed += folder.treeUri
                 _progress.update { it - folder.treeUri }
             }
+            val now = System.currentTimeMillis()
+            stamps.edit { putLong(LAST_SCAN, now) }
+            _lastScan.value = now
         } finally {
             _progress.value = emptyMap()
             listingFailed = failed.filterTo(HashSet()) { LibraryFolders.isGranted(resolver, it) }
@@ -162,6 +174,7 @@ class LibraryScanner(
 
     private companion object {
         const val PARALLEL_READS = 4
+        private const val LAST_SCAN = "last_scan"
         const val BATCH = 100
     }
 }

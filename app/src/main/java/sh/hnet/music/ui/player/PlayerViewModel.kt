@@ -34,10 +34,10 @@ class PlayerViewModel(app: MusicApplication) : ViewModel() {
 
     val queue: StateFlow<sh.hnet.music.playback.QueueSnapshot> = player.queue
 
-    val tracks: StateFlow<Map<String, LibraryTrack>> = app.library.tracksByUri
+    val tracks: StateFlow<Map<String, LibraryTrack>> = app.library.playableByUri
 
     /** The current track as the library lists it (title, artists, cover). */
-    val current: StateFlow<LibraryTrack?> = combine(player.state, app.library.tracksByUri) { state, tracks ->
+    val current: StateFlow<LibraryTrack?> = combine(player.state, app.library.playableByUri) { state, tracks ->
         state.currentId?.let { tracks[it] }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -48,7 +48,7 @@ class PlayerViewModel(app: MusicApplication) : ViewModel() {
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     /** The ReplayGain applied to the current track, as the service computes it, for the chip. */
-    val gain: StateFlow<AppliedGain?> = combine(details, app.preferences.gain, player.queue, app.library.tracksByUri) { track, settings, queue, tracks ->
+    val gain: StateFlow<AppliedGain?> = combine(details, app.preferences.gain, player.queue, app.library.playableByUri) { track, settings, queue, tracks ->
         track ?: return@combine null
         val keyAt = { i: Int -> queue.items.getOrNull(i)?.let { tracks[it.mediaId] }?.takeIf { !it.album.isNullOrBlank() }?.let(Albums::keyOf) }
         val shuffle = player.state.value.shuffle
@@ -61,7 +61,7 @@ class PlayerViewModel(app: MusicApplication) : ViewModel() {
         player.connect()
         // The tracks either side of the current one in play order get their covers loaded ahead
         viewModelScope.launch {
-            combine(player.queue, app.library.tracksByUri) { queue, tracks ->
+            combine(player.queue, app.library.playableByUri) { queue, tracks ->
                 listOf(queue.current + 1, queue.current - 1).mapNotNull { i -> queue.items.getOrNull(i)?.let { tracks[it.mediaId] } }
             }.distinctUntilChanged().collectLatest { neighbours -> neighbours.forEach { app.covers.prefetch(it) } }
         }

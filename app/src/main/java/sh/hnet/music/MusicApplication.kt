@@ -18,10 +18,10 @@ class MusicApplication : Application() {
     val database: MusicDatabase by lazy { MusicDatabase.get(this) }
 
     val scanner: LibraryScanner by lazy {
-        LibraryScanner(contentResolver, database.libraryFolderDao(), database.trackDao(), appScope)
+        LibraryScanner(contentResolver, database.libraryFolderDao(), database.trackDao(), appScope, getSharedPreferences("scanner", MODE_PRIVATE))
     }
 
-    val library: LibraryRepository by lazy { LibraryRepository(database.trackDao(), scanner, appScope) }
+    val library: LibraryRepository by lazy { LibraryRepository(database.trackDao(), scanner, preferences.skipShortSeconds, appScope) }
 
     val covers: CoverCache by lazy { CoverCache(this) }
     val transfer: PlaylistTransfer by lazy { PlaylistTransfer(this, playlists, database.playlistDao(), database.libraryFolderDao(), library) }

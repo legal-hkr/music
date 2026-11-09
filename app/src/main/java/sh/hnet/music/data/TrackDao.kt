@@ -85,9 +85,21 @@ interface TrackDao {
     @Query("SELECT * FROM skipped_file WHERE folderUri = :folderUri ORDER BY relativePath COLLATE NOCASE")
     fun observeSkipped(folderUri: String): Flow<List<SkippedFile>>
 
-    @Query("SELECT folderUri, COUNT(*) AS count FROM track GROUP BY folderUri")
-    fun observeTrackCounts(): Flow<List<FolderCount>>
+    /** Tracks per folder, without those shorter than [minMs] (0: none are). Unknown lengths (0) always count. */
+    @Query("SELECT folderUri, COUNT(*) AS count FROM track WHERE durationMs <= 0 OR durationMs >= :minMs GROUP BY folderUri")
+    fun observeTrackCounts(minMs: Long): Flow<List<FolderCount>>
+
+    /** Tracks left out for being shorter than [minMs], per folder. */
+    @Query("SELECT folderUri, COUNT(*) AS count FROM track WHERE durationMs > 0 AND durationMs < :minMs GROUP BY folderUri")
+    fun observeShortCounts(minMs: Long): Flow<List<FolderCount>>
+
+    /** One folder's tracks left out for being shorter than [minMs]. */
+    @Query("SELECT documentUri, relativePath, durationMs FROM track WHERE folderUri = :folderUri AND durationMs > 0 AND durationMs < :minMs ORDER BY relativePath COLLATE NOCASE")
+    fun observeShort(folderUri: String, minMs: Long): Flow<List<ShortFile>>
 
     @Query("SELECT folderUri, COUNT(*) AS count FROM skipped_file GROUP BY folderUri")
     fun observeSkippedCounts(): Flow<List<FolderCount>>
 }
+
+/** A track left out of the library for being short (Settings › Music folders › Skip short files). */
+data class ShortFile(val documentUri: String, val relativePath: String, val durationMs: Long)

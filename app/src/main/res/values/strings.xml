@@ -398,7 +398,7 @@
     <string name="desc_settings_reset">Every setting returns to its default and the app follows the system language. Your folders, the library and playlists stay.</string>
     <string name="button_restore_defaults">Restore defaults</string>
     <string name="title_confirm_restore_defaults">Restore defaults?</string>
-    <string name="msg_confirm_restore_defaults">Sorting, the playback settings and the export format return to their defaults, and the app follows the system language. Folders, the library and playlists stay as they are.</string>
+    <string name="msg_confirm_restore_defaults">Sorting, the Library views, the playback settings, the export format and Skip short files return to their defaults, and the app follows the system language. Folders, the library and playlists stay as they are.</string>
     <string name="button_restore">Restore</string>
     <string name="msg_defaults_restored">Default settings restored</string>
     <string name="title_about_license">License</string>
@@ -422,4 +422,19 @@
     <string name="label_last_used">Last used</string>
     <string name="label_views_preview">Preview of the Library tabs</string>
     <string name="title_folders">Folders</string>
+    <!-- Settings v2: scanning and short files -->
+    <string name="title_scanning_group">Scanning</string>
+    <string name="label_scan_now">Scan now</string>
+    <string name="label_last_scan">Last scan: %s</string>
+    <string name="label_never_scanned">never</string>
+    <string name="label_scanning_headline">Scanning…</string>
+    <string name="label_scanning_files">%1$s of %2$s files</string>
+    <string name="msg_scan_counting">Counting files…</string>
+    <string name="label_skip_short">Skip short files</string>
+    <string name="label_skip_off">Off</string>
+    <string name="label_skip_value">%d s</string>
+    <string name="label_shorter_than">Shorter than %d s</string>
+    <string name="msg_skip_short_explain">Leaves out sounds, jingles and voice notes kept in your music folders. They show on each folder’s page.</string>
+    <string name="title_skipped_short">Too short</string>
+    <string name="msg_skipped_short">Shorter than %1$d s (%2$s)</string>
 </resources>

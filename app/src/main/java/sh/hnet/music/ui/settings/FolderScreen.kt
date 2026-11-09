@@ -28,6 +28,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import sh.hnet.music.R
+import sh.hnet.music.ui.components.formatDuration
 import sh.hnet.music.data.SkipReason
 import sh.hnet.music.data.SkippedFile
 import sh.hnet.music.ui.components.RowIcon
@@ -41,6 +42,8 @@ private const val SHOWN_PER_GROUP = 50
 
 /** How a skipped file is presented: the scanner's reason refined by what the file claims to be. */
 private enum class SkipGroup(val title: Int, @param:DrawableRes val icon: Int) {
+    /** In the index, left out by Skip short files (SPEC-settings-v2 §5.3); first. */
+    TOO_SHORT(R.string.title_skipped_short, R.drawable.ic_timer_off),
     NOT_SUPPORTED(R.string.title_skipped_not_supported, R.drawable.ic_music_off),
     DRM(R.string.title_skipped_drm, R.drawable.ic_lock),
     UNREADABLE(R.string.title_skipped_unreadable, R.drawable.ic_error),
@@ -73,12 +76,18 @@ fun FolderScreen(viewModel: LibraryViewModel, treeUri: String, onBack: () -> Uni
     val folders by viewModel.folders.collectAsStateWithLifecycle()
     val row = folders.firstOrNull { it.folder.treeUri == treeUri }
     val skipped by remember(treeUri) { viewModel.skippedFiles(treeUri) }.collectAsStateWithLifecycle(emptyList())
+    val short by remember(treeUri) { viewModel.shortFiles(treeUri) }.collectAsStateWithLifecycle(emptyList())
+    val threshold by viewModel.skipShortSeconds.collectAsStateWithLifecycle()
     var confirmRemove by rememberSaveable { mutableStateOf(false) }
     val expanded = remember { mutableStateOf(setOf<SkipGroup>()) }
     val name = row?.folder?.displayName.orEmpty()
 
     SettingsPage(title = name, subtitle = row?.location, onBack = onBack) {
-        val groups = skipped.groupBy { it.group() }
+        // Each group's files as path and reason
+        val groups = buildMap<SkipGroup, List<Pair<String, String>>> {
+            if (short.isNotEmpty()) put(SkipGroup.TOO_SHORT, short.map { it.relativePath to stringResource(R.string.msg_skipped_short, threshold, formatDuration(it.durationMs)) })
+            skipped.groupBy { it.group() }.forEach { (group, files) -> put(group, files.map { it.relativePath to stringResource(it.message()) }) }
+        }
         if (groups.isEmpty()) {
             Text(
                 stringResource(R.string.msg_no_skipped_files),
@@ -90,16 +99,16 @@ fun FolderScreen(viewModel: LibraryViewModel, treeUri: String, onBack: () -> Uni
             val files = groups[group] ?: return@forEach
             val all = group in expanded.value
             SettingsGroup(title = stringResource(group.title)) {
-                (if (all) files else files.take(SHOWN_PER_GROUP)).forEach { file ->
+                (if (all) files else files.take(SHOWN_PER_GROUP)).forEach { (path, reason) ->
                     row { shapes ->
                         SegmentedListItem(
                             onClick = {},
                             shapes = shapes,
                             colors = settingsRowColors(),
                             leadingContent = { RowIcon(group.icon) },
-                            supportingContent = { Text(stringResource(file.message())) },
+                            supportingContent = { Text(reason) },
                         ) {
-                            Text(file.relativePath)
+                            Text(path)
                         }
                     }
                 }

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -19,6 +20,9 @@ import sh.hnet.music.ui.library.LibraryView
 private val Context.settings by preferencesDataStore("settings")
 
 private const val LAST_USED = "LAST_USED"
+
+/** Skip short files: Off, 10, 30 or 60 s. */
+val SKIP_SHORT_CHOICES = listOf(0, 10, 30, 60)
 
 /** Choices the user made in the UI that outlive the process (app-private, not backed up). */
 class Preferences(private val context: Context) {
@@ -69,6 +73,13 @@ class Preferences(private val context: Context) {
         prefs.clear()
         lastView?.let { prefs[lastViewKey] = it }
     }
+
+    private val skipShortKey = intPreferencesKey("skip_short_seconds")
+
+    /** Files shorter than this many seconds stay out of the library (SPEC-settings-v2 §5.2); 0 = off, the default. */
+    val skipShortSeconds: Flow<Int> = context.settings.data.map { prefs -> prefs[skipShortKey]?.takeIf { it in SKIP_SHORT_CHOICES } ?: 0 }
+
+    suspend fun setSkipShortSeconds(seconds: Int) = context.settings.edit { it[skipShortKey] = seconds }
 
     private val viewOrderKey = stringPreferencesKey("library_view_order")
     private val startViewKey = stringPreferencesKey("library_start_view")

@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -11,6 +12,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -18,6 +20,7 @@ import kotlinx.coroutines.withContext
 import sh.hnet.music.MusicApplication
 import sh.hnet.music.data.LibraryFolder
 import sh.hnet.music.data.LibraryFolders
+import sh.hnet.music.data.ShortFile
 import sh.hnet.music.data.SkippedFile
 import sh.hnet.music.library.FolderScan
 
@@ -26,6 +29,7 @@ data class FolderRow(
     val folder: LibraryFolder,
     val location: String?,
     val tracks: Int,
+    /** Skipped files and, with Skip short files on, the tracks it leaves out. */
     val skipped: Int,
     /** Non-null while the folder waits in or goes through a scan. */
     val scan: FolderScan?,
@@ -47,6 +51,12 @@ sealed interface LibraryMessage {
     data class LostAccess(val names: List<String>) : LibraryMessage
 }
 
+/** The running scan as a whole, for Scan now (SPEC-settings-v2 §5.1); null when idle. */
+data class ScanStatus(val done: Int, val total: Int) {
+    /** False while folders are still being listed and nothing is known to read yet. */
+    val counted: Boolean get() = total > 0
+}
+
 /** Folders, their scan state and the actions on them; one instance for the activity. */
 class LibraryViewModel(private val app: MusicApplication) : ViewModel() {
     private val folderDao = app.database.libraryFolderDao()
@@ -58,15 +68,29 @@ class LibraryViewModel(private val app: MusicApplication) : ViewModel() {
     private val _messages = MutableSharedFlow<LibraryMessage>(extraBufferCapacity = 4)
     val messages: SharedFlow<LibraryMessage> = _messages.asSharedFlow()
 
+    /** Skip short files, in seconds; 0 = off. */
+    val skipShortSeconds: StateFlow<Int> = app.preferences.skipShortSeconds.stateIn(viewModelScope, SharingStarted.Eagerly, 0)
+
+    /** When the last full scan ended; null before the first. */
+    val lastScan: StateFlow<Long?> = scanner.lastScan
+
+    /** Tracks and skipped files per folder, both counted with the short-file threshold. */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val counts = skipShortSeconds.flatMapLatest { seconds ->
+        val minMs = seconds * 1000L
+        combine(trackDao.observeTrackCounts(minMs), trackDao.observeSkippedCounts(), trackDao.observeShortCounts(minMs)) { tracks, skipped, short ->
+            val skippedByFolder = HashMap<String, Int>()
+            (skipped + short).forEach { skippedByFolder.merge(it.folderUri, it.count, Int::plus) }
+            tracks.associate { it.folderUri to it.count } to skippedByFolder
+        }
+    }
+
     val folders: StateFlow<List<FolderRow>> = combine(
         folderDao.observeAll(),
-        trackDao.observeTrackCounts(),
-        trackDao.observeSkippedCounts(),
+        counts,
         scanner.progress,
         scanner.unavailable,
-    ) { folders, trackCounts, skippedCounts, progress, unavailable ->
-        val tracks = trackCounts.associate { it.folderUri to it.count }
-        val skipped = skippedCounts.associate { it.folderUri to it.count }
+    ) { folders, (tracks, skipped), progress, unavailable ->
         folders.map { folder ->
             val uri = folder.treeUri
             FolderRow(
@@ -103,7 +127,25 @@ class LibraryViewModel(private val app: MusicApplication) : ViewModel() {
         }
     }
 
+    /** The running scan summed over its folders (SPEC-settings-v2 §5.1). */
+    val scanStatus: StateFlow<ScanStatus?> = scanner.progress.map { progress ->
+        if (progress.isEmpty()) null
+        else ScanStatus(done = progress.values.sumOf { it.done }, total = progress.values.sumOf { it.total })
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
     fun skippedFiles(treeUri: String): Flow<List<SkippedFile>> = trackDao.observeSkipped(treeUri)
+
+    /** The folder's tracks left out for being short; empty while Skip short files is off. */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun shortFiles(treeUri: String): Flow<List<ShortFile>> =
+        skipShortSeconds.flatMapLatest { seconds -> trackDao.observeShort(treeUri, seconds * 1000L) }
+
+    /** Scan now: every folder, incrementally, as on app start. */
+    fun scanNow() = scanner.requestScan()
+
+    fun setSkipShortSeconds(seconds: Int) {
+        viewModelScope.launch { app.preferences.setSkipShortSeconds(seconds) }
+    }
 
     fun refreshAccess() {
         viewModelScope.launch { scanner.refreshAccess() }

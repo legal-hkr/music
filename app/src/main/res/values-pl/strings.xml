@@ -450,7 +450,7 @@
     <string name="desc_settings_reset">Wszystkie ustawienia wrócą do domyślnych, a język będzie zgodny z systemem. Foldery, biblioteka i playlisty zostaną bez zmian.</string>
     <string name="button_restore_defaults">Przywróć ustawienia domyślne</string>
     <string name="title_confirm_restore_defaults">Przywrócić ustawienia domyślne?</string>
-    <string name="msg_confirm_restore_defaults">Sortowanie, ustawienia odtwarzania i format eksportu wrócą do domyślnych, a język będzie zgodny z systemem. Foldery, biblioteka i playlisty zostaną tak, jak są.</string>
+    <string name="msg_confirm_restore_defaults">Sortowanie, widoki biblioteki, ustawienia odtwarzania, format eksportu i pomijanie krótkich plików wrócą do domyślnych, a język będzie zgodny z systemem. Foldery, biblioteka i playlisty zostaną tak, jak są.</string>
     <string name="button_restore">Przywróć</string>
     <string name="msg_defaults_restored">Przywrócono ustawienia domyślne</string>
     <string name="title_about_license">Licencja</string>
@@ -475,4 +475,19 @@
     <string name="label_last_used">Ostatnio używana</string>
     <string name="label_views_preview">Podgląd kart ekranu Biblioteka</string>
     <string name="title_folders">Foldery</string>
+    <!-- Ustawienia v2: skanowanie i krótkie pliki -->
+    <string name="title_scanning_group">Skanowanie</string>
+    <string name="label_scan_now">Skanuj teraz</string>
+    <string name="label_last_scan">Ostatnio: %s</string>
+    <string name="label_never_scanned">jeszcze nie</string>
+    <string name="label_scanning_headline">Skanuję…</string>
+    <string name="label_scanning_files">%1$s z %2$s plików</string>
+    <string name="msg_scan_counting">Liczę pliki…</string>
+    <string name="label_skip_short">Pomijaj krótkie pliki</string>
+    <string name="label_skip_off">Wyłączone</string>
+    <string name="label_skip_value">%d s</string>
+    <string name="label_shorter_than">Krótsze niż %d s</string>
+    <string name="msg_skip_short_explain">Dźwięki, dżingle i notatki głosowe z folderów z muzyką nie trafią do biblioteki. Zobaczysz je na stronie każdego folderu.</string>
+    <string name="title_skipped_short">Za krótkie</string>
+    <string name="msg_skipped_short">Krótszy niż %1$d s (%2$s)</string>
 </resources>
