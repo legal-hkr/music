@@ -291,7 +291,7 @@
         <item quantity="many">%s playlist</item>
         <item quantity="other">%s playlisty</item>
     </plurals>
-    <string name="label_playlist_summary">%1$s – %2$s</string>
+    <string name="label_playlist_summary">%1$s (%2$s)</string>
     <string name="label_playlist_no_tracks">Na razie pusta</string>
     <plurals name="label_not_available_count">
         <item quantity="one">%s niedostępny</item>
@@ -546,4 +546,5 @@
     <string name="label_filter_all_artists">Wszyscy wykonawcy</string>
     <string name="label_queue_repeat_one">Powtarzanie tego utworu</string>
     <string name="label_sort_most_played">Najczęściej słuchane</string>
+    <string name="label_count_with_length">%1$s (%2$s)</string>
 </resources>

@@ -137,12 +137,15 @@ private fun Header(album: Album, onOpenArtist: (String) -> Unit) {
                     modifier = Modifier.clickable { onOpenArtist(album.shownArtists.first()) },
                 )
             }
-            val parts = listOfNotNull(
-                album.year?.toString(),
-                pluralStringResource(R.plurals.label_track_count, album.tracks.size, formatCount(album.tracks.size)),
-                albumDuration(album.durationMs),
+            // The year on its own line, then the tracks with their length in brackets (owner's decision)
+            album.year?.let { Text(it.toString(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            val count = pluralStringResource(R.plurals.label_track_count, album.tracks.size, formatCount(album.tracks.size))
+            val length = albumDuration(album.durationMs)
+            Text(
+                if (length == null) count else stringResource(R.string.label_count_with_length, count, length),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Text(parts.joinToString(" – "), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
