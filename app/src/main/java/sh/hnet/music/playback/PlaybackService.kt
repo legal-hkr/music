@@ -45,6 +45,8 @@ class PlaybackService : MediaSessionService() {
     private val reshuffleCommand = SessionCommand(QueueShuffleOrder.ACTION_RESHUFFLE, Bundle.EMPTY)
     private val clearCommand = SessionCommand(QueueCommands.ACTION_CLEAR, Bundle.EMPTY)
     private val undoClearCommand = SessionCommand(QueueCommands.ACTION_UNDO_CLEAR, Bundle.EMPTY)
+    /** Files that failed one after another with nothing playing in between. */
+    private var failedInARow = 0
     /** The last Clear queue, until its Undo or the next one. */
     private var cleared: ClearedQueue? = null
 
@@ -94,6 +96,10 @@ class PlaybackService : MediaSessionService() {
                     (player.shuffleOrder as? QueueShuffleOrder)?.fresh == true
                 ) shuffleFromCurrent(player)
             }
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                if (isPlaying) failedInARow = 0
+            }
+
             override fun onEvents(player: Player, events: Player.Events) {
                 if (events.containsAny(
                         Player.EVENT_TIMELINE_CHANGED,
@@ -107,9 +113,11 @@ class PlaybackService : MediaSessionService() {
                 if (events.contains(Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED)) gainSink.shuffle = player.shuffleModeEnabled
             }
 
-            // A file that can't be played (gone, unreadable) is skipped rather than stopping the queue
+            // A file that can't be played (gone, unreadable) is skipped rather than stopping the queue –
+            // but not round and round when nothing in it plays (repeat all over unreadable files)
             override fun onPlayerError(error: PlaybackException) {
-                if (player.hasNextMediaItem()) {
+                failedInARow++
+                if (failedInARow < player.mediaItemCount && player.hasNextMediaItem()) {
                     player.seekToNextMediaItem()
                     player.prepare()
                     player.play()
@@ -219,18 +227,17 @@ class PlaybackService : MediaSessionService() {
     }
 
     /**
-     * Undo of Clear queue: the same items in the same places and, when the current track is still the
-     * one it was cleared around, the same shuffled order; otherwise shuffled anew from the current one.
+     * Undo of Clear queue: the same items in the same places, in the same shuffled order. Only around
+     * the track it was cleared around: a queue played since (an album, say) isn't mixed with the old one.
      */
     private fun undoClear(player: ExoPlayer) {
         val undo = cleared ?: return
         cleared = null
-        if (player.mediaItemCount == 0) return
-        val same = player.mediaItemCount == 1 && player.currentMediaItem?.mediaId == undo.currentId
+        if (player.mediaItemCount != 1 || player.currentMediaItem?.mediaId != undo.currentId) return
         if (undo.before.isNotEmpty()) player.addMediaItems(0, undo.before)
         if (undo.after.isNotEmpty()) player.addMediaItems(player.currentMediaItemIndex + 1, undo.after)
         val order = undo.order
-        player.shuffleOrder = if (same && order != null && order.size == player.mediaItemCount) QueueShuffleOrder(order)
+        player.shuffleOrder = if (order != null && order.size == player.mediaItemCount) QueueShuffleOrder(order)
         else QueueShuffleOrder.fromCurrent(player.mediaItemCount, player.currentMediaItemIndex)
     }
 
