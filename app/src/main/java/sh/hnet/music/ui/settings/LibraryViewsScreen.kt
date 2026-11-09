@@ -129,11 +129,12 @@ fun LibraryViewsScreen(viewModel: BrowseViewModel, onBack: () -> Unit) {
                 moved.add(to, moved.removeAt(position))
                 viewModel.setViewOrder(moved)
             }
+            // The gap goes outside the lifted layer, so the shadow falls only under the row
             Box(
                 Modifier
                     .then(if (reorder.draggedKey == view) Modifier else Modifier.animateItem())
-                    .reorderableItem(reorder, view)
-                    .padding(bottom = if (position < rows.lastIndex) SETTINGS_ROW_GAP else 0.dp),
+                    .padding(bottom = if (position < rows.lastIndex) SETTINGS_ROW_GAP else 0.dp)
+                    .reorderableItem(reorder, view, liftedShape = LIFTED_SHAPE, liftedElevation = 1.dp),
             ) {
                 ViewRow(
                     view, position, rows.size, dragged = reorder.draggedKey == view, moves = moves,
@@ -175,7 +176,7 @@ private fun ViewRow(
     handleModifier: Modifier = Modifier,
 ) {
     val name = stringResource(view.label)
-    val lifted = RoundedCornerShape(16.dp)
+    val lifted = LIFTED_SHAPE
     SegmentedListItem(
         onClick = {},
         shapes = if (dragged) {
@@ -204,3 +205,6 @@ private fun moveActions(position: Int, count: Int, move: (Int) -> Unit): List<Cu
         if (position < count - 1) add(CustomAccessibilityAction(down) { move(position + 1); true })
     }
 }
+
+/** A lifted row (§4.1): radius 16, elevation 1. */
+private val LIFTED_SHAPE = RoundedCornerShape(16.dp)

@@ -539,4 +539,8 @@
     <string name="title_playlists_ready">Gotowe playlisty: %d</string>
     <string name="msg_playlists_ready">Wypełnią się, gdy dodasz foldery z muzyką.</string>
     <string name="msg_no_folders">Nie dodano jeszcze folderów z muzyką.</string>
+    <string name="menu_reorder">Zmień kolejność</string>
+    <string name="title_reorder">Zmień kolejność</string>
+    <string name="content_description_cancel_reorder">Cofnij zmiany</string>
+    <string name="button_done">Gotowe</string>
 </resources>

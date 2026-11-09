@@ -1,5 +1,8 @@
 package sh.hnet.music.ui.components
 
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.drag
@@ -135,12 +138,24 @@ fun rememberReorderState(
     return state
 }
 
-/** The row's own modifier: lifted above the others and drawn where the finger is while dragged. */
-fun Modifier.reorderableItem(state: ReorderState, key: Any): Modifier = this
+/**
+ * The row's own modifier: lifted above the others and drawn where the finger is while dragged.
+ * The shadow takes [liftedShape] (the lifted row's own shape) and [liftedElevation]; it falls
+ * exactly under the row only when nothing (a gap, padding) sits between this modifier and it.
+ */
+fun Modifier.reorderableItem(
+    state: ReorderState,
+    key: Any,
+    liftedShape: Shape = RectangleShape,
+    liftedElevation: Dp = 6.dp,
+): Modifier = this
     .zIndex(if (state.draggedKey == key) 1f else 0f)
     .graphicsLayer {
         translationY = state.offsetOf(key)
-        if (state.draggedKey == key) shadowElevation = 6.dp.toPx()
+        if (state.draggedKey == key) {
+            shadowElevation = liftedElevation.toPx()
+            shape = liftedShape
+        }
     }
 
 /**

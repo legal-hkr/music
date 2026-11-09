@@ -2,6 +2,7 @@
 
 package sh.hnet.music.ui.library
 
+import androidx.activity.compose.BackHandler
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -116,6 +117,10 @@ fun PlaylistScreen(
     val titleShown by remember { derivedStateOf { list.firstVisibleItemIndex > 0 } }
     var renaming by rememberSaveable { mutableStateOf(false) }
     var removingMissing by rememberSaveable { mutableStateOf(false) }
+    // Change order (owner's decision): the page reads like an album's, handles only in this mode;
+    // [orderBefore] is what Cancel puts back (each drop is saved as it happens)
+    var reordering by rememberSaveable { mutableStateOf(false) }
+    var orderBefore by rememberSaveable { mutableStateOf<List<Long>>(emptyList()) }
     val export = rememberPlaylistExport(viewModel, snackbars, messageScope)
     var leaving by remember { mutableStateOf(false) }
     val gone = stringResource(R.string.msg_playlist_gone)
@@ -177,15 +182,32 @@ fun PlaylistScreen(
         }
     }
 
+    // Back ends the mode keeping the new order, as Done
+    BackHandler(enabled = reordering) { reordering = false }
+    if (reordering && (shown == null || shown.summary.starred || shown.rows.size < 2)) reordering = false
+
     Column(Modifier.fillMaxSize()) {
-        TopAppBar(
-            title = {
-                AnimatedVisibility(titleShown && shown != null, enter = fadeIn(), exit = fadeOut()) {
-                    Text(shown?.playlist?.name.orEmpty(), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                }
-            },
-            navigationIcon = { TooltipIconButton(R.drawable.ic_arrow_back, stringResource(R.string.content_description_back), onBack) },
-        )
+        if (reordering) {
+            TopAppBar(
+                title = { Text(stringResource(R.string.title_reorder), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                navigationIcon = {
+                    TooltipIconButton(R.drawable.ic_close, stringResource(R.string.content_description_cancel_reorder), {
+                        if (orderBefore.isNotEmpty() && orderBefore != rows.map { it.entry.id }) viewModel.reorderPlaylist(id, orderBefore)
+                        reordering = false
+                    })
+                },
+                actions = { TextButton(onClick = { reordering = false }) { Text(stringResource(R.string.button_done)) } },
+            )
+        } else {
+            TopAppBar(
+                title = {
+                    AnimatedVisibility(titleShown && shown != null, enter = fadeIn(), exit = fadeOut()) {
+                        Text(shown?.playlist?.name.orEmpty(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                },
+                navigationIcon = { TooltipIconButton(R.drawable.ic_arrow_back, stringResource(R.string.content_description_back), onBack) },
+            )
+        }
         if (shown == null) return@Column
         val summary = shown.summary
         Box(Modifier.fillMaxSize()) {
@@ -195,6 +217,11 @@ fun PlaylistScreen(
                     Actions(
                         playable = summary.tracks.isNotEmpty(),
                         builtin = summary.starred,
+                        canReorder = !summary.starred && rows.size > 1,
+                        onReorder = {
+                            orderBefore = rows.map { it.entry.id }
+                            reordering = true
+                        },
                         missing = summary.missing,
                         onRemoveMissing = { removingMissing = true },
                         onPlay = { viewModel.playPlaylist(summary, shuffle = false) },
@@ -235,17 +262,18 @@ fun PlaylistScreen(
                             .then(if (reorder.draggedKey == key) Modifier else Modifier.animateItem())
                             .reorderableItem(reorder, key),
                     ) {
-                        SwipeToRemove(enabled = reorder.draggedKey == null, onRemove = { remove(row) }) {
+                        // Swipe removes outside Change order; there the row moves instead
+                        SwipeToRemove(enabled = !reordering && reorder.draggedKey == null, onRemove = { remove(row) }) {
                             val starredList = summary.starred
                             val handle: @Composable () -> Unit = {
-                                if (!starredList) Box(Modifier.size(48.dp).dragHandle(reorder, key), contentAlignment = Alignment.Center) {
+                                if (reordering) Box(Modifier.size(48.dp).dragHandle(reorder, key), contentAlignment = Alignment.Center) {
                                     Icon(painterResource(R.drawable.ic_drag_indicator), contentDescription = null)
                                 }
                             }
                             val rowModifier = Modifier
-                                .then(if (starredList) Modifier else Modifier.longPressDrag(reorder, key))
+                                .then(if (reordering) Modifier.longPressDrag(reorder, key) else Modifier)
                                 .background(MaterialTheme.colorScheme.surface)
-                                                .semantics { if (!starredList) customActions = moves }
+                                .semantics { if (reordering) customActions = moves }
                             val track = row.track
                             if (track != null) {
                                 val state = when {
@@ -260,12 +288,15 @@ fun PlaylistScreen(
                                     navigation = navigation,
                                     onClick = { viewModel.playPlaylist(summary, start = summary.entryIds.indexOf(key)) },
                                     modifier = rowModifier,
+                                    // Positions as an album's track numbers; in Change order the handles take over
+                                    number = if (reordering) null else position + 1,
+                                    showNumberColumn = !reordering,
                                     // Starred: the track menu's Unstar does it
                                     onRemoveFromPlaylist = if (starredList) null else ({ remove(row) }),
                                     endContent = handle,
                                 )
                             } else {
-                                MissingRow(row, rowModifier, onRemove = { remove(row) }, handle = handle)
+                                MissingRow(row, rowModifier, number = if (reordering) null else position + 1, onRemove = { remove(row) }, handle = handle)
                             }
                         }
                     }
@@ -403,6 +434,9 @@ private fun Actions(
     playable: Boolean,
     /** Starred: Export (and Remove missing tracks) only (§6). */
     builtin: Boolean,
+    /** Change order is offered (not in Starred, not with fewer than two entries). */
+    canReorder: Boolean,
+    onReorder: () -> Unit,
     missing: Int,
     onRemoveMissing: () -> Unit,
     onPlay: () -> Unit,
@@ -437,9 +471,12 @@ private fun Actions(
             val groups = 1 + (if (missing > 0) 1 else 0) + (if (builtin) 0 else 1)
             DropdownMenuPopup(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                 DropdownMenuGroup(shapes = MenuDefaults.groupShape(0, groups)) {
-                    val items = if (builtin) 1 else 2
-                    if (!builtin) MenuItem(stringResource(R.string.menu_rename), R.drawable.ic_edit, 0, items) { menuOpen = false; onRename() }
-                    MenuItem(stringResource(R.string.menu_export), R.drawable.ic_file_export, items - 1, items) { menuOpen = false; onExport() }
+                    // Rename, Change order, Export – each only where it applies
+                    val items = (if (builtin) 0 else 1) + (if (canReorder) 1 else 0) + 1
+                    var index = 0
+                    if (!builtin) MenuItem(stringResource(R.string.menu_rename), R.drawable.ic_edit, index++, items) { menuOpen = false; onRename() }
+                    if (canReorder) MenuItem(stringResource(R.string.menu_reorder), R.drawable.ic_drag_indicator, index++, items) { menuOpen = false; onReorder() }
+                    MenuItem(stringResource(R.string.menu_export), R.drawable.ic_file_export, index, items) { menuOpen = false; onExport() }
                 }
                 if (missing > 0) {
                     Spacer(Modifier.height(MenuDefaults.GroupSpacing))
@@ -463,7 +500,7 @@ private fun Actions(
  * available" line, not playable; its menu only removes it, and it still moves and swipes.
  */
 @Composable
-private fun MissingRow(row: PlaylistRow, modifier: Modifier, onRemove: () -> Unit, handle: @Composable () -> Unit) {
+private fun MissingRow(row: PlaylistRow, modifier: Modifier, number: Int?, onRemove: () -> Unit, handle: @Composable () -> Unit) {
     val entry = row.entry
     val notAvailable = stringResource(R.string.desc_not_available)
     var menuOpen by remember { mutableStateOf(false) }
@@ -473,6 +510,14 @@ private fun MissingRow(row: PlaylistRow, modifier: Modifier, onRemove: () -> Uni
         onClick = {},
         enabled = false,
         modifier = modifier.semantics { stateDescription = notAvailable },
+        // The position, in the same 24 dp column as a track row's number
+        leadingContent = number?.let {
+            {
+                Box(Modifier.width(24.dp), contentAlignment = Alignment.Center) {
+                    Text(it.toString(), style = MaterialTheme.typography.bodyMedium.copy(fontFeatureSettings = "tnum"), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        },
         supportingContent = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(painterResource(R.drawable.ic_link_off), contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))

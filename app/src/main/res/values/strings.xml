@@ -486,4 +486,8 @@
     <string name="title_playlists_ready">Playlists ready: %d</string>
     <string name="msg_playlists_ready">They fill in once you add the folders with your music.</string>
     <string name="msg_no_folders">No music folders yet.</string>
+    <string name="menu_reorder">Change order</string>
+    <string name="title_reorder">Change order</string>
+    <string name="content_description_cancel_reorder">Cancel changes</string>
+    <string name="button_done">Done</string>
 </resources>
