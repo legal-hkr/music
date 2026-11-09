@@ -125,7 +125,9 @@ class BrowseViewModel(private val app: MusicApplication) : ViewModel() {
 
     suspend fun addToPlaylist(id: Long, tracks: List<LibraryTrack>): AddResult = app.playlists.add(id, tracks)
 
-    fun undoAdd(id: Long, entryIds: List<Long>) {
+    fun undoAdd(id: Long, entryIds: List<Long>) = removeEntries(id, entryIds)
+
+    fun removeEntries(id: Long, entryIds: List<Long>) {
         viewModelScope.launch { app.playlists.removeEntries(id, entryIds) }
     }
 

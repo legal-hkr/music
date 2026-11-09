@@ -3,6 +3,9 @@ package sh.hnet.music.library
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -13,6 +16,7 @@ import sh.hnet.music.data.LibraryTrack
 import sh.hnet.music.data.Playlist
 import sh.hnet.music.data.PlaylistDao
 import sh.hnet.music.data.PlaylistEntry
+import sh.hnet.music.data.TrackDao
 import java.text.Collator
 import java.util.Locale
 
@@ -44,6 +48,8 @@ data class PlaylistSummary(
     }
 }
 
+private fun PlaylistEntry.hint() = TrackHint(path, title, artists, album, durationMs)
+
 /** An entry and its library track, or null while it's missing. */
 data class PlaylistRow(val entry: PlaylistEntry, val track: LibraryTrack?)
 
@@ -74,7 +80,49 @@ fun entryOf(playlistId: Long, position: Int, track: LibraryTrack) = PlaylistEntr
 class DeletedPlaylist(val playlist: Playlist, val entries: List<PlaylistEntry>)
 
 /** Playlists with their library tracks resolved; missing entries are those not in the library now. */
-class PlaylistRepository(private val dao: PlaylistDao, private val library: LibraryRepository, scope: CoroutineScope) {
+class PlaylistRepository(
+    private val dao: PlaylistDao,
+    private val tracks: TrackDao,
+    private val library: LibraryRepository,
+    scanner: LibraryScanner,
+    scope: CoroutineScope,
+) {
+    init {
+        // Missing entries find their tracks again (§6.3) once the library has settled: after every
+        // scan and every change of access, never while a scan is still adding tracks
+        scope.launch(Dispatchers.Default) {
+            combine(library.tracks, scanner.progress) { visible, scanning -> visible?.takeIf { scanning.isEmpty() } }
+                .filterNotNull()
+                .collectLatest { resolveMissing(it) }
+        }
+    }
+
+    /**
+     * Points missing entries at their tracks when a match turns up (§6.1, §9.2) and refreshes the
+     * snapshots of resolved ones. An entry whose track is still indexed but hidden (its folder
+     * lost access) waits for that track instead.
+     */
+    private suspend fun resolveMissing(visible: List<LibraryTrack>) {
+        val byUri = visible.associateBy { it.documentUri }
+        val entries = dao.allEntries()
+        val unresolved = entries.filter { it.documentUri == null || it.documentUri !in byUri }
+        val hidden = unresolved.mapNotNull { it.documentUri }.distinct().chunked(500).flatMap { tracks.existing(it) }.toHashSet()
+        val matcher by lazy { TrackMatcher(visible) }
+        val updates = ArrayList<PlaylistEntry>()
+        var previousAlbum: String? = null
+        var playlist = -1L
+        for (entry in entries) {
+            if (entry.playlistId != playlist) { playlist = entry.playlistId; previousAlbum = null }
+            val current = entry.documentUri?.let(byUri::get)
+            val track = current ?: if (entry.documentUri in hidden) null else matcher.match(entry.hint(), previousAlbum)
+            if (track != null) {
+                val refreshed = entryOf(entry.playlistId, entry.position, track).copy(id = entry.id)
+                if (refreshed != entry) updates += refreshed
+                previousAlbum = track.album?.takeIf { it.isNotBlank() }?.let { Albums.keyOf(track) }
+            }
+        }
+        if (updates.isNotEmpty()) dao.updateEntries(updates)
+    }
     val playlists: StateFlow<List<PlaylistSummary>?> =
         combine(dao.observePlaylists(), dao.observeEntryRefs(), library.tracksByUri) { playlists, refs, tracks ->
             val byPlaylist = refs.groupBy(EntryRef::playlistId)

@@ -23,7 +23,7 @@ class MusicApplication : Application() {
     val library: LibraryRepository by lazy { LibraryRepository(database.trackDao(), scanner, appScope) }
 
     val covers: CoverCache by lazy { CoverCache(this) }
-    val playlists: PlaylistRepository by lazy { PlaylistRepository(database.playlistDao(), library, appScope) }
+    val playlists: PlaylistRepository by lazy { PlaylistRepository(database.playlistDao(), database.trackDao(), library, scanner, appScope) }
 
     val player: PlayerConnection by lazy { PlayerConnection(this) }
 

@@ -74,6 +74,10 @@ interface TrackDao {
     )
     suspend fun libraryTracks(uris: List<String>): List<LibraryTrack>
 
+    /** Which of [uris] are in the index (visible or behind a folder that lost access). */
+    @Query("SELECT documentUri FROM track WHERE documentUri IN (:uris)")
+    suspend fun existing(uris: List<String>): List<String>
+
     @Query("SELECT * FROM track WHERE documentUri = :documentUri")
     fun observeTrack(documentUri: String): Flow<Track?>
 

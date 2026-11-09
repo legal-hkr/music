@@ -387,4 +387,19 @@
     <string name="msg_queue_saved"><![CDATA[Zapisano kolejkę jako <b>%s</b>]]></string>
     <string name="button_view">Pokaż</string>
     <string name="msg_playlist_replaced"><![CDATA[Zastąpiono playlistę <b>%s</b>]]></string>
+    <!-- Playlists, stage 4 -->
+    <string name="menu_remove_missing">Usuń brakujące utwory</string>
+    <plurals name="title_remove_missing">
+        <item quantity="one">Usunąć %d brakujący utwór?</item>
+        <item quantity="few">Usunąć %d brakujące utwory?</item>
+        <item quantity="many">Usunąć %d brakujących utworów?</item>
+        <item quantity="other">Usunąć %d brakującego utworu?</item>
+    </plurals>
+    <string name="msg_remove_missing"><![CDATA[Znikną z playlisty <b>%s</b> na dobre – także wtedy, gdy pliki później wrócą.]]></string>
+    <plurals name="msg_removed_n">
+        <item quantity="one">Usunięto %d utwór</item>
+        <item quantity="few">Usunięto %d utwory</item>
+        <item quantity="many">Usunięto %d utworów</item>
+        <item quantity="other">Usunięto %d utworu</item>
+    </plurals>
 </resources>

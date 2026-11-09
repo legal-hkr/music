@@ -339,4 +339,15 @@
     <string name="msg_queue_saved"><![CDATA[Saved the queue as <b>%s</b>]]></string>
     <string name="button_view">View</string>
     <string name="msg_playlist_replaced"><![CDATA[Replaced <b>%s</b>]]></string>
+    <!-- Playlists, stage 4 -->
+    <string name="menu_remove_missing">Remove missing tracks</string>
+    <plurals name="title_remove_missing">
+        <item quantity="one">Remove %d missing track?</item>
+        <item quantity="other">Remove %d missing tracks?</item>
+    </plurals>
+    <string name="msg_remove_missing"><![CDATA[They leave <b>%s</b> for good, even if the files come back later.]]></string>
+    <plurals name="msg_removed_n">
+        <item quantity="one">Removed %d track</item>
+        <item quantity="other">Removed %d tracks</item>
+    </plurals>
 </resources>

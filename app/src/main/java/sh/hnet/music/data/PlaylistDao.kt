@@ -3,6 +3,7 @@ package sh.hnet.music.data
 import androidx.room3.Dao
 import androidx.room3.Insert
 import androidx.room3.Query
+import androidx.room3.Update
 import androidx.room3.Transaction
 import kotlinx.coroutines.flow.Flow
 
@@ -43,6 +44,13 @@ interface PlaylistDao {
 
     @Query("UPDATE playlist SET changedAt = :changedAt WHERE id = :id")
     suspend fun touch(id: Long, changedAt: Long)
+
+    @Query("SELECT * FROM playlist_entry ORDER BY playlistId, position")
+    suspend fun allEntries(): List<PlaylistEntry>
+
+    /** A re-resolved entry or a refreshed snapshot: not a change the user made, so no changedAt. */
+    @Update
+    suspend fun updateEntries(entries: List<PlaylistEntry>)
 
     @Query("SELECT COALESCE(MAX(position), -1) FROM playlist_entry WHERE playlistId = :playlistId")
     suspend fun lastPosition(playlistId: Long): Int

@@ -22,7 +22,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuGroup
 import androidx.compose.material3.DropdownMenuPopup
@@ -57,6 +59,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
@@ -112,6 +115,7 @@ fun PlaylistScreen(
     val list = rememberLazyListState()
     val titleShown by remember { derivedStateOf { list.firstVisibleItemIndex > 0 } }
     var renaming by rememberSaveable { mutableStateOf(false) }
+    var removingMissing by rememberSaveable { mutableStateOf(false) }
     var leaving by remember { mutableStateOf(false) }
     val gone = stringResource(R.string.msg_playlist_gone)
     val removedText = stringResource(R.string.msg_removed_from_playlist)
@@ -175,6 +179,8 @@ fun PlaylistScreen(
                 item(key = "actions") {
                     Actions(
                         playable = summary.tracks.isNotEmpty(),
+                        missing = summary.missing,
+                        onRemoveMissing = { removingMissing = true },
                         onPlay = { viewModel.playPlaylist(summary, shuffle = false) },
                         onShuffle = { viewModel.playPlaylist(summary, shuffle = true) },
                         onRename = { renaming = true },
@@ -252,6 +258,28 @@ fun PlaylistScreen(
         }
     }
 
+    if (removingMissing && shown != null) {
+        val missingIds = shown.rows.filter { it.track == null }.map { it.entry.id }
+        val removed = pluralStringResource(R.plurals.msg_removed_n, missingIds.size, missingIds.size)
+        // Confirmed, no Undo: what goes is the automatic comeback, which the text says (§6.4)
+        AlertDialog(
+            onDismissRequest = { removingMissing = false },
+            icon = { Icon(painterResource(R.drawable.ic_link_off), contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+            title = { Text(pluralStringResource(R.plurals.title_remove_missing, missingIds.size, missingIds.size)) },
+            text = { Text(boldNamesResource(R.string.msg_remove_missing, shown.playlist.name)) },
+            dismissButton = { TextButton(onClick = { removingMissing = false }) { Text(stringResource(R.string.button_cancel)) } },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        removingMissing = false
+                        viewModel.removeEntries(id, missingIds)
+                        Toast.makeText(context, removed, Toast.LENGTH_SHORT).show()
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                ) { Text(stringResource(R.string.button_remove)) }
+            },
+        )
+    }
     if (renaming && shown != null) {
         val renamed = stringResource(R.string.msg_renamed)
         NameDialog(
@@ -352,7 +380,15 @@ private fun Header(page: PlaylistPage) {
 
 /** Play and Shuffle (equal width), then the page menu's button (§5.1, §5.2). */
 @Composable
-private fun Actions(playable: Boolean, onPlay: () -> Unit, onShuffle: () -> Unit, onRename: () -> Unit, onDelete: () -> Unit) {
+private fun Actions(
+    playable: Boolean,
+    missing: Int,
+    onRemoveMissing: () -> Unit,
+    onPlay: () -> Unit,
+    onShuffle: () -> Unit,
+    onRename: () -> Unit,
+    onDelete: () -> Unit,
+) {
     val height = ButtonDefaults.MediumContainerHeight
     val noTracks = stringResource(R.string.desc_no_tracks_to_play)
     val disabled = Modifier.semantics { if (!playable) stateDescription = noTracks }
@@ -375,12 +411,20 @@ private fun Actions(playable: Boolean, onPlay: () -> Unit, onShuffle: () -> Unit
             FilledTonalIconButton(onClick = { menuOpen = true }, modifier = Modifier.size(height)) {
                 Icon(painterResource(R.drawable.ic_more_horiz), contentDescription = label)
             }
+            // Rename | Remove missing tracks (only while some are missing) | Delete (§5.2)
+            val groups = if (missing > 0) 3 else 2
             DropdownMenuPopup(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                DropdownMenuGroup(shapes = MenuDefaults.groupShape(0, 2)) {
+                DropdownMenuGroup(shapes = MenuDefaults.groupShape(0, groups)) {
                     MenuItem(stringResource(R.string.menu_rename), R.drawable.ic_edit, 0, 1) { menuOpen = false; onRename() }
                 }
                 Spacer(Modifier.height(MenuDefaults.GroupSpacing))
-                DropdownMenuGroup(shapes = MenuDefaults.groupShape(1, 2)) {
+                if (missing > 0) {
+                    DropdownMenuGroup(shapes = MenuDefaults.groupShape(1, groups)) {
+                        MenuItem(stringResource(R.string.menu_remove_missing), R.drawable.ic_link_off, 0, 1) { menuOpen = false; onRemoveMissing() }
+                    }
+                    Spacer(Modifier.height(MenuDefaults.GroupSpacing))
+                }
+                DropdownMenuGroup(shapes = MenuDefaults.groupShape(groups - 1, groups)) {
                     MenuItem(stringResource(R.string.menu_delete), R.drawable.ic_delete, 0, 1, error = true) { menuOpen = false; onDelete() }
                 }
             }
