@@ -1,0 +1,23 @@
+Muzyka odtwarza pliki z folderów, które wskażesz, i nic poza nimi. Nie ma dostępu do internetu, nie prosi o dostęp do pamięci ani multimediów i nie zbiera o Tobie żadnych informacji: biblioteka, playlisty i ustawienia zostają w telefonie.
+
+Biblioteka:
+- Albumy, wykonawcy, utwory i playlisty, w kolejności, jaką lubisz
+- Składanki i albumy wielopłytowe poprawnie złożone w całość
+- Wyszukiwanie we wszystkim, także bez polskich znaków
+- Nowe i zmienione pliki odnajdywane przy każdym uruchomieniu; bardzo krótkie pliki można pominąć
+- Najczęściej słuchane utwory, z prostego licznika odtworzeń
+
+Odtwarzanie:
+- FLAC, ALAC, AAC, MP3, Ogg Vorbis i Opus, bez przerw między utworami
+- ReplayGain dla utworu, albumu albo automatycznie, z ochroną przed przesterowaniem
+- Kolejka z dowolną kolejnością, losowaniem i powtarzaniem widocznymi na bieżąco, zapamiętywana po zamknięciu
+- Szczegóły techniczne pliku i jego tagi na ekranie odtwarzania
+
+Playlisty:
+- Własne playlisty i Ulubione
+- Import i eksport M3U, M3U8, PLS i XSPF; brakujące utwory zostają na swoim miejscu i wracają, gdy się znajdą
+
+A także:
+- Kopia zapasowa ustawień i playlist do wskazanego pliku
+- Polski i angielski, niezależnie od języka systemu
+- Wygląd Material 3 Expressive w kolorach Twojego telefonu
