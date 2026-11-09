@@ -81,10 +81,11 @@ import sh.hnet.music.ui.components.SortChip
 import sh.hnet.music.ui.components.formatCount
 
 enum class LibraryView(val label: Int, val icon: Int, val selectedIcon: Int) {
+    // The default order of the switch (owner's decision); the default start view is Albums
+    PLAYLISTS(R.string.label_view_playlists, R.drawable.ic_playlist_play, R.drawable.ic_playlist_play_filled),
     ALBUMS(R.string.label_view_albums, R.drawable.ic_album, R.drawable.ic_album_filled),
     ARTISTS(R.string.label_view_artists, R.drawable.ic_person, R.drawable.ic_person_filled),
-    TRACKS(R.string.label_view_tracks, R.drawable.ic_music_note, R.drawable.ic_music_note_filled),
-    PLAYLISTS(R.string.label_view_playlists, R.drawable.ic_playlist_play, R.drawable.ic_playlist_play_filled);
+    TRACKS(R.string.label_view_tracks, R.drawable.ic_music_note, R.drawable.ic_music_note_filled);
 
     companion object {
         /**
