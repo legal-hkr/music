@@ -255,4 +255,34 @@
     <string name="desc_licences">Open-source components used by Music</string>
     <string name="label_apache_licence">Apache License 2.0</string>
     <string name="button_close">Close</string>
+    <!-- Playlists, stage 1 -->
+    <string name="label_view_playlists">Playlists</string>
+    <plurals name="label_playlist_count">
+        <item quantity="one">%s playlist</item>
+        <item quantity="other">%s playlists</item>
+    </plurals>
+    <string name="label_playlist_summary">%1$s – %2$s</string>
+    <string name="label_playlist_no_tracks">No tracks yet</string>
+    <plurals name="label_not_available_count">
+        <item quantity="one">%s not available</item>
+        <item quantity="other">%s not available</item>
+    </plurals>
+    <string name="label_sort_recently_changed">Recently changed</string>
+    <string name="label_sort_name">Name</string>
+    <string name="msg_playlists_empty">Your playlists appear here.</string>
+    <string name="content_description_playlist_fab">New or import playlist</string>
+    <string name="button_new_playlist">New playlist</string>
+    <string name="menu_play">Play</string>
+    <string name="menu_rename">Rename</string>
+    <string name="menu_delete">Delete</string>
+    <string name="title_new_playlist">New playlist</string>
+    <string name="label_name">Name</string>
+    <string name="button_create">Create</string>
+    <string name="error_name_empty">Enter a name</string>
+    <string name="error_name_taken">A playlist with this name already exists</string>
+    <string name="msg_playlist_created"><![CDATA[Created <b>%s</b>]]></string>
+    <string name="title_rename_playlist">Rename playlist</string>
+    <string name="button_rename">Rename</string>
+    <string name="msg_renamed">Renamed</string>
+    <string name="msg_playlist_deleted"><![CDATA[Deleted <b>%s</b>]]></string>
 </resources>

@@ -9,6 +9,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import sh.hnet.music.library.AlbumSort
+import sh.hnet.music.library.PlaylistSort
 import sh.hnet.music.library.TrackSort
 import sh.hnet.music.playback.GainSettings
 import sh.hnet.music.playback.ReplayGainMode
@@ -36,6 +37,14 @@ class Preferences(private val context: Context) {
     suspend fun setTrackSort(sort: TrackSort) {
         context.settings.edit { it[trackSortKey] = sort.name }
     }
+
+    private val playlistSortKey = stringPreferencesKey("playlist_sort")
+
+    val playlistSort: Flow<PlaylistSort> = context.settings.data.map { prefs ->
+        prefs[playlistSortKey]?.let { name -> PlaylistSort.entries.firstOrNull { it.name == name } } ?: PlaylistSort.RECENTLY_CHANGED
+    }
+
+    suspend fun setPlaylistSort(sort: PlaylistSort) = context.settings.edit { it[playlistSortKey] = sort.name }
 
     private val gainModeKey = stringPreferencesKey("replaygain_mode")
     private val preampKey = floatPreferencesKey("replaygain_preamp_db")

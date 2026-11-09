@@ -307,6 +307,9 @@ fun MusicApp(openNowPlaying: Int = 0) {
                             onOpenArtist = { currentStack.add(Screen.Artist(it)) },
                             onFolderPicked = { library.onFolderPicked(it) },
                             onSeeSkippedFiles = { openFolders(onlyFolder = true) },
+                            snackbars = snackbars,
+                            // The playlist page arrives with the next stage
+                            onOpenPlaylist = {},
                         )
                     }
                     entry<Screen.Album> { key ->

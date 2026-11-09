@@ -287,4 +287,38 @@
     <string name="desc_licences">Składniki open source użyte w aplikacji</string>
     <string name="label_apache_licence">Apache License 2.0</string>
     <string name="button_close">Zamknij</string>
+    <!-- Playlists, stage 1 -->
+    <string name="label_view_playlists">Playlisty</string>
+    <plurals name="label_playlist_count">
+        <item quantity="one">%s playlista</item>
+        <item quantity="few">%s playlisty</item>
+        <item quantity="many">%s playlist</item>
+        <item quantity="other">%s playlisty</item>
+    </plurals>
+    <string name="label_playlist_summary">%1$s – %2$s</string>
+    <string name="label_playlist_no_tracks">Na razie pusta</string>
+    <plurals name="label_not_available_count">
+        <item quantity="one">%s niedostępny</item>
+        <item quantity="few">%s niedostępne</item>
+        <item quantity="many">%s niedostępnych</item>
+        <item quantity="other">%s niedostępnego</item>
+    </plurals>
+    <string name="label_sort_recently_changed">Ostatnio zmienione</string>
+    <string name="label_sort_name">Nazwa</string>
+    <string name="msg_playlists_empty">Tu pojawią się Twoje playlisty.</string>
+    <string name="content_description_playlist_fab">Nowa playlista lub import</string>
+    <string name="button_new_playlist">Nowa playlista</string>
+    <string name="menu_play">Odtwórz</string>
+    <string name="menu_rename">Zmień nazwę</string>
+    <string name="menu_delete">Usuń</string>
+    <string name="title_new_playlist">Nowa playlista</string>
+    <string name="label_name">Nazwa</string>
+    <string name="button_create">Utwórz</string>
+    <string name="error_name_empty">Wpisz nazwę</string>
+    <string name="error_name_taken">Masz już playlistę o tej nazwie</string>
+    <string name="msg_playlist_created"><![CDATA[Utworzono playlistę <b>%s</b>]]></string>
+    <string name="title_rename_playlist">Zmień nazwę playlisty</string>
+    <string name="button_rename">Zmień</string>
+    <string name="msg_renamed">Zmieniono nazwę</string>
+    <string name="msg_playlist_deleted"><![CDATA[Usunięto playlistę <b>%s</b>]]></string>
 </resources>

@@ -9,14 +9,15 @@ import androidx.room3.ColumnTypeConverters
 import androidx.sqlite.driver.AndroidSQLiteDriver
 
 @Database(
-    entities = [LibraryFolder::class, Track::class, SkippedFile::class],
-    version = 2,
-    autoMigrations = [AutoMigration(from = 1, to = 2)],
+    entities = [LibraryFolder::class, Track::class, SkippedFile::class, Playlist::class, PlaylistEntry::class],
+    version = 3,
+    autoMigrations = [AutoMigration(from = 1, to = 2), AutoMigration(from = 2, to = 3)],
 )
 @ColumnTypeConverters(Converters::class)
 abstract class MusicDatabase : RoomDatabase() {
     abstract fun libraryFolderDao(): LibraryFolderDao
     abstract fun trackDao(): TrackDao
+    abstract fun playlistDao(): PlaylistDao
 
     companion object {
         @Volatile private var instance: MusicDatabase? = null

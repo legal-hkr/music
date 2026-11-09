@@ -1,9 +1,23 @@
-@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class, androidx.compose.material3.ExperimentalMaterial3Api::class)
 
 package sh.hnet.music.ui.library
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Icon
+import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.TooltipAnchorPosition
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.unit.Dp
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -65,10 +79,11 @@ import sh.hnet.music.ui.components.TrackNavigation
 import sh.hnet.music.ui.components.SortChip
 import sh.hnet.music.ui.components.formatCount
 
-enum class LibraryView(val label: Int) {
-    ALBUMS(R.string.label_view_albums),
-    ARTISTS(R.string.label_view_artists),
-    TRACKS(R.string.label_view_tracks),
+enum class LibraryView(val label: Int, val icon: Int, val selectedIcon: Int) {
+    ALBUMS(R.string.label_view_albums, R.drawable.ic_album, R.drawable.ic_album_filled),
+    ARTISTS(R.string.label_view_artists, R.drawable.ic_person, R.drawable.ic_person_filled),
+    TRACKS(R.string.label_view_tracks, R.drawable.ic_music_note, R.drawable.ic_music_note_filled),
+    PLAYLISTS(R.string.label_view_playlists, R.drawable.ic_playlist_play, R.drawable.ic_playlist_play_filled),
 }
 
 /** The Library destination: the view switch in the top bar and the chosen view (SPEC §3.2). */
@@ -81,6 +96,8 @@ fun LibraryScreen(
     onOpenArtist: (String) -> Unit,
     onFolderPicked: (android.net.Uri) -> Unit,
     onSeeSkippedFiles: () -> Unit,
+    snackbars: SnackbarHostState,
+    onOpenPlaylist: (Long) -> Unit,
 ) {
     val hasTracks by viewModel.hasTracks.collectAsStateWithLifecycle()
     var view by rememberSaveable { mutableStateOf(LibraryView.ALBUMS) }
@@ -89,6 +106,7 @@ fun LibraryScreen(
     val albumsGrid = rememberLazyGridState()
     val artistsList = rememberLazyListState()
     val tracksList = rememberLazyListState()
+    val playlistsList = rememberLazyListState()
 
     BackHandler(enabled = history.isNotEmpty()) {
         view = history.last()
@@ -124,44 +142,76 @@ fun LibraryScreen(
                         val tracks by viewModel.tracks.collectAsStateWithLifecycle()
                         tracks?.let { TrackList(viewModel, it, tracksList, navigation) }
                     }
+                    LibraryView.PLAYLISTS -> PlaylistsView(viewModel, playlistsList, snackbars, onOpenPlaylist)
                 }
             }
         }
     }
 }
 
+/**
+ * The view switch (SPEC-playlists §3.2): connected toggle buttons, an icon on each, the label only on
+ * the selected one, which takes the remaining width; switching animates the widths.
+ */
 @Composable
 private fun ViewSwitch(selected: LibraryView, onSelect: (LibraryView) -> Unit) {
     val groupLabel = stringResource(R.string.content_description_library_view)
-    Row(
-        modifier = Modifier
+    BoxWithConstraints(
+        Modifier
             .fillMaxWidth()
             .statusBarsPadding()
             .heightIn(min = 64.dp)
-            .padding(horizontal = 16.dp)
-            .selectableGroup()
-            .semantics { contentDescription = groupLabel },
-        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-        verticalAlignment = Alignment.CenterVertically,
+            .padding(horizontal = 16.dp),
+        contentAlignment = Alignment.CenterStart,
     ) {
         val views = LibraryView.entries
-        views.forEachIndexed { index, item ->
-            ToggleButton(
-                checked = item == selected,
-                onCheckedChange = { if (it) onSelect(item) },
-                shapes = when (index) {
-                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                    views.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                },
-                // Selected: secondary container, fully round (SPEC §3.2); the shape morph is the toggle's own
-                colors = ToggleButtonDefaults.colors(
-                    checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                ),
-                modifier = Modifier.weight(1f).heightIn(min = 40.dp).semantics { role = Role.RadioButton },
-            ) {
-                Text(stringResource(item.label), maxLines = 1, overflow = TextOverflow.Ellipsis)
+        val gap = ButtonGroupDefaults.ConnectedSpaceBetween
+        val compact = 56.dp
+        val wide = maxWidth - (compact + gap) * (views.size - 1)
+        val widthSpec = MaterialTheme.motionScheme.defaultSpatialSpec<Dp>()
+        Row(
+            modifier = Modifier.selectableGroup().semantics { contentDescription = groupLabel },
+            horizontalArrangement = Arrangement.spacedBy(gap),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            views.forEachIndexed { index, item ->
+                val isSelected = item == selected
+                val label = stringResource(item.label)
+                val width by animateDpAsState(if (isSelected) wide else compact, widthSpec, label = "viewWidth")
+                TooltipBox(
+                    positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Below),
+                    tooltip = { PlainTooltip { Text(label) } },
+                    state = rememberTooltipState(),
+                ) {
+                    ToggleButton(
+                        checked = isSelected,
+                        onCheckedChange = { if (it) onSelect(item) },
+                        shapes = when (index) {
+                            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                            views.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                        },
+                        // Selected: secondary container, fully round; the shape morph is the toggle's own
+                        colors = ToggleButtonDefaults.colors(
+                            checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        ),
+                        contentPadding = PaddingValues(horizontal = 12.dp),
+                        modifier = Modifier
+                            .width(width)
+                            .heightIn(min = 40.dp)
+                            .semantics {
+                                role = Role.RadioButton
+                                contentDescription = label
+                            },
+                    ) {
+                        Icon(painterResource(if (isSelected) item.selectedIcon else item.icon), contentDescription = null, modifier = Modifier.size(20.dp))
+                        if (isSelected) {
+                            Spacer(Modifier.width(8.dp))
+                            Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.clearAndSetSemantics {})
+                        }
+                    }
+                }
             }
         }
     }

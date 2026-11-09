@@ -1,0 +1,39 @@
+package sh.hnet.music.data
+
+import androidx.room3.Entity
+import androidx.room3.Index
+import androidx.room3.PrimaryKey
+
+/** A playlist the user made or imported; kept in the app's database only (SPEC-playlists §2). */
+@Entity(tableName = "playlist")
+data class Playlist(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val name: String,
+    val createdAt: Long,
+    /** Entries added, removed or moved, renamed or replaced: the default sort (§4.3). */
+    val changedAt: Long,
+)
+
+/**
+ * One entry of a playlist, in [position] order. It points to a library track by [documentUri] and
+ * keeps a snapshot of what it knew (path, tags, duration), so a track that disappears stays in place
+ * as missing and can be found again (§6.1). The same track may appear in several entries.
+ */
+@Entity(tableName = "playlist_entry", indices = [Index("playlistId"), Index("documentUri")])
+data class PlaylistEntry(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val playlistId: Long,
+    val position: Int,
+    val documentUri: String?,
+    /** The picked folder of the track it was resolved to; null for an imported line that matched nothing. */
+    val folderUri: String?,
+    /** The path inside [folderUri], or the raw path of an imported line. */
+    val path: String?,
+    val title: String?,
+    val artists: List<String>,
+    val album: String?,
+    val durationMs: Long?,
+)
+
+/** What the Playlists view needs of each entry. */
+data class EntryRef(val playlistId: Long, val documentUri: String?)

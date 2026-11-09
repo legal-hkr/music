@@ -19,6 +19,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
@@ -179,18 +180,20 @@ private fun TrackMenu(track: LibraryTrack, expanded: Boolean, navigation: TrackN
             Spacer(Modifier.height(MenuDefaults.GroupSpacing))
             DropdownMenuGroup(shapes = MenuDefaults.groupShape(1, 2)) {
                 goTo.forEachIndexed { index, (label, action) ->
-                    MenuItem(stringResource(label), if (label == R.string.menu_go_to_artist) R.drawable.ic_person else R.drawable.ic_album, index, goTo.size, action)
+                    MenuItem(stringResource(label), if (label == R.string.menu_go_to_artist) R.drawable.ic_person else R.drawable.ic_album, index, goTo.size, onClick = action)
                 }
             }
         }
     }
 }
 
+/** An item of an Expressive menu group; [error] for a destructive action (last in its menu). */
 @Composable
-private fun MenuItem(text: String, @DrawableRes icon: Int, index: Int, count: Int, onClick: () -> Unit) {
+fun MenuItem(text: String, @DrawableRes icon: Int, index: Int, count: Int, error: Boolean = false, onClick: () -> Unit) {
+    val errorColor = MaterialTheme.colorScheme.error
     DropdownMenuItem(
-        text = { Text(text, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-        leadingIcon = { Icon(painterResource(icon), contentDescription = null, modifier = Modifier.size(20.dp)) },
+        text = { Text(text, maxLines = 1, overflow = TextOverflow.Ellipsis, color = if (error) errorColor else Color.Unspecified) },
+        leadingIcon = { Icon(painterResource(icon), contentDescription = null, modifier = Modifier.size(20.dp), tint = if (error) errorColor else LocalContentColor.current) },
         shape = MenuDefaults.itemShape(index, count).shape,
         onClick = onClick,
     )

@@ -141,19 +141,29 @@ class PlayerConnection(private val context: Context) {
     }
 
     /** Inserts after the current track; starts nothing when the queue was empty. */
-    fun playNext(track: LibraryTrack) = withController { c ->
-        if (c.mediaItemCount == 0) {
-            c.setMediaItem(item(track))
-            c.prepare()
-        } else {
-            c.addMediaItem(c.currentMediaItemIndex + 1, item(track))
+    fun playNext(track: LibraryTrack) = playNext(listOf(track))
+
+    fun playNext(tracks: List<LibraryTrack>) {
+        if (tracks.isEmpty()) return
+        withController { c ->
+            if (c.mediaItemCount == 0) {
+                c.setMediaItems(tracks.map(::item))
+                c.prepare()
+            } else {
+                c.addMediaItems(c.currentMediaItemIndex + 1, tracks.map(::item))
+            }
         }
     }
 
-    fun addToQueue(track: LibraryTrack) = withController { c ->
-        val wasEmpty = c.mediaItemCount == 0
-        c.addMediaItem(item(track))
-        if (wasEmpty) c.prepare()
+    fun addToQueue(track: LibraryTrack) = addToQueue(listOf(track))
+
+    fun addToQueue(tracks: List<LibraryTrack>) {
+        if (tracks.isEmpty()) return
+        withController { c ->
+            val wasEmpty = c.mediaItemCount == 0
+            c.addMediaItems(tracks.map(::item))
+            if (wasEmpty) c.prepare()
+        }
     }
 
     fun togglePlayPause() = withController { c ->

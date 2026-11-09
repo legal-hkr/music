@@ -12,6 +12,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import sh.hnet.music.MusicApplication
+import sh.hnet.music.R
+import sh.hnet.music.library.DeletedPlaylist
+import sh.hnet.music.library.PlaylistRepository
+import sh.hnet.music.library.PlaylistSort
+import sh.hnet.music.library.PlaylistSummary
 import sh.hnet.music.data.LibraryTrack
 import sh.hnet.music.library.Album
 import sh.hnet.music.library.AlbumSort
@@ -65,6 +70,40 @@ class BrowseViewModel(private val app: MusicApplication) : ViewModel() {
     fun artistTracks(name: String): Flow<Sorted<LibraryTrack>?> = combine(artist(name), trackSort) { artist, sort ->
         artist?.let { Tracks.sort(it.tracks, sort, Locale.getDefault()) }
     }.flowOn(Dispatchers.Default)
+
+    val playlistSort: StateFlow<PlaylistSort> = app.preferences.playlistSort
+        .stateIn(viewModelScope, SharingStarted.Eagerly, PlaylistSort.RECENTLY_CHANGED)
+
+    val playlists: StateFlow<List<PlaylistSummary>?> = combine(app.playlists.playlists, playlistSort) { list, sort ->
+        list?.let { PlaylistRepository.sort(it, sort, Locale.getDefault()) }
+    }.flowOn(Dispatchers.Default).stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    fun setPlaylistSort(sort: PlaylistSort) {
+        viewModelScope.launch { app.preferences.setPlaylistSort(sort) }
+    }
+
+    /** Why [name] can't be used for a playlist (an error string), or null when it can (§7.4). */
+    fun playlistNameError(name: String, except: Long? = null): Int? = when {
+        name.isBlank() -> R.string.error_name_empty
+        app.playlists.nameTaken(name, except) -> R.string.error_name_taken
+        else -> null
+    }
+
+    suspend fun createPlaylist(name: String): Long = app.playlists.create(name)
+
+    fun renamePlaylist(id: Long, name: String) {
+        viewModelScope.launch { app.playlists.rename(id, name) }
+    }
+
+    suspend fun deletePlaylist(id: Long): DeletedPlaylist? = app.playlists.delete(id)
+
+    fun restorePlaylist(deleted: DeletedPlaylist) {
+        viewModelScope.launch { app.playlists.restore(deleted) }
+    }
+
+    fun playNext(tracks: List<LibraryTrack>) = player.playNext(tracks)
+
+    fun addToQueue(tracks: List<LibraryTrack>) = player.addToQueue(tracks)
 
     /** The current track and whether it plays, for marking it in lists. */
     val playState: Flow<Pair<String?, Boolean>> = combine(player.currentId, player.isPlaying) { id, playing -> id to playing }
