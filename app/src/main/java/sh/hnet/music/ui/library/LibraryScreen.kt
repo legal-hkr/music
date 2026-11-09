@@ -270,7 +270,8 @@ private fun ArtistsView(viewModel: BrowseViewModel, state: LazyListState, onOpen
                     pluralStringResource(R.plurals.label_artist_count, sorted.items.size, formatCount(sorted.items.size)),
                     Modifier.padding(horizontal = 16.dp),
                 ) {
-                    FilterToggleChip(stringResource(R.string.label_filter_with_albums), withAlbumsOnly) {
+                    // All artists: off by default, showing album artists only (the stored setting, inverted)
+                    FilterToggleChip(stringResource(R.string.label_filter_all_artists), !withAlbumsOnly) {
                         viewModel.setArtistsWithAlbumsOnly(!withAlbumsOnly)
                     }
                 }
