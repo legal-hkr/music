@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun EmptyState(@DrawableRes icon: Int, text: AnnotatedString, modifier: Modifier = Modifier, action: (@Composable () -> Unit)? = null) {
     Column(
-        modifier = modifier.fillMaxSize().padding(32.dp),
+        modifier = modifier.fillMaxSize().padding(bottom = LocalBottomOverlay.current).padding(32.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {

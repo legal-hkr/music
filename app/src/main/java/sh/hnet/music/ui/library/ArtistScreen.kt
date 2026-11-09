@@ -2,6 +2,7 @@
 
 package sh.hnet.music.ui.library
 
+import sh.hnet.music.ui.components.LocalBottomOverlay
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -88,7 +89,7 @@ fun ArtistScreen(
         )
         if (shown == null) return@Column
         val byTitle = remember(shown) { Tracks.sort(shown.tracks, sh.hnet.music.library.TrackSort.TITLE, Locale.getDefault()).items }
-        LazyColumn(state = list, contentPadding = PaddingValues(bottom = 24.dp), modifier = Modifier.fillMaxSize()) {
+        LazyColumn(state = list, contentPadding = PaddingValues(bottom = 24.dp + LocalBottomOverlay.current), modifier = Modifier.fillMaxSize()) {
             item(key = "header") { Header(shown) }
             item(key = "actions") {
                 val order = remember(shown) { shown.playOrder() }

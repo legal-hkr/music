@@ -2,6 +2,7 @@
 
 package sh.hnet.music.ui.library
 
+import sh.hnet.music.ui.components.LocalBottomOverlay
 import androidx.activity.compose.BackHandler
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
@@ -211,7 +212,7 @@ fun PlaylistScreen(
         if (shown == null) return@Column
         val summary = shown.summary
         Box(Modifier.fillMaxSize()) {
-            LazyColumn(state = list, contentPadding = PaddingValues(bottom = 24.dp), modifier = Modifier.fillMaxSize()) {
+            LazyColumn(state = list, contentPadding = PaddingValues(bottom = 24.dp + LocalBottomOverlay.current), modifier = Modifier.fillMaxSize()) {
                 item(key = "header") { Header(shown) }
                 item(key = "actions") {
                     Actions(

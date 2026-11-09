@@ -2,6 +2,7 @@
 
 package sh.hnet.music.ui.library
 
+import sh.hnet.music.ui.components.LocalBottomOverlay
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -70,7 +71,7 @@ fun AlbumScreen(viewModel: BrowseViewModel, key: String, navigation: TrackNaviga
         if (shown == null) return@Column
         val rowNavigation = navigation.withoutAlbum()
         val multiDisc = shown.tracks.mapNotNull { it.discNumber }.distinct().size > 1
-        LazyColumn(state = list, contentPadding = PaddingValues(bottom = 24.dp), modifier = Modifier.fillMaxSize()) {
+        LazyColumn(state = list, contentPadding = PaddingValues(bottom = 24.dp + LocalBottomOverlay.current), modifier = Modifier.fillMaxSize()) {
             item(key = "header") { Header(shown, onOpenArtist) }
             item(key = "actions") {
                 val addToPlaylist = LocalAddToPlaylist.current

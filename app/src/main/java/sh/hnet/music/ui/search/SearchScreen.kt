@@ -2,6 +2,7 @@
 
 package sh.hnet.music.ui.search
 
+import sh.hnet.music.ui.components.LocalBottomOverlay
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -115,7 +116,7 @@ fun SearchScreen(
             query.isBlank() -> EmptyState(R.drawable.ic_search, stringResource(R.string.msg_search_empty), Modifier.imePadding())
             results.isEmpty -> EmptyState(R.drawable.ic_search_off, boldNamesResource(R.string.msg_search_no_results, query.trim()), Modifier.imePadding())
             else -> LazyColumn(
-                contentPadding = PaddingValues(bottom = 24.dp),
+                contentPadding = PaddingValues(bottom = 24.dp + LocalBottomOverlay.current),
                 // The keyboard covers the bottom bar; the list pads by it so the last row can be reached
                 modifier = Modifier.fillMaxSize().imePadding(),
             ) {

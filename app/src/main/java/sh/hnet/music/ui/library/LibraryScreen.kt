@@ -2,6 +2,7 @@
 
 package sh.hnet.music.ui.library
 
+import sh.hnet.music.ui.components.LocalBottomOverlay
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateDpAsState
@@ -237,7 +238,7 @@ private fun AlbumsView(viewModel: BrowseViewModel, state: LazyGridState, onOpenA
         LazyVerticalGrid(
             columns = GridCells.Adaptive(160.dp),
             state = state,
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp + LocalBottomOverlay.current),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxSize(),
@@ -260,7 +261,7 @@ private fun ArtistsView(viewModel: BrowseViewModel, state: LazyListState, onOpen
     val artists by viewModel.artists.collectAsStateWithLifecycle()
     val sorted = artists ?: return
     Box(Modifier.fillMaxSize()) {
-        LazyColumn(state = state, contentPadding = PaddingValues(bottom = 24.dp), modifier = Modifier.fillMaxSize()) {
+        LazyColumn(state = state, contentPadding = PaddingValues(bottom = 24.dp + LocalBottomOverlay.current), modifier = Modifier.fillMaxSize()) {
             item(key = "header", contentType = "header") {
                 ListHeader(
                     pluralStringResource(R.plurals.label_artist_count, sorted.items.size, formatCount(sorted.items.size)),

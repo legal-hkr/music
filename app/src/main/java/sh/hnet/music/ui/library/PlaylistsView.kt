@@ -2,6 +2,7 @@
 
 package sh.hnet.music.ui.library
 
+import sh.hnet.music.ui.components.LocalBottomOverlay
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.offset
@@ -141,7 +142,7 @@ fun PlaylistsView(viewModel: BrowseViewModel, state: LazyListState, snackbars: S
         if (list.isEmpty()) {
             EmptyState(R.drawable.ic_playlist_play, stringResource(R.string.msg_playlists_empty))
         } else {
-            LazyColumn(state = state, contentPadding = PaddingValues(bottom = 24.dp + 88.dp), modifier = Modifier.fillMaxSize()) {
+            LazyColumn(state = state, contentPadding = PaddingValues(bottom = 24.dp + 88.dp + LocalBottomOverlay.current), modifier = Modifier.fillMaxSize()) {
                 item(key = "header", contentType = "header") {
                     ListHeader(
                         pluralStringResource(R.plurals.label_playlist_count, list.size, formatCount(list.size)),
@@ -166,7 +167,7 @@ fun PlaylistsView(viewModel: BrowseViewModel, state: LazyListState, snackbars: S
             busy = importSlow,
             onNew = { creating = true },
             onImport = { if (!importing) importPicker.launch(IMPORT_MIME_TYPES) },
-            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp).offset { IntOffset(0, -lift.roundToPx()) },
+            modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = LocalBottomOverlay.current).padding(16.dp).offset { IntOffset(0, -lift.roundToPx()) },
         )
     }
 

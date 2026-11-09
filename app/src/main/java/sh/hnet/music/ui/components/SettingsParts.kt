@@ -98,7 +98,7 @@ fun SettingsPage(
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
-                .padding(top = 8.dp, bottom = 24.dp),
+                .padding(top = 8.dp, bottom = 24.dp + LocalBottomOverlay.current),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             content = content,
         )
@@ -127,7 +127,7 @@ fun LazySettingsPage(
         LazyColumn(
             state = state,
             modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp + LocalBottomOverlay.current),
             content = content,
         )
     }

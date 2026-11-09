@@ -50,6 +50,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.onSizeChanged
+import sh.hnet.music.ui.components.LocalBottomOverlay
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -244,7 +246,12 @@ fun MusicApp(openNowPlaying: Int = 0) {
 
     val starredState = browse.starred.collectAsStateWithLifecycle()
     val starring = remember(browse) { Starring(starredState) { track, on -> browse.setStarred(track, on) } }
-    CompositionLocalProvider(LocalAddToPlaylist provides { addRequest = it }, LocalStarring provides starring) {
+    // The mini player floats over the content: its height is what lists add at their end
+    val miniShown = hasQueue && currentTrack != null
+    var miniHeight by remember { mutableStateOf(0.dp) }
+    val density = LocalDensity.current
+    val bottomOverlay = if (miniShown) miniHeight else 0.dp
+    CompositionLocalProvider(LocalAddToPlaylist provides { addRequest = it }, LocalStarring provides starring, LocalBottomOverlay provides bottomOverlay) {
     SharedTransitionLayout {
     Box(Modifier.fillMaxSize()) {
     Scaffold(
@@ -257,8 +264,13 @@ fun MusicApp(openNowPlaying: Int = 0) {
         bottomBar = {
             Column {
                 // Absent while the current track can't be shown (its folder lost access, SPEC §13)
-                if (hasQueue && currentTrack != null) {
-                    nowPlayingTransition.AnimatedVisibility(visible = { open -> !open }, enter = fadeIn(), exit = fadeOut()) {
+                if (miniShown && currentTrack != null) {
+                    nowPlayingTransition.AnimatedVisibility(
+                        visible = { open -> !open },
+                        enter = fadeIn(),
+                        exit = fadeOut(),
+                        modifier = Modifier.onSizeChanged { if (it.height > 0) miniHeight = with(density) { it.height.toDp() } },
+                    ) {
                         MiniPlayer(
                             track = currentTrack,
                             state = playerState,
@@ -313,8 +325,9 @@ fun MusicApp(openNowPlaying: Int = 0) {
             transitionSpec = { (fadeIn(effects) + scaleIn(initialScale = 0.92f)) togetherWith fadeOut(fastEffects) },
             // The bottom bar's height is padding already given: the keyboard (imePadding in Search)
             // only adds what it covers beyond it, or the screen ends a bar's height above the keyboard
+            // Without the mini player's height: the content runs on under it, with no band of background
             modifier = Modifier.fillMaxSize()
-                .padding(bottom = padding.calculateBottomPadding())
+                .padding(bottom = (padding.calculateBottomPadding() - bottomOverlay).coerceAtLeast(0.dp))
                 .consumeWindowInsets(PaddingValues(bottom = padding.calculateBottomPadding())),
             label = "destination",
         ) { current ->

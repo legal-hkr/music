@@ -2,6 +2,7 @@
 
 package sh.hnet.music.ui.library
 
+import sh.hnet.music.ui.components.LocalBottomOverlay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -83,7 +84,7 @@ fun TrackList(
     val sort by viewModel.trackSort.collectAsStateWithLifecycle()
     val current by viewModel.playState.collectAsStateWithLifecycle(null to false)
     Box(modifier.fillMaxSize()) {
-        LazyColumn(state = state, contentPadding = PaddingValues(bottom = 24.dp), modifier = Modifier.fillMaxSize()) {
+        LazyColumn(state = state, contentPadding = PaddingValues(bottom = 24.dp + LocalBottomOverlay.current), modifier = Modifier.fillMaxSize()) {
             item(key = "header", contentType = "header") {
                 ListHeader(
                     pluralStringResource(R.plurals.label_track_count, sorted.items.size, formatCount(sorted.items.size)),

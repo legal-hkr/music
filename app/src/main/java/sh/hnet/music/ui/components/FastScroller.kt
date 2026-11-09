@@ -95,7 +95,7 @@ private fun FastScroller(
     val count by rememberUpdatedState(itemCount)
     val scrollToState by rememberUpdatedState(scrollTo)
 
-    BoxWithConstraints(modifier.fillMaxHeight().clearAndSetSemantics {}) {
+    BoxWithConstraints(modifier.fillMaxHeight().padding(bottom = LocalBottomOverlay.current).clearAndSetSemantics {}) {
         val density = LocalDensity.current
         val trackPx = with(density) { (maxHeight - THUMB_HEIGHT).toPx() }.coerceAtLeast(1f)
         val listFraction = (firstVisible().toFloat() / (itemCount - visibleCount()).coerceAtLeast(1)).coerceIn(0f, 1f)
