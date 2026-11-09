@@ -61,6 +61,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import sh.hnet.music.R
 import sh.hnet.music.library.PlaylistSort
@@ -86,14 +87,13 @@ fun PlaylistSort.label(): Int = when (this) {
 
 /** The Library's Playlists view (SPEC-playlists §4) with its create menu (§3.3). */
 @Composable
-fun PlaylistsView(viewModel: BrowseViewModel, state: LazyListState, snackbars: SnackbarHostState, onOpenPlaylist: (Long) -> Unit) {
+fun PlaylistsView(viewModel: BrowseViewModel, state: LazyListState, snackbars: SnackbarHostState, messageScope: CoroutineScope, onOpenPlaylist: (Long) -> Unit) {
     val playlists by viewModel.playlists.collectAsStateWithLifecycle()
     val sort by viewModel.playlistSort.collectAsStateWithLifecycle()
     val list = playlists ?: return
     val scope = rememberCoroutineScope()
     var creating by rememberSaveable { mutableStateOf(false) }
     var renaming by rememberSaveable { mutableStateOf<Long?>(null) }
-    val created = stringResource(R.string.msg_playlist_created)
     val deletedText = stringResource(R.string.msg_playlist_deleted)
     val undo = stringResource(R.string.button_undo)
 
@@ -115,12 +115,12 @@ fun PlaylistsView(viewModel: BrowseViewModel, state: LazyListState, snackbars: S
                         summary,
                         modifier = Modifier.animateItem(),
                         onClick = { onOpenPlaylist(summary.playlist.id) },
-                        onPlay = { viewModel.playFrom(summary.tracks, 0) },
+                        onPlay = { viewModel.playPlaylist(summary) },
                         onPlayNext = { viewModel.playNext(summary.tracks) },
                         onAddToQueue = { viewModel.addToQueue(summary.tracks) },
                         onRename = { renaming = summary.playlist.id },
                         onDelete = {
-                            scope.launch {
+                            messageScope.launch {
                                 val deleted = viewModel.deletePlaylist(summary.playlist.id) ?: return@launch
                                 snackbars.currentSnackbarData?.dismiss()
                                 val text = AnnotatedString.fromHtml(deletedText.format(deleted.playlist.name.htmlEncode())).text
@@ -154,11 +154,8 @@ fun PlaylistsView(viewModel: BrowseViewModel, state: LazyListState, snackbars: S
             onDismiss = { creating = false },
         ) { name ->
             creating = false
-            scope.launch {
-                viewModel.createPlaylist(name)
-                snackbars.currentSnackbarData?.dismiss()
-                snackbars.showSnackbar(AnnotatedString.fromHtml(created.format(name.htmlEncode())).text)
-            }
+            // From the FAB: an empty playlist, opened at once (§7.4)
+            scope.launch { onOpenPlaylist(viewModel.createPlaylist(name)) }
         }
     }
     renaming?.let { id ->
@@ -329,7 +326,17 @@ fun PlaylistPicture(summary: PlaylistSummary, size: Dp) {
         when {
             covers.size == 4 -> Column {
                 for (row in 0..1) Row {
-                    for (column in 0..1) Cover(covers[row * 2 + column], RectangleShape, Modifier.size(size / 2))
+                    for (column in 0..1) {
+                        val track = covers[row * 2 + column]
+                        // A tile without a cover: the plain placeholder tile, not a shrunken cover placeholder
+                        if (track.hasEmbeddedCover) {
+                            Cover(track, RectangleShape, Modifier.size(size / 2))
+                        } else {
+                            Box(Modifier.size(size / 2).background(MaterialTheme.colorScheme.surfaceContainerHighest), contentAlignment = Alignment.Center) {
+                                Icon(painterResource(R.drawable.ic_album), contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(if (size >= 96.dp) 32.dp else 18.dp))
+                            }
+                        }
+                    }
                 }
             }
             covers.isNotEmpty() -> Cover(covers.first(), RectangleShape, Modifier.size(size))

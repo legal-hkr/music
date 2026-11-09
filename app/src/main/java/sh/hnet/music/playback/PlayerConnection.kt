@@ -21,6 +21,8 @@ data class PlayerState(
     val repeatMode: Int = Player.REPEAT_MODE_OFF,
     val hasNext: Boolean = false,
     val queueSize: Int = 0,
+    /** The playlist entry the current item was started from, if any. */
+    val currentEntryId: Long? = null,
 )
 
 /** A queued item: its place in the player's list ([index]) and what it is. */
@@ -96,6 +98,7 @@ class PlayerConnection(private val context: Context) {
             repeatMode = player.repeatMode,
             hasNext = player.hasNextMediaItem(),
             queueSize = player.mediaItemCount,
+            currentEntryId = player.currentMediaItem?.playlistEntryId,
         )
     }
 
@@ -129,12 +132,12 @@ class PlayerConnection(private val context: Context) {
      * Replaces the queue with [tracks] and plays from [start]. [shuffle] null keeps the current
      * shuffle mode; true starts at a random track.
      */
-    fun play(tracks: List<LibraryTrack>, start: Int = 0, shuffle: Boolean? = null) {
+    fun play(tracks: List<LibraryTrack>, start: Int = 0, shuffle: Boolean? = null, playlistEntries: List<Long>? = null) {
         if (tracks.isEmpty()) return
         withController { c ->
             shuffle?.let { c.shuffleModeEnabled = it }
             val index = if (shuffle == true) tracks.indices.random() else start.coerceIn(tracks.indices)
-            c.setMediaItems(tracks.map(::item), index, 0)
+            c.setMediaItems(tracks.mapIndexed { i, track -> track.toMediaItem(playlistEntries?.getOrNull(i)) }, index, 0)
             c.prepare()
             c.play()
         }

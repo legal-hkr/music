@@ -15,6 +15,8 @@ import sh.hnet.music.MusicApplication
 import sh.hnet.music.R
 import sh.hnet.music.library.DeletedPlaylist
 import sh.hnet.music.library.PlaylistRepository
+import sh.hnet.music.library.PlaylistPage
+import sh.hnet.music.data.PlaylistEntry
 import sh.hnet.music.library.PlaylistSort
 import sh.hnet.music.library.PlaylistSummary
 import sh.hnet.music.data.LibraryTrack
@@ -99,6 +101,25 @@ class BrowseViewModel(private val app: MusicApplication) : ViewModel() {
 
     fun restorePlaylist(deleted: DeletedPlaylist) {
         viewModelScope.launch { app.playlists.restore(deleted) }
+    }
+
+    fun playlist(id: Long): Flow<PlaylistPage?> = app.playlists.page(id)
+
+    /** The playlist entry playing (and whether it plays), when the queue came from a playlist. */
+    val playingEntry: Flow<Pair<Long?, Boolean>> = player.state.map { it.currentEntryId to it.isPlaying }
+
+    /** A copy of the playable entries goes into the queue (§12), each item knowing its entry. */
+    fun playPlaylist(summary: PlaylistSummary, start: Int = 0, shuffle: Boolean? = null) =
+        player.play(summary.tracks, start, shuffle, summary.entryIds)
+
+    fun reorderPlaylist(id: Long, entryIds: List<Long>) {
+        viewModelScope.launch { app.playlists.reorder(id, entryIds) }
+    }
+
+    suspend fun removeEntry(entryId: Long): PlaylistEntry? = app.playlists.removeEntry(entryId)
+
+    fun restoreEntry(entry: PlaylistEntry) {
+        viewModelScope.launch { app.playlists.restoreEntry(entry) }
     }
 
     fun playNext(tracks: List<LibraryTrack>) = player.playNext(tracks)

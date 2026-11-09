@@ -316,9 +316,20 @@
     <string name="button_create">Utwórz</string>
     <string name="error_name_empty">Wpisz nazwę</string>
     <string name="error_name_taken">Masz już playlistę o tej nazwie</string>
-    <string name="msg_playlist_created"><![CDATA[Utworzono playlistę <b>%s</b>]]></string>
     <string name="title_rename_playlist">Zmień nazwę playlisty</string>
     <string name="button_rename">Zmień</string>
     <string name="msg_renamed">Zmieniono nazwę</string>
     <string name="msg_playlist_deleted"><![CDATA[Usunięto playlistę <b>%s</b>]]></string>
+    <!-- Playlists, stage 2 -->
+    <string name="menu_remove_from_playlist">Usuń z playlisty</string>
+    <string name="content_description_playlist_actions">Działania na playliście</string>
+    <string name="desc_no_tracks_to_play">Nie ma czego odtworzyć</string>
+    <string name="msg_playlist_empty"><![CDATA[Utwory dodasz przez <b>Dodaj do playlisty</b> w menu dowolnego utworu.]]></string>
+    <string name="msg_removed_from_playlist"><![CDATA[Usunięto <b>%1$s</b> z playlisty <b>%2$s</b>]]></string>
+    <string name="msg_playlist_gone">Ta playlista została usunięta.</string>
+    <string name="label_not_available">Niedostępny</string>
+    <string name="label_not_available_artist">Niedostępny – %s</string>
+    <string name="desc_not_available">Niedostępny</string>
+    <string name="label_move_to_top">Przenieś na początek</string>
+    <string name="label_move_to_bottom">Przenieś na koniec</string>
 </resources>

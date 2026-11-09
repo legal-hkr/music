@@ -8,7 +8,7 @@ import sh.hnet.music.data.LibraryTrack
 import sh.hnet.music.library.Albums
 
 /** A track as the player's item: the document URI as ID and source, tags for the notification. */
-fun LibraryTrack.toMediaItem(): MediaItem = MediaItem.Builder()
+fun LibraryTrack.toMediaItem(playlistEntry: Long? = null): MediaItem = MediaItem.Builder()
     .setMediaId(documentUri)
     .setUri(documentUri.toUri())
     .setMediaMetadata(
@@ -19,7 +19,7 @@ fun LibraryTrack.toMediaItem(): MediaItem = MediaItem.Builder()
             .setAlbumArtist(albumArtists.joinToString(", ").ifEmpty { null })
             .setTrackNumber(trackNumber)
             .setDiscNumber(discNumber)
-            .setExtras(gainExtras())
+            .setExtras(itemExtras(playlistEntry))
             .build(),
     )
     .build()
@@ -31,13 +31,16 @@ private const val TRACK_PEAK = "rg_track_peak"
 private const val ALBUM_GAIN = "rg_album_gain"
 private const val ALBUM_PEAK = "rg_album_peak"
 private const val ALBUM_KEY = "album_key"
+private const val PLAYLIST_ENTRY = "playlist_entry"
 
-private fun LibraryTrack.gainExtras() = Bundle().apply {
+private fun LibraryTrack.itemExtras(playlistEntry: Long?) = Bundle().apply {
+    // The playlist entry the item was started from, so the playlist page can mark it (duplicates too)
+    playlistEntry?.let { putLong(PLAYLIST_ENTRY, it) }
     trackGainDb?.let { putFloat(TRACK_GAIN, it) }
     trackPeak?.let { putFloat(TRACK_PEAK, it) }
     albumGainDb?.let { putFloat(ALBUM_GAIN, it) }
     albumPeak?.let { putFloat(ALBUM_PEAK, it) }
-    if (!album.isNullOrBlank()) putString(ALBUM_KEY, Albums.keyOf(this@gainExtras))
+    if (!album.isNullOrBlank()) putString(ALBUM_KEY, Albums.keyOf(this@itemExtras))
 }
 
 private fun Bundle.floatOrNull(key: String) = if (containsKey(key)) getFloat(key) else null
@@ -50,3 +53,7 @@ fun MediaItem.gainTags(): GainTags {
 
 /** The album the item belongs to, as the library groups albums; null without an album tag. */
 val MediaItem.albumKey: String? get() = mediaMetadata.extras?.getString(ALBUM_KEY)
+
+/** The playlist entry this item was queued from, if it was. */
+val MediaItem.playlistEntryId: Long?
+    get() = mediaMetadata.extras?.let { if (it.containsKey(PLAYLIST_ENTRY)) it.getLong(PLAYLIST_ENTRY) else null }

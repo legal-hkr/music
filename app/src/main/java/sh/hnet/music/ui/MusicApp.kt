@@ -89,6 +89,7 @@ import sh.hnet.music.library.Albums
 import sh.hnet.music.ui.components.TrackNavigation
 import sh.hnet.music.ui.library.BrowseViewModel
 import sh.hnet.music.ui.library.LibraryScreen
+import sh.hnet.music.ui.library.PlaylistScreen
 import sh.hnet.music.ui.search.SearchScreen
 import sh.hnet.music.ui.search.SearchViewModel
 import sh.hnet.music.ui.settings.AboutScreen
@@ -308,8 +309,8 @@ fun MusicApp(openNowPlaying: Int = 0) {
                             onFolderPicked = { library.onFolderPicked(it) },
                             onSeeSkippedFiles = { openFolders(onlyFolder = true) },
                             snackbars = snackbars,
-                            // The playlist page arrives with the next stage
-                            onOpenPlaylist = {},
+                            messageScope = scope,
+                            onOpenPlaylist = { currentStack.add(Screen.Playlist(it)) },
                         )
                     }
                     entry<Screen.Album> { key ->
@@ -330,6 +331,9 @@ fun MusicApp(openNowPlaying: Int = 0) {
                             onOpenAlbum = { currentStack.add(Screen.Album(it)) },
                             onShowAllTracks = { currentStack.add(Screen.ArtistTracks(key.name)) },
                         )
+                    }
+                    entry<Screen.Playlist> { key ->
+                        PlaylistScreen(browse, key.id, trackNavigation, snackbars, scope, onBack = back)
                     }
                     entry<Screen.ArtistTracks> { key ->
                         ArtistTracksScreen(browse, key.name, trackNavigation, onBack = back)

@@ -36,4 +36,8 @@ data class PlaylistEntry(
 )
 
 /** What the Playlists view needs of each entry. */
-data class EntryRef(val playlistId: Long, val documentUri: String?)
+data class EntryRef(val id: Long, val playlistId: Long, val documentUri: String?)
+
+/** What a missing entry shows: its own title, else the file name (with extension, to find it). */
+val PlaylistEntry.shownTitle: String
+    get() = title ?: path?.substringAfterLast('/')?.substringAfterLast('\\').orEmpty()

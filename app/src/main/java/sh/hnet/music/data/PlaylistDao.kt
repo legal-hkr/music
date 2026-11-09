@@ -11,7 +11,7 @@ interface PlaylistDao {
     @Query("SELECT * FROM playlist")
     fun observePlaylists(): Flow<List<Playlist>>
 
-    @Query("SELECT playlistId, documentUri FROM playlist_entry ORDER BY playlistId, position")
+    @Query("SELECT id, playlistId, documentUri FROM playlist_entry ORDER BY playlistId, position")
     fun observeEntryRefs(): Flow<List<EntryRef>>
 
     @Query("SELECT * FROM playlist_entry WHERE playlistId = :playlistId ORDER BY position")
@@ -19,6 +19,51 @@ interface PlaylistDao {
 
     @Query("SELECT * FROM playlist WHERE id = :id")
     suspend fun playlist(id: Long): Playlist?
+
+    @Query("SELECT * FROM playlist WHERE id = :id")
+    fun observePlaylist(id: Long): Flow<Playlist?>
+
+    @Query("SELECT * FROM playlist_entry WHERE playlistId = :playlistId ORDER BY position")
+    fun observeEntries(playlistId: Long): Flow<List<PlaylistEntry>>
+
+    @Query("SELECT * FROM playlist_entry WHERE id = :id")
+    suspend fun entry(id: Long): PlaylistEntry?
+
+    @Insert
+    suspend fun insertEntry(entry: PlaylistEntry)
+
+    @Query("UPDATE playlist_entry SET position = :position WHERE id = :id")
+    suspend fun setPosition(id: Long, position: Int)
+
+    @Query("UPDATE playlist_entry SET position = position + 1 WHERE playlistId = :playlistId AND position >= :from")
+    suspend fun shiftFrom(playlistId: Long, from: Int)
+
+    @Query("DELETE FROM playlist_entry WHERE id = :id")
+    suspend fun deleteEntry(id: Long)
+
+    @Query("UPDATE playlist SET changedAt = :changedAt WHERE id = :id")
+    suspend fun touch(id: Long, changedAt: Long)
+
+    /** The new order, written once on drop (one change). */
+    @Transaction
+    suspend fun reorder(playlistId: Long, entryIds: List<Long>, changedAt: Long) {
+        entryIds.forEachIndexed { index, id -> setPosition(id, index) }
+        touch(playlistId, changedAt)
+    }
+
+    @Transaction
+    suspend fun removeEntry(entry: PlaylistEntry, changedAt: Long) {
+        deleteEntry(entry.id)
+        touch(entry.playlistId, changedAt)
+    }
+
+    /** Puts a removed entry back at its position, the same entry (Undo). */
+    @Transaction
+    suspend fun restoreEntry(entry: PlaylistEntry, changedAt: Long) {
+        shiftFrom(entry.playlistId, entry.position)
+        insertEntry(entry)
+        touch(entry.playlistId, changedAt)
+    }
 
     @Insert
     suspend fun insert(playlist: Playlist): Long

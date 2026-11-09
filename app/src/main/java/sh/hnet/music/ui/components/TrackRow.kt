@@ -65,10 +65,15 @@ fun TrackRow(
     state: PlayState,
     navigation: TrackNavigation,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
     number: Int? = null,
     showNumberColumn: Boolean = false,
     /** Indent in dp, e.g. under an album row on the artist page. */
     startPadding: Int = 0,
+    /** A last menu group removing the row from its playlist. */
+    onRemoveFromPlaylist: (() -> Unit)? = null,
+    /** After the menu button, e.g. a playlist entry's drag handle. */
+    endContent: (@Composable () -> Unit)? = null,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     val playingLabel = stringResource(R.string.desc_playing)
@@ -79,7 +84,7 @@ fun TrackRow(
             containerColor = if (menuOpen) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surface,
         ),
         onClick = onClick,
-        modifier = Modifier
+        modifier = modifier
             .padding(start = startPadding.dp)
             .semantics {
                 when (state) {
@@ -109,8 +114,9 @@ fun TrackRow(
                 Text(formatDuration(track.durationMs), style = tabular, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Box {
                     TooltipIconButton(R.drawable.ic_more_vert, stringResource(R.string.content_description_more_for, track.displayTitle), { menuOpen = true })
-                    TrackMenu(track, menuOpen, navigation) { menuOpen = false }
+                    TrackMenu(track, menuOpen, navigation, onRemoveFromPlaylist) { menuOpen = false }
                 }
+                endContent?.invoke()
             }
         },
     ) {
@@ -125,7 +131,7 @@ fun TrackRow(
 
 /** The row menu (SPEC §5.4): queue actions, then where to go. Several artists: a list of them first. */
 @Composable
-private fun TrackMenu(track: LibraryTrack, expanded: Boolean, navigation: TrackNavigation, onDismiss: () -> Unit) {
+private fun TrackMenu(track: LibraryTrack, expanded: Boolean, navigation: TrackNavigation, onRemoveFromPlaylist: (() -> Unit)?, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val player = (context.applicationContext as MusicApplication).player
     var choosingArtist by remember(expanded) { mutableStateOf(false) }
@@ -149,18 +155,6 @@ private fun TrackMenu(track: LibraryTrack, expanded: Boolean, navigation: TrackN
             }
             return@DropdownMenuPopup
         }
-        DropdownMenuGroup(shapes = MenuDefaults.groupShape(0, 2)) {
-            MenuItem(stringResource(R.string.menu_play_next), R.drawable.ic_queue_play_next, 0, 2) {
-                onDismiss()
-                player.playNext(track)
-                Toast.makeText(context, playsNext, Toast.LENGTH_SHORT).show()
-            }
-            MenuItem(stringResource(R.string.menu_add_to_queue), R.drawable.ic_queue_music, 1, 2) {
-                onDismiss()
-                player.addToQueue(track)
-                Toast.makeText(context, addedToQueue, Toast.LENGTH_SHORT).show()
-            }
-        }
         val goTo = buildList<Pair<Int, () -> Unit>> {
             if (navigation.onGoToArtist != null && track.artists.isNotEmpty()) {
                 add(R.string.menu_go_to_artist to {
@@ -174,12 +168,31 @@ private fun TrackMenu(track: LibraryTrack, expanded: Boolean, navigation: TrackN
             }
             navigation.onGoToAlbum?.let { go -> if (!track.album.isNullOrBlank()) add(R.string.menu_go_to_album to { onDismiss(); go(track) }) }
         }
+        val groupCount = 1 + (if (goTo.isNotEmpty()) 1 else 0) + (if (onRemoveFromPlaylist != null) 1 else 0)
+        DropdownMenuGroup(shapes = MenuDefaults.groupShape(0, groupCount)) {
+            MenuItem(stringResource(R.string.menu_play_next), R.drawable.ic_queue_play_next, 0, 2) {
+                onDismiss()
+                player.playNext(track)
+                Toast.makeText(context, playsNext, Toast.LENGTH_SHORT).show()
+            }
+            MenuItem(stringResource(R.string.menu_add_to_queue), R.drawable.ic_queue_music, 1, 2) {
+                onDismiss()
+                player.addToQueue(track)
+                Toast.makeText(context, addedToQueue, Toast.LENGTH_SHORT).show()
+            }
+        }
         if (goTo.isNotEmpty()) {
             Spacer(Modifier.height(MenuDefaults.GroupSpacing))
-            DropdownMenuGroup(shapes = MenuDefaults.groupShape(1, 2)) {
+            DropdownMenuGroup(shapes = MenuDefaults.groupShape(1, groupCount)) {
                 goTo.forEachIndexed { index, (label, action) ->
                     MenuItem(stringResource(label), if (label == R.string.menu_go_to_artist) R.drawable.ic_person else R.drawable.ic_album, index, goTo.size, onClick = action)
                 }
+            }
+        }
+        if (onRemoveFromPlaylist != null) {
+            Spacer(Modifier.height(MenuDefaults.GroupSpacing))
+            DropdownMenuGroup(shapes = MenuDefaults.groupShape(if (goTo.isNotEmpty()) 2 else 1, if (goTo.isNotEmpty()) 3 else 2)) {
+                MenuItem(stringResource(R.string.menu_remove_from_playlist), R.drawable.ic_playlist_remove, 0, 1) { onDismiss(); onRemoveFromPlaylist() }
             }
         }
     }

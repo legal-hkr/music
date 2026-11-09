@@ -2,6 +2,7 @@ package sh.hnet.music.library
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -18,7 +19,13 @@ import java.util.Locale
 enum class PlaylistSort { RECENTLY_CHANGED, RECENTLY_ADDED, NAME }
 
 /** A playlist as lists show it: its playable tracks in order and how many entries are missing. */
-data class PlaylistSummary(val playlist: Playlist, val tracks: List<LibraryTrack>, val missing: Int) {
+data class PlaylistSummary(
+    val playlist: Playlist,
+    val tracks: List<LibraryTrack>,
+    /** The entries [tracks] come from, in the same order. */
+    val entryIds: List<Long>,
+    val missing: Int,
+) {
     val durationMs: Long get() = tracks.sumOf { it.durationMs }
 
     /**
@@ -37,20 +44,46 @@ data class PlaylistSummary(val playlist: Playlist, val tracks: List<LibraryTrack
     }
 }
 
+/** An entry and its library track, or null while it's missing. */
+data class PlaylistRow(val entry: PlaylistEntry, val track: LibraryTrack?)
+
+data class PlaylistPage(val playlist: Playlist, val rows: List<PlaylistRow>) {
+    val summary: PlaylistSummary by lazy {
+        val playable = rows.filter { it.track != null }
+        PlaylistSummary(playlist, playable.map { it.track!! }, playable.map { it.entry.id }, rows.size - playable.size)
+    }
+}
+
 /** A deleted playlist kept for Undo. */
 class DeletedPlaylist(val playlist: Playlist, val entries: List<PlaylistEntry>)
 
 /** Playlists with their library tracks resolved; missing entries are those not in the library now. */
-class PlaylistRepository(private val dao: PlaylistDao, library: LibraryRepository, scope: CoroutineScope) {
+class PlaylistRepository(private val dao: PlaylistDao, private val library: LibraryRepository, scope: CoroutineScope) {
     val playlists: StateFlow<List<PlaylistSummary>?> =
         combine(dao.observePlaylists(), dao.observeEntryRefs(), library.tracksByUri) { playlists, refs, tracks ->
             val byPlaylist = refs.groupBy(EntryRef::playlistId)
             playlists.map { playlist ->
                 val entries = byPlaylist[playlist.id].orEmpty()
-                val playable = entries.mapNotNull { ref -> ref.documentUri?.let(tracks::get) }
-                PlaylistSummary(playlist, playable, entries.size - playable.size)
+                val playable = entries.mapNotNull { ref -> ref.documentUri?.let(tracks::get)?.let { ref.id to it } }
+                PlaylistSummary(playlist, playable.map { it.second }, playable.map { it.first }, entries.size - playable.size)
             }
         }.flowOn(Dispatchers.Default).stateIn(scope, SharingStarted.Eagerly, null)
+
+    /** One playlist with every entry, each resolved to its library track or missing (null). */
+    fun page(id: Long): Flow<PlaylistPage?> =
+        combine(dao.observePlaylist(id), dao.observeEntries(id), library.tracksByUri) { playlist, entries, tracks ->
+            playlist?.let { PlaylistPage(it, entries.map { entry -> PlaylistRow(entry, entry.documentUri?.let(tracks::get)) }) }
+        }.flowOn(Dispatchers.Default)
+
+    suspend fun reorder(id: Long, entryIds: List<Long>) = dao.reorder(id, entryIds, System.currentTimeMillis())
+
+    suspend fun removeEntry(entryId: Long): PlaylistEntry? {
+        val entry = dao.entry(entryId) ?: return null
+        dao.removeEntry(entry, System.currentTimeMillis())
+        return entry
+    }
+
+    suspend fun restoreEntry(entry: PlaylistEntry) = dao.restoreEntry(entry, System.currentTimeMillis())
 
     /** Whether another playlist has [name]; names compare trimmed, ignoring case and diacritics (§7.4). */
     fun nameTaken(name: String, except: Long? = null): Boolean {

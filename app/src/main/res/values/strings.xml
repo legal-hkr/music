@@ -280,9 +280,20 @@
     <string name="button_create">Create</string>
     <string name="error_name_empty">Enter a name</string>
     <string name="error_name_taken">A playlist with this name already exists</string>
-    <string name="msg_playlist_created"><![CDATA[Created <b>%s</b>]]></string>
     <string name="title_rename_playlist">Rename playlist</string>
     <string name="button_rename">Rename</string>
     <string name="msg_renamed">Renamed</string>
     <string name="msg_playlist_deleted"><![CDATA[Deleted <b>%s</b>]]></string>
+    <!-- Playlists, stage 2 -->
+    <string name="menu_remove_from_playlist">Remove from playlist</string>
+    <string name="content_description_playlist_actions">Playlist actions</string>
+    <string name="desc_no_tracks_to_play">No tracks to play</string>
+    <string name="msg_playlist_empty"><![CDATA[Add tracks with <b>Add to playlist</b> in any track\'s menu.]]></string>
+    <string name="msg_removed_from_playlist"><![CDATA[Removed <b>%1$s</b> from <b>%2$s</b>]]></string>
+    <string name="msg_playlist_gone">This playlist was deleted.</string>
+    <string name="label_not_available">Not available</string>
+    <string name="label_not_available_artist">Not available – %s</string>
+    <string name="desc_not_available">Not available</string>
+    <string name="label_move_to_top">Move to top</string>
+    <string name="label_move_to_bottom">Move to bottom</string>
 </resources>

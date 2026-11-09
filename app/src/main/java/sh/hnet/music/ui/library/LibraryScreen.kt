@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.SnackbarHostState
+import kotlinx.coroutines.CoroutineScope
 import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
@@ -97,6 +98,8 @@ fun LibraryScreen(
     onFolderPicked: (android.net.Uri) -> Unit,
     onSeeSkippedFiles: () -> Unit,
     snackbars: SnackbarHostState,
+    /** Outlives this screen, for snackbars whose Undo must survive leaving it. */
+    messageScope: CoroutineScope,
     onOpenPlaylist: (Long) -> Unit,
 ) {
     val hasTracks by viewModel.hasTracks.collectAsStateWithLifecycle()
@@ -142,7 +145,7 @@ fun LibraryScreen(
                         val tracks by viewModel.tracks.collectAsStateWithLifecycle()
                         tracks?.let { TrackList(viewModel, it, tracksList, navigation) }
                     }
-                    LibraryView.PLAYLISTS -> PlaylistsView(viewModel, playlistsList, snackbars, onOpenPlaylist)
+                    LibraryView.PLAYLISTS -> PlaylistsView(viewModel, playlistsList, snackbars, messageScope, onOpenPlaylist)
                 }
             }
         }
