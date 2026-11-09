@@ -100,7 +100,12 @@ import sh.hnet.music.ui.library.LibraryScreen
 import sh.hnet.music.ui.library.PlaylistScreen
 import sh.hnet.music.ui.search.SearchScreen
 import sh.hnet.music.ui.search.SearchViewModel
+import sh.hnet.music.about.WhatsNew
 import sh.hnet.music.ui.settings.AboutScreen
+import sh.hnet.music.ui.settings.AppLicenseScreen
+import sh.hnet.music.ui.settings.LanguageScreen
+import sh.hnet.music.ui.settings.ResetScreen
+import sh.hnet.music.ui.settings.WhatsNewScreen
 import sh.hnet.music.ui.settings.FolderScreen
 import sh.hnet.music.ui.settings.LibraryMessage
 import sh.hnet.music.ui.settings.LibraryMessages
@@ -195,6 +200,21 @@ fun MusicApp(openNowPlaying: Int = 0) {
         settings.add(Screen.SettingsLibrary)
         val single = folderRows.singleOrNull()
         if (onlyFolder && single != null) settings.add(Screen.SettingsFolder(single.folder.treeUri))
+    }
+    // After an update, once: "Updated to x.y.z" with What's new (as ComfyChair)
+    val updatedTo = stringResource(R.string.whats_new_updated_snackbar)
+    val whatsNew = stringResource(R.string.whats_new_title)
+    val appContext = LocalContext.current.applicationContext
+    LaunchedEffect(Unit) {
+        val version = WhatsNew.takeUpdateNotice(appContext) ?: return@LaunchedEffect
+        if (snackbars.showSnackbar(updatedTo.format(version), actionLabel = whatsNew, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed) {
+            closeNowPlaying()
+            tab = Tab.SETTINGS
+            val settings = stacks.getValue(Tab.SETTINGS)
+            while (settings.size > 1) settings.removeAt(settings.lastIndex)
+            settings.add(Screen.SettingsAbout)
+            settings.add(Screen.SettingsWhatsNew)
+        }
     }
     LibraryMessages(library) { message ->
         when (message) {
@@ -376,6 +396,8 @@ fun MusicApp(openNowPlaying: Int = 0) {
                             library,
                             onOpenLibrary = { currentStack.add(Screen.SettingsLibrary) },
                             onOpenPlayback = { currentStack.add(Screen.SettingsPlayback) },
+                            onOpenLanguage = { currentStack.add(Screen.SettingsLanguage) },
+                            onOpenReset = { currentStack.add(Screen.SettingsReset) },
                             onOpenAbout = { currentStack.add(Screen.SettingsAbout) },
                         )
                     }
@@ -391,9 +413,18 @@ fun MusicApp(openNowPlaying: Int = 0) {
                     }
                     entry<Screen.SettingsPlayback> { PlaybackSettingsScreen(onBack = back) }
                     entry<Screen.SettingsAbout> {
-                        AboutScreen(onBack = back, onOpenLicences = { currentStack.add(Screen.SettingsLicences) })
+                        AboutScreen(
+                            onBack = back,
+                            onOpenWhatsNew = { currentStack.add(Screen.SettingsWhatsNew) },
+                            onOpenLicense = { currentStack.add(Screen.SettingsLicense) },
+                            onOpenLicences = { currentStack.add(Screen.SettingsLicences) },
+                        )
                     }
                     entry<Screen.SettingsLicences> { LicencesScreen(onBack = back) }
+                    entry<Screen.SettingsLanguage> { LanguageScreen(onBack = back) }
+                    entry<Screen.SettingsReset> { ResetScreen(onBack = back) }
+                    entry<Screen.SettingsWhatsNew> { WhatsNewScreen(onBack = back) }
+                    entry<Screen.SettingsLicense> { AppLicenseScreen(onBack = back) }
                 },
             )
         }

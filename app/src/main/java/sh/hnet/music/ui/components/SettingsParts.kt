@@ -20,6 +20,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Badge
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.ListItemColors
@@ -183,13 +186,14 @@ fun RowIcon(@DrawableRes icon: Int, error: Boolean = false) {
     }
 }
 
-/** A row opening a page. */
+/** A row opening a page; [badge] (e.g. "New") before the chevron, as in ComfyChair. */
 @Composable
 fun SettingsNavigationRow(
     shapes: ListItemShapes,
     @DrawableRes icon: Int,
     title: String,
     supporting: String? = null,
+    badge: String? = null,
     onClick: () -> Unit,
 ) {
     SegmentedListItem(
@@ -197,11 +201,80 @@ fun SettingsNavigationRow(
         shapes = shapes,
         colors = settingsRowColors(),
         leadingContent = { RowIcon(icon) },
-        trailingContent = { Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = null) },
+        trailingContent = {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                badge?.let {
+                    Badge(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary) {
+                        Text(it, modifier = Modifier.padding(horizontal = 4.dp))
+                    }
+                }
+                Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = null)
+            }
+        },
         supportingContent = supporting?.let { { Text(it) } },
     ) {
         Text(title)
     }
+}
+
+/** A row handing an address to another app (the browser): it leaves Music, so `open_in_new`, not a chevron. */
+@Composable
+fun SettingsLinkRow(shapes: ListItemShapes, @DrawableRes icon: Int, title: String, supporting: String? = null, onClick: () -> Unit) {
+    SegmentedListItem(
+        onClick = onClick,
+        shapes = shapes,
+        colors = settingsRowColors(),
+        leadingContent = { RowIcon(icon) },
+        trailingContent = { Icon(painterResource(R.drawable.ic_open_in_new), contentDescription = null) },
+        supportingContent = supporting?.let { { Text(it) } },
+    ) {
+        Text(title)
+    }
+}
+
+/** A row doing something at once (or after its confirmation); [destructive] tints its icon in error. */
+@Composable
+fun SettingsActionRow(
+    shapes: ListItemShapes,
+    @DrawableRes icon: Int,
+    title: String,
+    onClick: () -> Unit,
+    supporting: String? = null,
+    destructive: Boolean = false,
+) {
+    val colors = settingsRowColors()
+    SegmentedListItem(
+        onClick = onClick,
+        shapes = shapes,
+        colors = colors,
+        leadingContent = {
+            Icon(painterResource(icon), contentDescription = null, tint = if (destructive) MaterialTheme.colorScheme.error else colors.leadingContentColor)
+        },
+        supportingContent = supporting?.let { { Text(it) } },
+    ) {
+        Text(title)
+    }
+}
+
+/** One choice of a single-choice group (put the group in a selectableGroup); the chosen one keeps the component's selected colours. */
+@Composable
+fun SettingsRadioRow(shapes: ListItemShapes, title: String, selected: Boolean, onSelect: () -> Unit, supporting: String? = null) {
+    SegmentedListItem(
+        selected = selected,
+        onClick = onSelect,
+        shapes = shapes,
+        colors = settingsRowColors(),
+        leadingContent = { RadioButton(selected = selected, onClick = null) },
+        supportingContent = supporting?.let { { Text(it) } },
+    ) {
+        Text(title)
+    }
+}
+
+/** A page's explanation above its groups. */
+@Composable
+fun SettingsDescription(text: String) {
+    Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 16.dp))
 }
 
 /** A value to read: a label above, the value under it. */

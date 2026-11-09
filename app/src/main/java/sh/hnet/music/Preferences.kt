@@ -56,6 +56,13 @@ class Preferences(private val context: Context) {
 
     suspend fun setExportFormat(format: PlaylistFormat) = context.settings.edit { it[exportFormatKey] = format.name }
 
+    /**
+     * Restore defaults (Settings › Reset): every setting of this store back to its default. Nothing
+     * else lives here (What's new keeps its own preferences, playlists the database); a key that
+     * isn't a setting (a date, a remembered view) must be kept out of this when it is added.
+     */
+    suspend fun restoreDefaults() = context.settings.edit { it.clear() }
+
     private val gainModeKey = stringPreferencesKey("replaygain_mode")
     private val preampKey = floatPreferencesKey("replaygain_preamp_db")
     private val preventClippingKey = booleanPreferencesKey("replaygain_prevent_clipping")

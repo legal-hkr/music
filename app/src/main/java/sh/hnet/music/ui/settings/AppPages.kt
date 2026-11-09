@@ -1,0 +1,121 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
+package sh.hnet.music.ui.settings
+
+import android.app.LocaleManager
+import android.content.Context
+import android.os.LocaleList
+import android.widget.Toast
+import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import kotlinx.coroutines.launch
+import sh.hnet.music.MusicApplication
+import sh.hnet.music.R
+import sh.hnet.music.ui.components.SettingsActionRow
+import sh.hnet.music.ui.components.SettingsDescription
+import sh.hnet.music.ui.components.SettingsGroup
+import sh.hnet.music.ui.components.SettingsPage
+import sh.hnet.music.ui.components.SettingsRadioRow
+
+/** A language the app is translated into; an empty tag follows the system. */
+class AppLanguage(val tag: String, @param:StringRes val name: Int)
+
+val appLanguages = listOf(
+    AppLanguage("", R.string.language_system_default),
+    AppLanguage("en", R.string.language_name_en),
+    AppLanguage("pl", R.string.language_name_pl),
+)
+
+/** The app's language tag; empty when it follows the system. */
+fun currentLanguageTag(context: Context): String {
+    val locales = context.getSystemService(LocaleManager::class.java).applicationLocales
+    return if (locales.isEmpty) "" else locales.get(0)?.language.orEmpty()
+}
+
+private fun setLanguage(context: Context, tag: String) {
+    context.getSystemService(LocaleManager::class.java).applicationLocales =
+        if (tag.isEmpty()) LocaleList.getEmptyLocaleList() else LocaleList.forLanguageTags(tag)
+}
+
+/** Language (as ComfyChair): one choice among the translations; the system recreates the activity in it. */
+@Composable
+fun LanguageScreen(onBack: () -> Unit) {
+    val context = LocalContext.current
+    val current = remember { currentLanguageTag(context) }
+    SettingsPage(title = stringResource(R.string.title_settings_language), onBack = onBack) {
+        Column(Modifier.selectableGroup()) {
+            SettingsGroup {
+                appLanguages.forEach { language ->
+                    row { shapes ->
+                        SettingsRadioRow(shapes, stringResource(language.name), selected = language.tag == current, onSelect = {
+                            if (language.tag != current) setLanguage(context, language.tag)
+                        })
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Reset (as ComfyChair): what it does, then Restore defaults, confirmed. Settings go back to their
+ * defaults and the language follows the system; folders, the library and playlists stay.
+ */
+@Composable
+fun ResetScreen(onBack: () -> Unit) {
+    val context = LocalContext.current
+    val preferences = (context.applicationContext as MusicApplication).preferences
+    val scope = rememberCoroutineScope()
+    var confirming by rememberSaveable { mutableStateOf(false) }
+    val done = stringResource(R.string.msg_defaults_restored)
+    SettingsPage(title = stringResource(R.string.title_settings_reset), onBack = onBack) {
+        SettingsDescription(stringResource(R.string.desc_settings_reset))
+        SettingsGroup {
+            row { shapes ->
+                SettingsActionRow(shapes, R.drawable.ic_history, stringResource(R.string.button_restore_defaults), onClick = { confirming = true })
+            }
+        }
+    }
+    if (confirming) {
+        AlertDialog(
+            onDismissRequest = { confirming = false },
+            icon = { Icon(painterResource(R.drawable.ic_history), contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+            title = { Text(stringResource(R.string.title_confirm_restore_defaults)) },
+            text = { Text(stringResource(R.string.msg_confirm_restore_defaults)) },
+            dismissButton = { TextButton(onClick = { confirming = false }) { Text(stringResource(R.string.button_cancel)) } },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        confirming = false
+                        scope.launch {
+                            preferences.restoreDefaults()
+                            Toast.makeText(context, done, Toast.LENGTH_SHORT).show()
+                            // Last: a language change recreates the activity
+                            if (currentLanguageTag(context).isNotEmpty()) setLanguage(context, "")
+                        }
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                ) { Text(stringResource(R.string.button_restore)) }
+            },
+        )
+    }
+}

@@ -33,6 +33,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_21
     }
     buildFeatures {
+        buildConfig = true
         compose = true
     }
     androidResources {
@@ -85,4 +86,39 @@ dependencies {
     ksp(libs.room.compiler)
 
     testImplementation(libs.junit)
+}
+
+/**
+ * Copies this version's F-Droid changelogs (metadata/<locale>/changelogs/<versionCode>.txt, English and any
+ * translations written for the release) into the app's assets as whats_new/<locale>.txt, for the What's new page.
+ * Without an English one, the app shows no What's new. As in ComfyChair.
+ */
+abstract class WhatsNewAssetTask : DefaultTask() {
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val changelogs: ConfigurableFileCollection
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @TaskAction
+    fun copy() {
+        val dir = File(outputDir.get().asFile, "whats_new")
+        outputDir.get().asFile.deleteRecursively()
+        dir.mkdirs()
+        // metadata/<locale>/changelogs/<versionCode>.txt -> whats_new/<locale>.txt
+        changelogs.files.filter { it.isFile }.forEach { it.copyTo(File(dir, "${it.parentFile.parentFile.name}.txt")) }
+    }
+}
+
+val whatsNewAsset = tasks.register<WhatsNewAssetTask>("whatsNewAsset") {
+    changelogs.from(
+        rootProject.fileTree("metadata") { include("*/changelogs/${android.defaultConfig.versionCode}.txt") }
+    )
+}
+
+androidComponents {
+    onVariants { variant ->
+        variant.sources.assets?.addGeneratedSourceDirectory(whatsNewAsset, WhatsNewAssetTask::outputDir)
+    }
 }

@@ -2,6 +2,7 @@ package sh.hnet.music
 
 import android.content.Intent
 import android.os.Bundle
+import sh.hnet.music.about.WhatsNew
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -19,6 +20,7 @@ class MainActivity : ComponentActivity() {
         // Picks up files added or changed since the last start; not again on rotation.
         if (savedInstanceState == null) {
             (application as MusicApplication).scanner.requestScan()
+            WhatsNew.recordStart(this)
             handle(intent)
         }
         setContent {

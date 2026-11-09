@@ -13,28 +13,55 @@ import sh.hnet.music.ui.components.SettingsNavigationRow
 import sh.hnet.music.ui.components.SettingsPage
 import sh.hnet.music.ui.components.formatCount
 
+/**
+ * The Settings root, grouped as ComfyChair's: Library, Sound, App (language), Data (reset; backup
+ * comes with its stage), then About on its own.
+ */
 @Composable
-fun SettingsRootScreen(viewModel: LibraryViewModel, onOpenLibrary: () -> Unit, onOpenPlayback: () -> Unit, onOpenAbout: () -> Unit) {
+fun SettingsRootScreen(
+    viewModel: LibraryViewModel,
+    onOpenLibrary: () -> Unit,
+    onOpenPlayback: () -> Unit,
+    onOpenLanguage: () -> Unit,
+    onOpenReset: () -> Unit,
+    onOpenAbout: () -> Unit,
+) {
     val summary by viewModel.summary.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val version = remember(context) { appVersion(context).first }
     val gain by (context.applicationContext as sh.hnet.music.MusicApplication).preferences.gain.collectAsStateWithLifecycle(sh.hnet.music.playback.GainSettings())
+    // Read on every composition: changing it recreates the activity anyway
+    val language = appLanguages.firstOrNull { it.tag == currentLanguageTag(context) } ?: appLanguages.first()
     SettingsPage(title = stringResource(R.string.title_settings), onBack = null) {
-        SettingsGroup {
+        SettingsGroup(stringResource(R.string.title_settings_group_library)) {
             row { shapes ->
-                SettingsNavigationRow(shapes, R.drawable.ic_library_music, stringResource(R.string.title_settings_library), librarySummary(summary), onOpenLibrary)
+                SettingsNavigationRow(shapes, R.drawable.ic_library_music, stringResource(R.string.title_settings_library), librarySummary(summary), onClick = onOpenLibrary)
             }
+        }
+        SettingsGroup(stringResource(R.string.title_settings_group_sound)) {
             row { shapes ->
                 SettingsNavigationRow(
                     shapes,
                     R.drawable.ic_volume_up,
                     stringResource(R.string.title_settings_playback),
                     stringResource(R.string.label_settings_replaygain_value, stringResource(gain.mode.label())),
-                    onOpenPlayback,
+                    onClick = onOpenPlayback,
                 )
             }
+        }
+        SettingsGroup(stringResource(R.string.title_settings_group_app)) {
             row { shapes ->
-                SettingsNavigationRow(shapes, R.drawable.ic_info, stringResource(R.string.title_settings_about), stringResource(R.string.label_version_value, version), onOpenAbout)
+                SettingsNavigationRow(shapes, R.drawable.ic_translate, stringResource(R.string.title_settings_language), stringResource(language.name), onClick = onOpenLanguage)
+            }
+        }
+        SettingsGroup(stringResource(R.string.title_settings_group_data)) {
+            row { shapes ->
+                SettingsNavigationRow(shapes, R.drawable.ic_restart_alt, stringResource(R.string.title_settings_reset), stringResource(R.string.desc_settings_reset_row), onClick = onOpenReset)
+            }
+        }
+        SettingsGroup {
+            row { shapes ->
+                SettingsNavigationRow(shapes, R.drawable.ic_info, stringResource(R.string.title_settings_about), stringResource(R.string.label_version_value, version), onClick = onOpenAbout)
             }
         }
     }
