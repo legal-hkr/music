@@ -166,9 +166,10 @@ fun QueueSheet(
             }
             // A new current track (Next, the end of one, a played one tapped) comes to the top
             if (rows.getOrNull(playedCount)?.key != currentBefore) {
-                // After the next frame, when the room at the list's end is laid out too
+                // After the next frame, when the room at the list's end is laid out too. On opening
+                // the sheet is placed there at once; a later change of track glides there
                 withFrameNanos { }
-                listState.scrollToItem(playedCount)
+                if (currentBefore == null) listState.scrollToItem(playedCount) else listState.animateScrollToItem(playedCount)
             }
         }
     }
