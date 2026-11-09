@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import sh.hnet.music.library.AlbumSort
 import sh.hnet.music.library.PlaylistSort
+import sh.hnet.music.library.PlaylistFormat
 import sh.hnet.music.library.TrackSort
 import sh.hnet.music.playback.GainSettings
 import sh.hnet.music.playback.ReplayGainMode
@@ -45,6 +46,15 @@ class Preferences(private val context: Context) {
     }
 
     suspend fun setPlaylistSort(sort: PlaylistSort) = context.settings.edit { it[playlistSortKey] = sort.name }
+
+    private val exportFormatKey = stringPreferencesKey("playlist_export_format")
+
+    /** The last format chosen in the export dialog (§10). */
+    val exportFormat: Flow<PlaylistFormat> = context.settings.data.map { prefs ->
+        prefs[exportFormatKey]?.let { name -> PlaylistFormat.entries.firstOrNull { it.name == name } } ?: PlaylistFormat.M3U8
+    }
+
+    suspend fun setExportFormat(format: PlaylistFormat) = context.settings.edit { it[exportFormatKey] = format.name }
 
     private val gainModeKey = stringPreferencesKey("replaygain_mode")
     private val preampKey = floatPreferencesKey("replaygain_preamp_db")

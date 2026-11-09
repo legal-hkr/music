@@ -31,10 +31,16 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.SnackbarDuration
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalResources
+import kotlinx.coroutines.delay
+import sh.hnet.music.library.PlaylistTransfer
 import androidx.compose.material3.ToggleFloatingActionButton
 import androidx.compose.material3.animateFloatingActionButton
 import androidx.compose.material3.ToggleFloatingActionButtonDefaults.animateIcon
@@ -93,6 +99,43 @@ fun PlaylistsView(viewModel: BrowseViewModel, state: LazyListState, snackbars: S
     val list = playlists ?: return
     val scope = rememberCoroutineScope()
     var creating by rememberSaveable { mutableStateOf(false) }
+    val resources = LocalResources.current
+    val export = rememberPlaylistExport(viewModel, snackbars, messageScope)
+    var importing by remember { mutableStateOf(false) }
+    var importSlow by remember { mutableStateOf(false) }
+    var importError by remember { mutableStateOf<ErrorDetails?>(null) }
+    val show = stringResource(R.string.button_show)
+    // Read once, no lasting permission (§9.1); the new playlist opens with a summary
+    val importPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        importing = true
+        scope.launch {
+            // The FAB shows work only once it takes noticeably long
+            val slow = launch { delay(300); importSlow = true }
+            val result = viewModel.importPlaylist(uri)
+            slow.cancel()
+            importing = false
+            importSlow = false
+            when (result) {
+                is PlaylistTransfer.Result.Imported -> {
+                    onOpenPlaylist(result.id)
+                    val tracks = resources.getQuantityString(R.plurals.label_track_count, result.tracks, result.tracks.toString())
+                    val text = if (result.missing == 0) {
+                        resources.getString(R.string.msg_imported).format(result.name.htmlEncode(), tracks)
+                    } else {
+                        val missing = resources.getQuantityString(R.plurals.label_not_available_count, result.missing, result.missing.toString())
+                        resources.getString(R.string.msg_imported_missing).format(result.name.htmlEncode(), tracks, missing)
+                    }
+                    messageScope.launch {
+                        snackbars.currentSnackbarData?.dismiss()
+                        snackbars.showSnackbar(AnnotatedString.fromHtml(text).text, duration = SnackbarDuration.Short)
+                    }
+                }
+                is PlaylistTransfer.Result.Failed -> messageScope.reportFailure(snackbars, failureMessage(resources, result), result.details, show) { importError = it }
+                else -> Unit
+            }
+        }
+    }
     var renaming by rememberSaveable { mutableStateOf<Long?>(null) }
     val deletedText = stringResource(R.string.msg_playlist_deleted)
     val undo = stringResource(R.string.button_undo)
@@ -119,6 +162,7 @@ fun PlaylistsView(viewModel: BrowseViewModel, state: LazyListState, snackbars: S
                         onPlayNext = { viewModel.playNext(summary.tracks) },
                         onAddToQueue = { viewModel.addToQueue(summary.tracks) },
                         onRename = { renaming = summary.playlist.id },
+                        onExport = { export.start(summary.playlist.id, summary.playlist.name) },
                         onDelete = {
                             messageScope.launch {
                                 val deleted = viewModel.deletePlaylist(summary.playlist.id) ?: return@launch
@@ -141,11 +185,14 @@ fun PlaylistsView(viewModel: BrowseViewModel, state: LazyListState, snackbars: S
         )
         CreateMenu(
             visible = !(state.lastScrolledForward && state.canScrollBackward),
+            busy = importSlow,
             onNew = { creating = true },
+            onImport = { if (!importing) importPicker.launch(IMPORT_MIME_TYPES) },
             modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp).offset { IntOffset(0, -lift.roundToPx()) },
         )
     }
 
+    importError?.let { ErrorDetailsDialog(it) { importError = null } }
     if (creating) {
         NameDialog(
             title = stringResource(R.string.title_new_playlist),
@@ -187,7 +234,7 @@ private val SNACKBAR_LIFT = 72.dp
 
 /** New playlist (and, from the import stage, Import playlist) behind one FAB (§3.3). */
 @Composable
-private fun CreateMenu(visible: Boolean, onNew: () -> Unit, modifier: Modifier) {
+private fun CreateMenu(visible: Boolean, busy: Boolean, onNew: () -> Unit, onImport: () -> Unit, modifier: Modifier) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     val description = stringResource(R.string.content_description_playlist_fab)
     FloatingActionButtonMenu(
@@ -203,7 +250,9 @@ private fun CreateMenu(visible: Boolean, onNew: () -> Unit, modifier: Modifier) 
                     .animateFloatingActionButton(visible = visible || expanded, alignment = Alignment.BottomEnd),
             ) {
                 val icon by remember { derivedStateOf { if (checkedProgress > 0.5f) R.drawable.ic_close else R.drawable.ic_add } }
-                Icon(painterResource(icon), contentDescription = null, modifier = Modifier.animateIcon({ checkedProgress }))
+                // The control that started the work shows it (§9.1)
+                if (busy && !expanded) LoadingIndicator(Modifier.size(24.dp))
+                else Icon(painterResource(icon), contentDescription = null, modifier = Modifier.animateIcon({ checkedProgress }))
             }
         },
     ) {
@@ -211,6 +260,11 @@ private fun CreateMenu(visible: Boolean, onNew: () -> Unit, modifier: Modifier) 
             onClick = { expanded = false; onNew() },
             icon = { Icon(painterResource(R.drawable.ic_add), contentDescription = null) },
             text = { Text(stringResource(R.string.button_new_playlist)) },
+        )
+        FloatingActionButtonMenuItem(
+            onClick = { expanded = false; onImport() },
+            icon = { Icon(painterResource(R.drawable.ic_file_open), contentDescription = null) },
+            text = { Text(stringResource(R.string.button_import_playlist)) },
         )
     }
 }
@@ -224,6 +278,7 @@ private fun PlaylistRow(
     onPlayNext: () -> Unit,
     onAddToQueue: () -> Unit,
     onRename: () -> Unit,
+    onExport: () -> Unit,
     onDelete: () -> Unit,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
@@ -244,7 +299,7 @@ private fun PlaylistRow(
         trailingContent = {
             Box {
                 TooltipIconButton(R.drawable.ic_more_vert, stringResource(R.string.content_description_more_for, name), { menuOpen = true })
-                PlaylistMenu(menuOpen, playable = summary.tracks.isNotEmpty(), { menuOpen = false }, onPlay, onPlayNext, onAddToQueue, onRename, onDelete)
+                PlaylistMenu(menuOpen, playable = summary.tracks.isNotEmpty(), { menuOpen = false }, onPlay, onPlayNext, onAddToQueue, onRename, onExport, onDelete)
             }
         },
     ) {
@@ -284,6 +339,7 @@ private fun PlaylistMenu(
     onPlayNext: () -> Unit,
     onAddToQueue: () -> Unit,
     onRename: () -> Unit,
+    onExport: () -> Unit,
     onDelete: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -305,7 +361,8 @@ private fun PlaylistMenu(
             Spacer(Modifier.height(MenuDefaults.GroupSpacing))
         }
         DropdownMenuGroup(shapes = MenuDefaults.groupShape(group++, groups)) {
-            MenuItem(stringResource(R.string.menu_rename), R.drawable.ic_edit, 0, 1) { onDismiss(); onRename() }
+            MenuItem(stringResource(R.string.menu_rename), R.drawable.ic_edit, 0, 2) { onDismiss(); onRename() }
+            MenuItem(stringResource(R.string.menu_export), R.drawable.ic_file_export, 1, 2) { onDismiss(); onExport() }
         }
         Spacer(Modifier.height(MenuDefaults.GroupSpacing))
         DropdownMenuGroup(shapes = MenuDefaults.groupShape(group, groups)) {

@@ -402,4 +402,18 @@
         <item quantity="many">Usunięto %d utworów</item>
         <item quantity="other">Usunięto %d utworu</item>
     </plurals>
+    <!-- Playlists, stage 5 -->
+    <string name="button_import_playlist">Importuj playlistę</string>
+    <string name="menu_export">Eksportuj</string>
+    <string name="msg_imported"><![CDATA[Zaimportowano <b>%1$s</b> – %2$s]]></string>
+    <string name="msg_imported_missing"><![CDATA[Zaimportowano <b>%1$s</b> – %2$s, %3$s]]></string>
+    <string name="error_import_not_playlist"><![CDATA[Plik <b>%s</b> nie jest playlistą, którą Muzyka potrafi odczytać.]]></string>
+    <string name="error_import_unreadable"><![CDATA[Nie udało się odczytać pliku <b>%s</b>.]]></string>
+    <string name="error_import_empty"><![CDATA[W pliku <b>%s</b> nie ma żadnych utworów.]]></string>
+    <string name="title_export"><![CDATA[Eksportuj <b>%s</b>]]></string>
+    <string name="button_export">Eksportuj</string>
+    <string name="msg_exported"><![CDATA[Zapisano plik <b>%s</b>]]></string>
+    <string name="error_export_write"><![CDATA[Nie udało się zapisać pliku <b>%s</b>.]]></string>
+    <string name="button_show">Pokaż</string>
+    <string name="button_copy">Kopiuj</string>
 </resources>

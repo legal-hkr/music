@@ -19,6 +19,8 @@ import sh.hnet.music.library.PlaylistRepository
 import sh.hnet.music.library.PlaylistPage
 import sh.hnet.music.data.PlaylistEntry
 import sh.hnet.music.library.PlaylistSort
+import sh.hnet.music.library.PlaylistFormat
+import sh.hnet.music.library.PlaylistTransfer
 import sh.hnet.music.library.PlaylistSummary
 import sh.hnet.music.data.LibraryTrack
 import sh.hnet.music.library.Album
@@ -147,6 +149,15 @@ class BrowseViewModel(private val app: MusicApplication) : ViewModel() {
     val playlistsByChange: StateFlow<List<PlaylistSummary>> = app.playlists.playlists
         .map { it.orEmpty().sortedByDescending { summary -> summary.playlist.changedAt } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    suspend fun importPlaylist(uri: android.net.Uri): PlaylistTransfer.Result = app.transfer.import(uri)
+
+    suspend fun exportPlaylist(id: Long, format: PlaylistFormat, uri: android.net.Uri): PlaylistTransfer.Result {
+        app.preferences.setExportFormat(format)
+        return app.transfer.export(id, format, uri)
+    }
+
+    val exportFormat: StateFlow<PlaylistFormat> = app.preferences.exportFormat.stateIn(viewModelScope, SharingStarted.Eagerly, PlaylistFormat.M3U8)
 
     fun playNext(tracks: List<LibraryTrack>) = player.playNext(tracks)
 

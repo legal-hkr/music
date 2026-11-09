@@ -180,6 +180,13 @@ class PlaylistRepository(
         return dao.insert(Playlist(name = name.trim(), createdAt = now, changedAt = now))
     }
 
+    /** A new playlist with [entries] in their order (an import, §9). */
+    suspend fun createWithEntries(name: String, entries: List<PlaylistEntry>): Long {
+        val id = create(name)
+        dao.append(id, entries.mapIndexed { i, entry -> entry.copy(playlistId = id, position = i) }, System.currentTimeMillis())
+        return id
+    }
+
     suspend fun rename(id: Long, name: String) = dao.rename(id, name.trim(), System.currentTimeMillis())
 
     suspend fun delete(id: Long): DeletedPlaylist? {

@@ -350,4 +350,18 @@
         <item quantity="one">Removed %d track</item>
         <item quantity="other">Removed %d tracks</item>
     </plurals>
+    <!-- Playlists, stage 5 -->
+    <string name="button_import_playlist">Import playlist</string>
+    <string name="menu_export">Export</string>
+    <string name="msg_imported"><![CDATA[Imported <b>%1$s</b> – %2$s]]></string>
+    <string name="msg_imported_missing"><![CDATA[Imported <b>%1$s</b> – %2$s, %3$s]]></string>
+    <string name="error_import_not_playlist"><![CDATA[<b>%s</b> isn\'t a playlist Music can read.]]></string>
+    <string name="error_import_unreadable"><![CDATA[Music couldn\'t read <b>%s</b>.]]></string>
+    <string name="error_import_empty"><![CDATA[<b>%s</b> has no tracks.]]></string>
+    <string name="title_export"><![CDATA[Export <b>%s</b>]]></string>
+    <string name="button_export">Export</string>
+    <string name="msg_exported"><![CDATA[Exported <b>%s</b>]]></string>
+    <string name="error_export_write"><![CDATA[Music couldn\'t write <b>%s</b>.]]></string>
+    <string name="button_show">Show</string>
+    <string name="button_copy">Copy</string>
 </resources>

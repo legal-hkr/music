@@ -6,6 +6,7 @@ import kotlinx.coroutines.SupervisorJob
 import sh.hnet.music.data.MusicDatabase
 import sh.hnet.music.library.CoverCache
 import sh.hnet.music.library.PlaylistRepository
+import sh.hnet.music.library.PlaylistTransfer
 import sh.hnet.music.library.LibraryRepository
 import sh.hnet.music.library.LibraryScanner
 import sh.hnet.music.playback.PlayerConnection
@@ -23,6 +24,7 @@ class MusicApplication : Application() {
     val library: LibraryRepository by lazy { LibraryRepository(database.trackDao(), scanner, appScope) }
 
     val covers: CoverCache by lazy { CoverCache(this) }
+    val transfer: PlaylistTransfer by lazy { PlaylistTransfer(this, playlists, database.playlistDao(), database.libraryFolderDao(), library) }
     val playlists: PlaylistRepository by lazy { PlaylistRepository(database.playlistDao(), database.trackDao(), library, scanner, appScope) }
 
     val player: PlayerConnection by lazy { PlayerConnection(this) }

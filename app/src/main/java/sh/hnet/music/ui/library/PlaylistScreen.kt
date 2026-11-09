@@ -116,6 +116,7 @@ fun PlaylistScreen(
     val titleShown by remember { derivedStateOf { list.firstVisibleItemIndex > 0 } }
     var renaming by rememberSaveable { mutableStateOf(false) }
     var removingMissing by rememberSaveable { mutableStateOf(false) }
+    val export = rememberPlaylistExport(viewModel, snackbars, messageScope)
     var leaving by remember { mutableStateOf(false) }
     val gone = stringResource(R.string.msg_playlist_gone)
     val removedText = stringResource(R.string.msg_removed_from_playlist)
@@ -184,6 +185,7 @@ fun PlaylistScreen(
                         onPlay = { viewModel.playPlaylist(summary, shuffle = false) },
                         onShuffle = { viewModel.playPlaylist(summary, shuffle = true) },
                         onRename = { renaming = true },
+                        onExport = { export.start(id, shown.playlist.name) },
                         onDelete = {
                             leaving = true
                             onBack()
@@ -387,6 +389,7 @@ private fun Actions(
     onPlay: () -> Unit,
     onShuffle: () -> Unit,
     onRename: () -> Unit,
+    onExport: () -> Unit,
     onDelete: () -> Unit,
 ) {
     val height = ButtonDefaults.MediumContainerHeight
@@ -415,7 +418,8 @@ private fun Actions(
             val groups = if (missing > 0) 3 else 2
             DropdownMenuPopup(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                 DropdownMenuGroup(shapes = MenuDefaults.groupShape(0, groups)) {
-                    MenuItem(stringResource(R.string.menu_rename), R.drawable.ic_edit, 0, 1) { menuOpen = false; onRename() }
+                    MenuItem(stringResource(R.string.menu_rename), R.drawable.ic_edit, 0, 2) { menuOpen = false; onRename() }
+                    MenuItem(stringResource(R.string.menu_export), R.drawable.ic_file_export, 1, 2) { menuOpen = false; onExport() }
                 }
                 Spacer(Modifier.height(MenuDefaults.GroupSpacing))
                 if (missing > 0) {
