@@ -152,6 +152,7 @@ class PlaybackService : MediaSessionService() {
         } else emptyList()
         return SavedQueue(
             uris = (0 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId },
+            entryIds = (0 until player.mediaItemCount).map { player.getMediaItemAt(it).playlistEntryId },
             current = player.currentMediaItemIndex,
             positionMs = player.currentPosition.coerceAtLeast(0),
             shuffle = player.shuffleModeEnabled,
@@ -186,7 +187,8 @@ class PlaybackService : MediaSessionService() {
             if (kept.isEmpty()) return
             val currentKept = kept.indexOfFirst { it.index == saved.current }
             val start = if (currentKept >= 0) currentKept else kept.indexOfFirst { it.index > saved.current }.coerceAtLeast(0)
-            player.setMediaItems(kept.map { known.getValue(it.value).toMediaItem() }, start, if (currentKept >= 0) saved.positionMs else 0)
+            // With the playlist entries they were played from, so the playlist page marks the playing one
+            player.setMediaItems(kept.map { known.getValue(it.value).toMediaItem(saved.entryIds.getOrNull(it.index)) }, start, if (currentKept >= 0) saved.positionMs else 0)
             if (saved.shuffle && kept.size == saved.uris.size && saved.shuffleOrder.size == kept.size) {
                 player.shuffleOrder = QueueShuffleOrder(saved.shuffleOrder.toIntArray())
             } else if (saved.shuffle) {
