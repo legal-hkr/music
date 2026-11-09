@@ -187,7 +187,7 @@ private fun ColumnScope.Controls(
         }
     }
     Spacer(Modifier.height(12.dp))
-    SeekBar(state, player)
+    SeekBar(state, player, track?.durationMs)
     Spacer(Modifier.height(16.dp))
     Transport(state, player)
     Spacer(Modifier.height(16.dp))
@@ -233,8 +233,10 @@ private fun ColumnScope.Controls(
 
 /** Slider with elapsed and total time; the label follows a drag, the seek happens on release. */
 @Composable
-private fun SeekBar(state: PlayerState, player: PlayerConnection) {
-    var position by remember { mutableLongStateOf(player.positionMs()) }
+private fun SeekBar(state: PlayerState, player: PlayerConnection, libraryDurationMs: Long?) {
+    // Read again for a new track: the previous track's position must not be drawn against the new
+    // track's length
+    var position by remember(state.currentId) { mutableLongStateOf(player.positionMs()) }
     val interaction = remember { MutableInteractionSource() }
     val dragged by interaction.collectIsDraggedAsState()
     val pressed by interaction.collectIsPressedAsState()
@@ -247,11 +249,14 @@ private fun SeekBar(state: PlayerState, player: PlayerConnection) {
             delay(250)
         }
     }
-    val duration = state.durationMs.coerceAtLeast(1)
+    // Right after a change of track the player doesn't know the new length yet (0): the length from
+    // the library stands in, and without either the bar stays where it was instead of jumping to the end
+    val known = state.durationMs.takeIf { it > 0 } ?: libraryDurationMs?.takeIf { it > 0 }
+    val duration = known ?: 1
     // The player leads unless the finger does
-    SideEffect { if (!touching) sliderState.value = (position.toFloat() / duration).coerceIn(0f, 1f) }
+    SideEffect { if (!touching && known != null) sliderState.value = (position.toFloat() / duration).coerceIn(0f, 1f) }
     val shown = if (touching) (sliderState.value * duration).toLong() else position.coerceAtMost(duration)
-    val value = stringResource(R.string.desc_seek_position, formatDuration(shown), formatDuration(state.durationMs))
+    val value = stringResource(R.string.desc_seek_position, formatDuration(shown), formatDuration(known ?: 0))
     val back = stringResource(R.string.label_seek_back)
     val forward = stringResource(R.string.label_seek_forward)
     Slider(
@@ -275,7 +280,7 @@ private fun SeekBar(state: PlayerState, player: PlayerConnection) {
     )
     Row {
         Text(formatDuration(shown), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
-        Text(formatDuration(state.durationMs), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(formatDuration(known ?: 0), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

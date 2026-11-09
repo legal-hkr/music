@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import sh.hnet.music.MusicApplication
 import sh.hnet.music.R
 import sh.hnet.music.data.LibraryTrack
+import sh.hnet.music.library.Albums
 
 /**
  * A track's embedded cover, square and cropped, or the placeholder (SPEC §4.5) when it has none.
@@ -46,15 +48,20 @@ fun Cover(track: LibraryTrack?, shape: Shape, modifier: Modifier = Modifier, pla
         val size = covers.sizeFor(px)
         // The player's surfaces tell the cache which sizes to load ahead for the next track
         if (player) SideEffect { covers.notePlayerSize(size) }
+        val shown = remember { ShownCover() }
         val image by produceState<ImageBitmap?>(
             initialValue = track?.let { covers.cached(it, size)?.asImageBitmap() },
             key1 = track?.documentUri, key2 = track?.lastModified, key3 = size,
         ) {
-            // The state outlives a change of track (the mini player keeps its place): drop the
-            // previous track's picture first, or it would stay until the new one is decoded – or for
-            // good, when the new track has no cover
-            value = track?.let { covers.cached(it, size)?.asImageBitmap() }
-            if (value == null && track?.hasEmbeddedCover == true) value = covers.load(track, size)?.asImageBitmap()
+            // The state outlives a change of track (the mini player keeps its place). The next track
+            // of the same album keeps the picture shown until its own is decoded (usually the same
+            // cover), so skipping doesn't flash the placeholder; another album's picture is dropped
+            val album = track?.let(::albumOf)
+            val cached = track?.let { covers.cached(it, size) }
+            val sameAlbum = album != null && album == shown.album && track.hasEmbeddedCover
+            value = cached?.asImageBitmap() ?: if (sameAlbum) value else null
+            shown.album = album
+            if (cached == null && track?.hasEmbeddedCover == true) value = covers.load(track, size)?.asImageBitmap()
         }
         val picture = image
         if (picture != null) {
@@ -64,6 +71,13 @@ fun Cover(track: LibraryTrack?, shape: Shape, modifier: Modifier = Modifier, pla
         }
     }
 }
+
+/** The album of the picture a cover shows, kept across changes of track. */
+private class ShownCover {
+    var album: String? = null
+}
+
+private fun albumOf(track: LibraryTrack): String? = if (track.album.isNullOrBlank()) null else Albums.keyOf(track)
 
 private fun iconSize(width: Dp): Dp = when {
     width <= 48.dp -> 24.dp
