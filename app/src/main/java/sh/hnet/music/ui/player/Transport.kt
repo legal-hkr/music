@@ -22,6 +22,7 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -79,8 +80,13 @@ import sh.hnet.music.playback.PlayerConnection
 import sh.hnet.music.playback.PlayerState
 import kotlin.math.roundToInt
 
-/** How much play overlaps previous and next, and the ring between them (SPEC-now-playing-v2 §2.1). */
-private val OVERLAP = 16.dp
+/**
+ * How much play overlaps previous and next (owner's choice: 8 dp, previous and next further out than
+ * the spec's 16), up to [MAX_OVERLAP] where the row is too narrow (360 dp), and the ring between them.
+ */
+private val OVERLAP = 8.dp
+private val MAX_OVERLAP = 16.dp
+private val MODE_BUTTON = 48.dp
 private val RING = 6.dp
 private val SIDE = 72.dp
 private val PLAY = 96.dp
@@ -92,7 +98,9 @@ private val PLAY = 96.dp
  * previous and next under play.
  */
 @Composable
-fun Transport(state: PlayerState, player: PlayerConnection) {
+fun Transport(state: PlayerState, player: PlayerConnection) = BoxWithConstraints(Modifier.fillMaxWidth()) {
+    // The overlap grows only as much as a narrow row needs to keep shuffle and repeat beside the cluster
+    val overlap = ((SIDE * 2 + PLAY + MODE_BUTTON * 2 - maxWidth) / 2).coerceIn(OVERLAP, MAX_OVERLAP)
     Row(
         modifier = Modifier.fillMaxWidth().height(PLAY),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -101,7 +109,7 @@ fun Transport(state: PlayerState, player: PlayerConnection) {
         val shuffleState = stringResource(if (state.shuffle) R.string.desc_on else R.string.desc_off)
         ModeToggle(state.shuffle, R.drawable.ic_shuffle, stringResource(R.string.content_description_shuffle), shuffleState) { player.setShuffle(it) }
 
-        Box(Modifier.width(SIDE * 2 + PLAY - OVERLAP * 2).height(PLAY)) {
+        Box(Modifier.width(SIDE * 2 + PLAY - overlap * 2).height(PLAY)) {
             val previousLabel = stringResource(R.string.content_description_previous)
             FilledTonalIconButton(onClick = player::previous, modifier = Modifier.size(SIDE).align(Alignment.CenterStart)) {
                 Icon(painterResource(R.drawable.ic_skip_previous), contentDescription = previousLabel, modifier = Modifier.size(32.dp))
@@ -162,7 +170,7 @@ private fun ModeToggle(checked: Boolean, @DrawableRes icon: Int, label: String, 
             checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
         ),
         shapes = IconButtonDefaults.toggleableShapes(),
-        modifier = Modifier.size(48.dp).semantics { stateDescription = state },
+        modifier = Modifier.size(MODE_BUTTON).semantics { stateDescription = state },
     ) {
         Icon(painterResource(icon), contentDescription = label)
     }
