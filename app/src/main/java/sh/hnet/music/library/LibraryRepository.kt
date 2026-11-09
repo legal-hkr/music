@@ -1,5 +1,6 @@
 package sh.hnet.music.library
 
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
@@ -18,11 +19,19 @@ import sh.hnet.music.data.TrackDao
 class LibraryRepository(dao: TrackDao, scanner: LibraryScanner, skipShortSeconds: Flow<Int>, scope: CoroutineScope) {
     private var first = true
 
+    /**
+     * Folders being removed: hidden at once, removed for good when the Undo snackbar goes (owner's
+     * decision, as ComfyChair). Until then the folder, its grant and its index are untouched.
+     */
+    val removing = MutableStateFlow<Set<String>>(emptySet())
+
     /** A scan writes in batches; between them the views regroup at most a few times a second. */
     @OptIn(FlowPreview::class)
-    private val reachable: StateFlow<List<LibraryTrack>?> = combine(dao.observeLibrary(), scanner.unavailable) { tracks, unavailable ->
-        // A folder that lost access keeps its index, but its tracks leave every view (SPEC §13)
-        if (unavailable.isEmpty()) tracks else tracks.filter { it.folderUri !in unavailable }
+    private val reachable: StateFlow<List<LibraryTrack>?> = combine(dao.observeLibrary(), scanner.unavailable, removing) { tracks, unavailable, removing ->
+        // A folder that lost access keeps its index, but its tracks leave every view (SPEC §13);
+        // so do a folder's being removed
+        if (unavailable.isEmpty() && removing.isEmpty()) tracks
+        else tracks.filter { it.folderUri !in unavailable && it.folderUri !in removing }
     }
         .debounce { if (first) { first = false; 0L } else 400L }
         .stateIn(scope, SharingStarted.Eagerly, null)

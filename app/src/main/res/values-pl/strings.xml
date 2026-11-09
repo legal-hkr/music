@@ -74,14 +74,6 @@
     <string name="msg_no_skipped_files">Wszystkie pliki z tego folderu dają się odtworzyć.</string>
     <string name="button_show_all">Pokaż wszystkie (%s)</string>
     <string name="button_remove_folder">Usuń folder</string>
-    <string name="title_remove_folder"><![CDATA[Usunąć folder <b>%s</b>?]]></string>
-    <plurals name="msg_remove_folder">
-        <item quantity="one">%s utwór zniknie z biblioteki. Pliki zostaną w telefonie.</item>
-        <item quantity="few">%s utwory znikną z biblioteki. Pliki zostaną w telefonie.</item>
-        <item quantity="many">%s utworów zniknie z biblioteki. Pliki zostaną w telefonie.</item>
-        <item quantity="other">%s utworu zniknie z biblioteki. Pliki zostaną w telefonie.</item>
-    </plurals>
-    <string name="button_remove">Usuń</string>
     <string name="button_cancel">Anuluj</string>
 
     <!-- About -->
@@ -534,4 +526,5 @@
     <string name="label_count_with_length">%1$s (%2$s)</string>
     <string name="label_artist_with_year">%1$s (%2$s)</string>
     <string name="msg_queue_cleared">Wyczyszczono kolejkę</string>
+    <string name="msg_folder_removed"><![CDATA[Usunięto folder <b>%s</b>]]></string>
 </resources>

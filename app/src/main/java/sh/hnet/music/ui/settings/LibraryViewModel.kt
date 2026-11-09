@@ -1,5 +1,6 @@
 package sh.hnet.music.ui.settings
 
+import kotlinx.coroutines.flow.update
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -86,7 +87,7 @@ class LibraryViewModel(private val app: MusicApplication) : ViewModel() {
     }
 
     val folders: StateFlow<List<FolderRow>> = combine(
-        folderDao.observeAll(),
+        combine(folderDao.observeAll(), app.library.removing) { folders, removing -> folders.filter { it.treeUri !in removing } },
         counts,
         scanner.progress,
         scanner.unavailable,
@@ -179,11 +180,20 @@ class LibraryViewModel(private val app: MusicApplication) : ViewModel() {
         }
     }
 
-    fun removeFolder(treeUri: String) {
+    /** Remove folder, step one: hidden at once with its tracks; [finishRemovingFolder] or [undoRemovingFolder] follows. */
+    fun startRemovingFolder(treeUri: String) = app.library.removing.update { it + treeUri }
+
+    /** Undo: the folder is back as it was – nothing of it was touched. */
+    fun undoRemovingFolder(treeUri: String) = app.library.removing.update { it - treeUri }
+
+    /** The Undo snackbar went: the folder's grant, index and covers go for good. */
+    fun finishRemovingFolder(treeUri: String) {
         viewModelScope.launch(Dispatchers.IO) {
             LibraryFolders.remove(resolver, folderDao, trackDao, treeUri)
             app.covers.clearFolder(treeUri)
             locations -= treeUri
+            // Shown again only once there is nothing left of it to show
+            app.library.removing.update { it - treeUri }
             scanner.refreshAccess()
             // Files of a folder inside it now belong to this one's parent again, if any
             scanner.requestScan()

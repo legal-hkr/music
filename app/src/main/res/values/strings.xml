@@ -64,12 +64,6 @@
     <string name="msg_no_skipped_files">Every file in this folder plays.</string>
     <string name="button_show_all">Show all %s</string>
     <string name="button_remove_folder">Remove folder</string>
-    <string name="title_remove_folder"><![CDATA[Remove <b>%s</b>?]]></string>
-    <plurals name="msg_remove_folder">
-        <item quantity="one">Its %s track leaves your library. The files stay on your phone.</item>
-        <item quantity="other">Its %s tracks leave your library. The files stay on your phone.</item>
-    </plurals>
-    <string name="button_remove">Remove</string>
     <string name="button_cancel">Cancel</string>
 
     <!-- About -->
@@ -485,4 +479,5 @@
     <string name="label_count_with_length">%1$s (%2$s)</string>
     <string name="label_artist_with_year">%1$s (%2$s)</string>
     <string name="msg_queue_cleared">Queue cleared</string>
+    <string name="msg_folder_removed"><![CDATA[Removed folder <b>%s</b>]]></string>
 </resources>

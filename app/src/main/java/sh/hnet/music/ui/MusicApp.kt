@@ -208,6 +208,8 @@ fun MusicApp(openNowPlaying: Int = 0) {
     }
     // After an update, once: "Updated to x.y.z" with What's new (as ComfyChair)
     val restoredText = stringResource(R.string.msg_restored)
+    val folderRemovedText = stringResource(R.string.msg_folder_removed)
+    val undoText = stringResource(R.string.button_undo)
     val updatedTo = stringResource(R.string.whats_new_updated_snackbar)
     val whatsNew = stringResource(R.string.whats_new_title)
     val appContext = LocalContext.current.applicationContext
@@ -428,7 +430,22 @@ fun MusicApp(openNowPlaying: Int = 0) {
                         )
                     }
                     entry<Screen.SettingsFolder> { key ->
-                        FolderScreen(library, key.treeUri, onBack = { currentStack.removeAt(currentStack.lastIndex) })
+                        FolderScreen(library, key.treeUri, onBack = { currentStack.removeAt(currentStack.lastIndex) }, onRemove = { name ->
+                            // Hidden at once; gone for good when the snackbar goes without Undo
+                            val uri = key.treeUri
+                            library.startRemovingFolder(uri)
+                            scope.launch {
+                                var undone = false
+                                try {
+                                    snackbars.currentSnackbarData?.dismiss()
+                                    val text = AnnotatedString.fromHtml(folderRemovedText.format(name.htmlEncode())).text
+                                    undone = snackbars.showSnackbar(text, actionLabel = undoText, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed
+                                } finally {
+                                    // Also when the screen goes meanwhile: what was asked for happens
+                                    if (undone) library.undoRemovingFolder(uri) else library.finishRemovingFolder(uri)
+                                }
+                            }
+                        })
                     }
                     entry<Screen.SettingsPlayback> { PlaybackSettingsScreen(onBack = back) }
                     entry<Screen.SettingsAbout> {

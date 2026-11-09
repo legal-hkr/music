@@ -66,15 +66,14 @@ private fun SkippedFile.message(): Int = when {
     else -> R.string.msg_skipped_format
 }
 
-/** One folder: the files that aren't in the library and why, and removing the folder. */
+/** One folder: the files that aren't in the library and why, and removing the folder (at once, with Undo). */
 @Composable
-fun FolderScreen(viewModel: LibraryViewModel, treeUri: String, onBack: () -> Unit) {
+fun FolderScreen(viewModel: LibraryViewModel, treeUri: String, onBack: () -> Unit, onRemove: (name: String) -> Unit) {
     val folders by viewModel.folders.collectAsStateWithLifecycle()
     val row = folders.firstOrNull { it.folder.treeUri == treeUri }
     val skipped by remember(treeUri) { viewModel.skippedFiles(treeUri) }.collectAsStateWithLifecycle(emptyList())
     val short by remember(treeUri) { viewModel.shortFiles(treeUri) }.collectAsStateWithLifecycle(emptyList())
     val threshold by viewModel.skipShortSeconds.collectAsStateWithLifecycle()
-    var confirmRemove by rememberSaveable { mutableStateOf(false) }
     val expanded = remember { mutableStateOf(setOf<SkipGroup>()) }
     val name = row?.folder?.displayName.orEmpty()
 
@@ -115,20 +114,11 @@ fun FolderScreen(viewModel: LibraryViewModel, treeUri: String, onBack: () -> Uni
                 }
             }
         }
-        DestructiveButton(stringResource(R.string.button_remove_folder), R.drawable.ic_delete, { confirmRemove = true }, Modifier.padding(top = 8.dp))
+        DestructiveButton(stringResource(R.string.button_remove_folder), R.drawable.ic_delete, {
+            // At once, with Undo (owner's decision, as ComfyChair)
+            onRemove(name)
+            onBack()
+        }, Modifier.padding(top = 8.dp))
     }
 
-    if (confirmRemove && row != null) {
-        ConfirmDestructiveDialog(
-            icon = R.drawable.ic_delete,
-            title = boldNamesResource(R.string.title_remove_folder, name),
-            confirmLabel = stringResource(R.string.button_remove),
-            onConfirm = {
-                confirmRemove = false
-                viewModel.removeFolder(treeUri)
-                onBack()
-            },
-            onDismiss = { confirmRemove = false },
-        ) { Text(pluralStringResource(R.plurals.msg_remove_folder, row.tracks, formatCount(row.tracks))) }
-    }
 }
