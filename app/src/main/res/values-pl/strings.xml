@@ -206,7 +206,7 @@
     <string name="label_details_album_peak">Szczyt albumu</string>
     <string name="label_of">%1$d z %2$d</string>
     <string name="label_yes">Tak</string>
-    <string name="msg_no_replaygain">Ten plik nie ma tych tagów</string>
+    <string name="msg_no_replaygain">Brak tagów</string>
     <!-- Queue (S5) -->
     <string name="title_queue">Kolejka</string>
     <plurals name="label_queue_remaining">

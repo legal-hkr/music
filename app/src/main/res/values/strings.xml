@@ -184,7 +184,7 @@
     <string name="label_details_album_peak">Album peak</string>
     <string name="label_of">%1$d of %2$d</string>
     <string name="label_yes">Yes</string>
-    <string name="msg_no_replaygain">Not in this file</string>
+    <string name="msg_no_replaygain">No tags</string>
     <!-- Queue (S5) -->
     <string name="title_queue">Queue</string>
     <plurals name="label_queue_remaining">
