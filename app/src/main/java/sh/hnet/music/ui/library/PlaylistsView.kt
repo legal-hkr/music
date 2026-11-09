@@ -124,7 +124,7 @@ fun PlaylistsView(viewModel: BrowseViewModel, state: LazyListState, snackbars: S
                                 val deleted = viewModel.deletePlaylist(summary.playlist.id) ?: return@launch
                                 snackbars.currentSnackbarData?.dismiss()
                                 val text = AnnotatedString.fromHtml(deletedText.format(deleted.playlist.name.htmlEncode())).text
-                                if (snackbars.showSnackbar(text, actionLabel = undo, duration = SnackbarDuration.Long) == SnackbarResult.ActionPerformed) {
+                                if (snackbars.showSnackbar(text, actionLabel = undo, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed) {
                                     viewModel.restorePlaylist(deleted)
                                 }
                             }

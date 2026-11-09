@@ -73,7 +73,13 @@ fun AlbumScreen(viewModel: BrowseViewModel, key: String, navigation: TrackNaviga
         LazyColumn(state = list, contentPadding = PaddingValues(bottom = 24.dp), modifier = Modifier.fillMaxSize()) {
             item(key = "header") { Header(shown, onOpenArtist) }
             item(key = "actions") {
-                PlayButtons(onPlay = { viewModel.play(shown.tracks, shuffle = false) }, onShuffle = { viewModel.play(shown.tracks, shuffle = true) })
+                val addToPlaylist = LocalAddToPlaylist.current
+                PlayButtons(
+                    onPlay = { viewModel.play(shown.tracks, shuffle = false) },
+                    onShuffle = { viewModel.play(shown.tracks, shuffle = true) },
+                    addLabel = stringResource(R.string.content_description_add_album_to_playlist),
+                    onAddToPlaylist = { addToPlaylist(AddRequest.Group(shown.title, shown.tracks)) },
+                )
             }
             var lastDisc: Int? = null
             shown.tracks.forEachIndexed { index, track ->

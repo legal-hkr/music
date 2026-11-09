@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import sh.hnet.music.MusicApplication
 import sh.hnet.music.R
 import sh.hnet.music.library.DeletedPlaylist
+import sh.hnet.music.library.AddResult
 import sh.hnet.music.library.PlaylistRepository
 import sh.hnet.music.library.PlaylistPage
 import sh.hnet.music.data.PlaylistEntry
@@ -121,6 +122,29 @@ class BrowseViewModel(private val app: MusicApplication) : ViewModel() {
     fun restoreEntry(entry: PlaylistEntry) {
         viewModelScope.launch { app.playlists.restoreEntry(entry) }
     }
+
+    suspend fun addToPlaylist(id: Long, tracks: List<LibraryTrack>): AddResult = app.playlists.add(id, tracks)
+
+    fun undoAdd(id: Long, entryIds: List<Long>) {
+        viewModelScope.launch { app.playlists.removeEntries(id, entryIds) }
+    }
+
+    suspend fun createPlaylistWith(name: String, tracks: List<LibraryTrack>): Long {
+        val id = app.playlists.create(name)
+        if (tracks.isNotEmpty()) app.playlists.add(id, tracks)
+        return id
+    }
+
+    suspend fun replacePlaylist(id: Long, tracks: List<LibraryTrack>): List<PlaylistEntry> = app.playlists.replace(id, tracks)
+
+    fun restoreReplaced(id: Long, entries: List<PlaylistEntry>) {
+        viewModelScope.launch { app.playlists.restoreEntries(id, entries) }
+    }
+
+    /** Every playlist, recently changed first: the Add to playlist sheet's order (§7.2). */
+    val playlistsByChange: StateFlow<List<PlaylistSummary>> = app.playlists.playlists
+        .map { it.orEmpty().sortedByDescending { summary -> summary.playlist.changedAt } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun playNext(tracks: List<LibraryTrack>) = player.playNext(tracks)
 

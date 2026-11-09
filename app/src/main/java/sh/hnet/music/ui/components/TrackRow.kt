@@ -39,6 +39,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import sh.hnet.music.MusicApplication
 import sh.hnet.music.R
+import sh.hnet.music.ui.library.AddRequest
+import sh.hnet.music.ui.library.LocalAddToPlaylist
 import sh.hnet.music.data.LibraryTrack
 
 /** How a track relates to what plays now. */
@@ -137,6 +139,7 @@ private fun TrackMenu(track: LibraryTrack, expanded: Boolean, navigation: TrackN
     var choosingArtist by remember(expanded) { mutableStateOf(false) }
     val playsNext = stringResource(R.string.msg_plays_next)
     val addedToQueue = stringResource(R.string.msg_added_to_queue)
+    val addToPlaylist = LocalAddToPlaylist.current
     DropdownMenuPopup(expanded = expanded, onDismissRequest = onDismiss) {
         if (choosingArtist) {
             DropdownMenuGroup(shapes = MenuDefaults.groupShape(0, 1)) {
@@ -170,15 +173,19 @@ private fun TrackMenu(track: LibraryTrack, expanded: Boolean, navigation: TrackN
         }
         val groupCount = 1 + (if (goTo.isNotEmpty()) 1 else 0) + (if (onRemoveFromPlaylist != null) 1 else 0)
         DropdownMenuGroup(shapes = MenuDefaults.groupShape(0, groupCount)) {
-            MenuItem(stringResource(R.string.menu_play_next), R.drawable.ic_queue_play_next, 0, 2) {
+            MenuItem(stringResource(R.string.menu_play_next), R.drawable.ic_queue_play_next, 0, 3) {
                 onDismiss()
                 player.playNext(track)
                 Toast.makeText(context, playsNext, Toast.LENGTH_SHORT).show()
             }
-            MenuItem(stringResource(R.string.menu_add_to_queue), R.drawable.ic_queue_music, 1, 2) {
+            MenuItem(stringResource(R.string.menu_add_to_queue), R.drawable.ic_queue_music, 1, 3) {
                 onDismiss()
                 player.addToQueue(track)
                 Toast.makeText(context, addedToQueue, Toast.LENGTH_SHORT).show()
+            }
+            MenuItem(stringResource(R.string.menu_add_to_playlist), R.drawable.ic_playlist_add, 2, 3) {
+                onDismiss()
+                addToPlaylist(AddRequest.Track(track))
             }
         }
         if (goTo.isNotEmpty()) {

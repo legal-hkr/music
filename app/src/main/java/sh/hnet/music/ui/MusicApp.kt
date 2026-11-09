@@ -28,16 +28,22 @@ import androidx.compose.material3.ShortNavigationBar
 import androidx.compose.material3.ShortNavigationBarItem
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.foundation.layout.navigationBarsPadding
+import sh.hnet.music.ui.library.PlaylistActionsHost
+import sh.hnet.music.ui.library.LocalAddToPlaylist
+import sh.hnet.music.ui.library.AddRequest
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
@@ -132,6 +138,9 @@ fun MusicApp(openNowPlaying: Int = 0) {
     val nowPlayingTransition = rememberTransition(nowPlaying, label = "nowPlaying")
     var detailsOpen by rememberSaveable { mutableStateOf(false) }
     var queueOpen by rememberSaveable { mutableStateOf(false) }
+    // Add to playlist and Save as playlist, shown over everything (SPEC-playlists §7, §8)
+    var addRequest by remember { mutableStateOf<AddRequest?>(null) }
+    var queueToSave by remember { mutableStateOf<List<LibraryTrack>?>(null) }
     val queue by playerModel.queue.collectAsStateWithLifecycle()
     val tracksByUri by playerModel.tracks.collectAsStateWithLifecycle()
     val hasQueue = playerState.queueSize > 0
@@ -163,6 +172,12 @@ fun MusicApp(openNowPlaying: Int = 0) {
         tab = Tab.LIBRARY
         stacks.getValue(Tab.LIBRARY).add(Screen.Album(Albums.keyOf(track)))
     }
+    /** A playlist's page on the Library stack (View after saving the queue as one). */
+    val openPlaylist: (Long) -> Unit = { id ->
+        closeNowPlaying()
+        tab = Tab.LIBRARY
+        stacks.getValue(Tab.LIBRARY).add(Screen.Playlist(id))
+    }
 
     val snackbars = remember { SnackbarHostState() }
     val alreadyAdded = stringResource(R.string.msg_folder_already_added)
@@ -190,7 +205,7 @@ fun MusicApp(openNowPlaying: Int = 0) {
                 } else {
                     resources.getQuantityString(R.plurals.msg_folders_lost_access, message.names.size, message.names.size)
                 }
-                if (snackbars.showSnackbar(text, actionLabel = fix, duration = SnackbarDuration.Long) == SnackbarResult.ActionPerformed) openFolders()
+                if (snackbars.showSnackbar(text, actionLabel = fix, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed) openFolders()
             }
         }
     }
@@ -201,6 +216,7 @@ fun MusicApp(openNowPlaying: Int = 0) {
     val fastEffects: FiniteAnimationSpec<Float> = motion.fastEffectsSpec()
     val shift = with(LocalDensity.current) { 30.dp.roundToPx() }
 
+    CompositionLocalProvider(LocalAddToPlaylist provides { addRequest = it }) {
     SharedTransitionLayout {
     Box(Modifier.fillMaxSize()) {
     Scaffold(
@@ -404,7 +420,12 @@ fun MusicApp(openNowPlaying: Int = 0) {
                 onQueue = { queueOpen = true },
             )
             if (queueOpen) {
-                QueueSheet(queue, playerState.shuffle, tracksByUri, playerModel.player, onDismiss = { queueOpen = false })
+                QueueSheet(
+                    queue, playerState.shuffle, tracksByUri, playerModel.player,
+                    onDismiss = { queueOpen = false },
+                    // The sheet closes, so the result's snackbar (with View) can be seen
+                    onSaveAsPlaylist = { queueOpen = false; queueToSave = it },
+                )
             }
             androidx.compose.animation.AnimatedVisibility(
                 visible = detailsOpen,
@@ -413,8 +434,23 @@ fun MusicApp(openNowPlaying: Int = 0) {
             ) {
                 TrackDetailsScreen(playerModel, onBack = { detailsOpen = false })
             }
+            // Snackbars started here (Add to playlist) would show under this overlay otherwise
+            SnackbarHost(snackbars, Modifier.align(Alignment.BottomCenter).navigationBarsPadding()) { data ->
+                Snackbar(data, shape = MaterialTheme.shapes.extraLarge, modifier = Modifier.padding(horizontal = 12.dp))
+            }
         }
     }
     }
+    }
+    PlaylistActionsHost(
+        viewModel = browse,
+        snackbars = snackbars,
+        scope = scope,
+        addRequest = addRequest,
+        onAddDone = { addRequest = null },
+        queueToSave = queueToSave,
+        onSaveDone = { queueToSave = null },
+        onOpenPlaylist = { id -> openPlaylist(id) },
+    )
     }
 }

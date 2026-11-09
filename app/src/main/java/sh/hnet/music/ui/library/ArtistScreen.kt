@@ -28,6 +28,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
@@ -91,7 +92,13 @@ fun ArtistScreen(
             item(key = "header") { Header(shown) }
             item(key = "actions") {
                 val order = remember(shown) { shown.playOrder() }
-                PlayButtons(onPlay = { viewModel.play(order, shuffle = false) }, onShuffle = { viewModel.play(order, shuffle = true) })
+                val addToPlaylist = LocalAddToPlaylist.current
+                PlayButtons(
+                    onPlay = { viewModel.play(order, shuffle = false) },
+                    onShuffle = { viewModel.play(order, shuffle = true) },
+                    addLabel = stringResource(R.string.content_description_add_artist_to_playlist),
+                    onAddToPlaylist = { addToPlaylist(AddRequest.Group(shown.name, order)) },
+                )
             }
             if (shown.ownAlbums.isNotEmpty()) {
                 item(key = "albumsTitle") { SectionTitle(stringResource(R.string.title_artist_albums)) }
@@ -202,7 +209,7 @@ fun AlbumRow(album: Album, onClick: () -> Unit) {
 
 /** Play and Shuffle side by side, medium buttons (SPEC §4.3, §6.2). */
 @Composable
-fun PlayButtons(onPlay: () -> Unit, onShuffle: () -> Unit) {
+fun PlayButtons(onPlay: () -> Unit, onShuffle: () -> Unit, addLabel: String? = null, onAddToPlaylist: (() -> Unit)? = null) {
     val height = ButtonDefaults.MediumContainerHeight
     Row(
         Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
@@ -215,6 +222,12 @@ fun PlayButtons(onPlay: () -> Unit, onShuffle: () -> Unit) {
         FilledTonalButton(onClick = onShuffle, modifier = Modifier.weight(1f).height(height), contentPadding = ButtonDefaults.contentPaddingFor(height)) {
             Icon(painterResource(R.drawable.ic_shuffle), contentDescription = null, modifier = Modifier.size(ButtonDefaults.iconSizeFor(height)))
             Text(stringResource(R.string.button_shuffle), style = ButtonDefaults.textStyleFor(height), modifier = Modifier.padding(start = 8.dp))
+        }
+        // Add the whole album / the artist's tracks to a playlist (SPEC-playlists §7.1)
+        if (onAddToPlaylist != null) {
+            FilledTonalIconButton(onClick = onAddToPlaylist, modifier = Modifier.size(height)) {
+                Icon(painterResource(R.drawable.ic_playlist_add), contentDescription = addLabel)
+            }
         }
     }
 }

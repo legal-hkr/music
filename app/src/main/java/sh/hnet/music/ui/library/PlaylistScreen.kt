@@ -153,7 +153,7 @@ fun PlaylistScreen(
         val name = shown?.playlist?.name.orEmpty()
         snackbars.currentSnackbarData?.dismiss()
         val message = AnnotatedString.fromHtml(removedText.format((row.track?.displayTitle ?: entry.shownTitle).htmlEncode(), name.htmlEncode())).text
-        if (snackbars.showSnackbar(message, actionLabel = undo, duration = SnackbarDuration.Long) == SnackbarResult.ActionPerformed) {
+        if (snackbars.showSnackbar(message, actionLabel = undo, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed) {
             viewModel.restoreEntry(entry)
         }
     }
@@ -185,7 +185,7 @@ fun PlaylistScreen(
                                 val deleted = viewModel.deletePlaylist(id) ?: return@launch
                                 snackbars.currentSnackbarData?.dismiss()
                                 val text = AnnotatedString.fromHtml(deletedText.format(deleted.playlist.name.htmlEncode())).text
-                                if (snackbars.showSnackbar(text, actionLabel = undo, duration = SnackbarDuration.Long) == SnackbarResult.ActionPerformed) {
+                                if (snackbars.showSnackbar(text, actionLabel = undo, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed) {
                                     viewModel.restorePlaylist(deleted)
                                 }
                             }

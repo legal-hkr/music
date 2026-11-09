@@ -72,6 +72,8 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import kotlinx.coroutines.delay
 import sh.hnet.music.R
+import sh.hnet.music.ui.library.AddRequest
+import sh.hnet.music.ui.library.LocalAddToPlaylist
 import sh.hnet.music.data.LibraryTrack
 import sh.hnet.music.data.Track
 import sh.hnet.music.playback.AppliedGain
@@ -356,11 +358,12 @@ private fun TransportButton(
     }
 }
 
-/** Track actions (SPEC §9.4): Go to artist / album, then Track details. */
+/** Track actions (SPEC §9.4): Add to playlist, Go to artist / album, then Track details. */
 @Composable
 private fun TrackActions(track: LibraryTrack, onGoToArtist: (String) -> Unit, onGoToAlbum: (LibraryTrack) -> Unit, onDetails: () -> Unit) {
     var open by remember { mutableStateOf(false) }
     var choosingArtist by remember(open) { mutableStateOf(false) }
+    val addToPlaylist = LocalAddToPlaylist.current
     Box {
         TooltipIconButton(R.drawable.ic_more_horiz, stringResource(R.string.content_description_track_actions), { open = true })
         DropdownMenuPopup(expanded = open, onDismissRequest = { open = false }) {
@@ -384,13 +387,18 @@ private fun TrackActions(track: LibraryTrack, onGoToArtist: (String) -> Unit, on
                 })
                 if (!track.album.isNullOrBlank()) add(Triple(R.string.menu_go_to_album, R.drawable.ic_album) { open = false; onGoToAlbum(track) })
             }
+            val groups = if (goTo.isEmpty()) 2 else 3
+            DropdownMenuGroup(shapes = MenuDefaults.groupShape(0, groups)) {
+                Item(stringResource(R.string.menu_add_to_playlist), R.drawable.ic_playlist_add, 0, 1) { open = false; addToPlaylist(AddRequest.Track(track)) }
+            }
+            Spacer(Modifier.height(MenuDefaults.GroupSpacing))
             if (goTo.isNotEmpty()) {
-                DropdownMenuGroup(shapes = MenuDefaults.groupShape(0, 2)) {
+                DropdownMenuGroup(shapes = MenuDefaults.groupShape(1, groups)) {
                     goTo.forEachIndexed { index, (label, icon, action) -> Item(stringResource(label), icon, index, goTo.size, action) }
                 }
                 Spacer(Modifier.height(MenuDefaults.GroupSpacing))
             }
-            DropdownMenuGroup(shapes = MenuDefaults.groupShape(if (goTo.isEmpty()) 0 else 1, if (goTo.isEmpty()) 1 else 2)) {
+            DropdownMenuGroup(shapes = MenuDefaults.groupShape(groups - 1, groups)) {
                 Item(stringResource(R.string.menu_track_details), R.drawable.ic_info, 0, 1) { open = false; onDetails() }
             }
         }

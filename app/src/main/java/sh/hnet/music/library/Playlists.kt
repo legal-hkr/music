@@ -54,6 +54,22 @@ data class PlaylistPage(val playlist: Playlist, val rows: List<PlaylistRow>) {
     }
 }
 
+/** The entries an add made, and how many of its tracks the playlist had already. */
+class AddResult(val entryIds: List<Long>, val alreadyThere: Int)
+
+/** A new entry for a library track, with the snapshot that keeps it if the track goes (§6.1). */
+fun entryOf(playlistId: Long, position: Int, track: LibraryTrack) = PlaylistEntry(
+    playlistId = playlistId,
+    position = position,
+    documentUri = track.documentUri,
+    folderUri = track.folderUri,
+    path = track.relativePath,
+    title = track.title,
+    artists = track.artists,
+    album = track.album,
+    durationMs = track.durationMs,
+)
+
 /** A deleted playlist kept for Undo. */
 class DeletedPlaylist(val playlist: Playlist, val entries: List<PlaylistEntry>)
 
@@ -74,6 +90,26 @@ class PlaylistRepository(private val dao: PlaylistDao, private val library: Libr
         combine(dao.observePlaylist(id), dao.observeEntries(id), library.tracksByUri) { playlist, entries, tracks ->
             playlist?.let { PlaylistPage(it, entries.map { entry -> PlaylistRow(entry, entry.documentUri?.let(tracks::get)) }) }
         }.flowOn(Dispatchers.Default)
+
+    /** Appends [tracks] (§7.3: at the end, duplicates allowed); the result says how many were there already. */
+    suspend fun add(id: Long, tracks: List<LibraryTrack>): AddResult {
+        val present = dao.documentUris(id).toHashSet()
+        val start = dao.lastPosition(id) + 1
+        val ids = dao.append(id, tracks.mapIndexed { i, track -> entryOf(id, start + i, track) }, System.currentTimeMillis())
+        return AddResult(ids, tracks.count { it.documentUri in present })
+    }
+
+    /** Undo of [add]: exactly the entries it made. */
+    suspend fun removeEntries(id: Long, entryIds: List<Long>) = dao.removeEntries(id, entryIds, System.currentTimeMillis())
+
+    /** Replaces every entry with [tracks]; returns the old ones for Undo. */
+    suspend fun replace(id: Long, tracks: List<LibraryTrack>): List<PlaylistEntry> {
+        val old = dao.entries(id)
+        dao.replaceEntries(id, tracks.mapIndexed { i, track -> entryOf(id, i, track) }, System.currentTimeMillis())
+        return old
+    }
+
+    suspend fun restoreEntries(id: Long, entries: List<PlaylistEntry>) = dao.replaceEntries(id, entries, System.currentTimeMillis())
 
     suspend fun reorder(id: Long, entryIds: List<Long>) = dao.reorder(id, entryIds, System.currentTimeMillis())
 

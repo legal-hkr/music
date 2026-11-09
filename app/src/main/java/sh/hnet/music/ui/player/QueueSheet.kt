@@ -20,6 +20,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -29,8 +31,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
@@ -102,6 +104,8 @@ fun QueueSheet(
     tracks: Map<String, LibraryTrack>,
     player: PlayerConnection,
     onDismiss: () -> Unit,
+    /** The current track and what follows, as the sheet shows them (SPEC-playlists §8). */
+    onSaveAsPlaylist: (List<LibraryTrack>) -> Unit,
 ) {
     val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
     val listState = rememberLazyListState()
@@ -158,7 +162,9 @@ fun QueueSheet(
     ) {
         Box(Modifier.fillMaxWidth()) {
             Column(Modifier.fillMaxWidth()) {
-                Header(queue, tracks)
+                Header(queue, tracks) {
+                    onSaveAsPlaylist(queue.items.drop(queue.current.coerceAtLeast(0)).mapNotNull { tracks[it.mediaId] })
+                }
                 LazyColumn(state = listState, contentPadding = PaddingValues(bottom = 24.dp), modifier = Modifier.fillMaxWidth()) {
                     itemsIndexed(rows, key = { _, row -> row.key }) { position, row ->
                         val isCurrent = row.key == currentKey
@@ -270,15 +276,22 @@ private fun removeWithUndo(
         reveal()
         val message = AnnotatedString.fromHtml(template.format(title.htmlEncode())).text
         // A track no longer in the library can't be queued again, so it gets no Undo
-        val result = snackbars.showSnackbar(message, actionLabel = track?.let { undo }, duration = SnackbarDuration.Long)
+        val result = snackbars.showSnackbar(message, actionLabel = track?.let { undo }, duration = SnackbarDuration.Short)
         if (result == SnackbarResult.ActionPerformed && track != null) player.insert(index, track)
     }
 }
 
 @Composable
-private fun Header(queue: QueueSnapshot, tracks: Map<String, LibraryTrack>) {
+private fun Header(queue: QueueSnapshot, tracks: Map<String, LibraryTrack>, onSaveAsPlaylist: () -> Unit) {
     val following = if (queue.current < 0) emptyList() else queue.items.drop(queue.current + 1)
-    Column(Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp)) {
+    // The button sits beside the title, or under it when the two don't fit (Polish at 1.3)
+    FlowRow(
+        Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        itemVerticalAlignment = Alignment.CenterVertically,
+    ) {
+    Column {
         Text(stringResource(R.string.title_queue), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
         val summary = if (following.isEmpty()) {
             stringResource(R.string.label_queue_none_remaining)
@@ -287,6 +300,13 @@ private fun Header(queue: QueueSnapshot, tracks: Map<String, LibraryTrack>) {
             pluralStringResource(R.plurals.label_queue_remaining, following.size, following.size, durationText(duration))
         }
         Text(summary, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+    if (queue.items.isNotEmpty()) {
+        FilledTonalButton(onClick = onSaveAsPlaylist, contentPadding = ButtonDefaults.SmallContentPadding, modifier = Modifier.heightIn(min = 40.dp)) {
+            Icon(painterResource(R.drawable.ic_playlist_add), contentDescription = null, modifier = Modifier.size(18.dp))
+            Text(stringResource(R.string.button_save_as_playlist), modifier = Modifier.padding(start = 8.dp))
+        }
+    }
     }
 }
 

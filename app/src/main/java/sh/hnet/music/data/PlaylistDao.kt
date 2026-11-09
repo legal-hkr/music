@@ -44,6 +44,40 @@ interface PlaylistDao {
     @Query("UPDATE playlist SET changedAt = :changedAt WHERE id = :id")
     suspend fun touch(id: Long, changedAt: Long)
 
+    @Query("SELECT COALESCE(MAX(position), -1) FROM playlist_entry WHERE playlistId = :playlistId")
+    suspend fun lastPosition(playlistId: Long): Int
+
+    @Query("SELECT documentUri FROM playlist_entry WHERE playlistId = :playlistId AND documentUri IS NOT NULL")
+    suspend fun documentUris(playlistId: Long): List<String>
+
+    @Insert
+    suspend fun insertEntriesReturningIds(entries: List<PlaylistEntry>): List<Long>
+
+    @Query("DELETE FROM playlist_entry WHERE id IN (:ids)")
+    suspend fun deleteEntriesById(ids: List<Long>)
+
+    /** Appends entries (their positions already after the last one); returns their ids. */
+    @Transaction
+    suspend fun append(playlistId: Long, entries: List<PlaylistEntry>, changedAt: Long): List<Long> {
+        val ids = insertEntriesReturningIds(entries)
+        touch(playlistId, changedAt)
+        return ids
+    }
+
+    @Transaction
+    suspend fun removeEntries(playlistId: Long, ids: List<Long>, changedAt: Long) {
+        deleteEntriesById(ids)
+        touch(playlistId, changedAt)
+    }
+
+    /** All entries replaced at once ("Save as playlist" over an existing one, and its Undo). */
+    @Transaction
+    suspend fun replaceEntries(playlistId: Long, entries: List<PlaylistEntry>, changedAt: Long) {
+        deleteEntries(playlistId)
+        insertEntries(entries)
+        touch(playlistId, changedAt)
+    }
+
     /** The new order, written once on drop (one change). */
     @Transaction
     suspend fun reorder(playlistId: Long, entryIds: List<Long>, changedAt: Long) {
