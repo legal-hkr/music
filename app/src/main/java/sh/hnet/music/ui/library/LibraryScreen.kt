@@ -56,8 +56,6 @@ import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -84,7 +82,21 @@ enum class LibraryView(val label: Int, val icon: Int, val selectedIcon: Int) {
     ALBUMS(R.string.label_view_albums, R.drawable.ic_album, R.drawable.ic_album_filled),
     ARTISTS(R.string.label_view_artists, R.drawable.ic_person, R.drawable.ic_person_filled),
     TRACKS(R.string.label_view_tracks, R.drawable.ic_music_note, R.drawable.ic_music_note_filled),
-    PLAYLISTS(R.string.label_view_playlists, R.drawable.ic_playlist_play, R.drawable.ic_playlist_play_filled),
+    PLAYLISTS(R.string.label_view_playlists, R.drawable.ic_playlist_play, R.drawable.ic_playlist_play_filled);
+
+    companion object {
+        /**
+         * The views in a saved order (names joined by commas): known names in their saved order,
+         * once each, then any view the saved order lacks (one added in a later version) in its
+         * default place. All four always stay (SPEC-settings-v2 §4.1).
+         */
+        fun order(saved: String?): List<LibraryView> {
+            val named = saved.orEmpty().split(',').mapNotNull { name -> entries.firstOrNull { it.name == name.trim() } }.distinct()
+            return named + entries.filterNot { it in named }
+        }
+
+        fun save(order: List<LibraryView>): String = order.joinToString(",") { it.name }
+    }
 }
 
 /** The Library destination: the view switch in the top bar and the chosen view (SPEC §3.2). */
@@ -103,21 +115,19 @@ fun LibraryScreen(
     onOpenPlaylist: (Long) -> Unit,
 ) {
     val hasTracks by viewModel.hasTracks.collectAsStateWithLifecycle()
-    var view by rememberSaveable { mutableStateOf(LibraryView.ALBUMS) }
     // Switching views is a step in history: Back returns to the previous view
-    var history by rememberSaveable { mutableStateOf(listOf<LibraryView>()) }
+    val current by viewModel.view.collectAsStateWithLifecycle()
+    val order by viewModel.viewOrder.collectAsStateWithLifecycle()
     val albumsGrid = rememberLazyGridState()
     val artistsList = rememberLazyListState()
     val tracksList = rememberLazyListState()
     val playlistsList = rememberLazyListState()
 
-    BackHandler(enabled = history.isNotEmpty()) {
-        view = history.last()
-        history = history.dropLast(1)
-    }
+    BackHandler(enabled = current != null && viewModel.viewHistory.isNotEmpty()) { viewModel.previousView() }
+    val view = current
 
     when {
-        hasTracks == null -> Unit
+        hasTracks == null || view == null -> Unit
         // SPEC §12: no folder; folders being read; folders with nothing playable
         hasTracks == false && summary.folders == 0 -> WelcomeState(onFolderPicked)
         // Not in SPEC: every folder with tracks lost access, so "nothing playable" would be untrue
@@ -127,12 +137,7 @@ fun LibraryScreen(
         else -> Column(Modifier.fillMaxSize()) {
             val fadeInSpec = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
             val fadeOutSpec = MaterialTheme.motionScheme.fastEffectsSpec<Float>()
-            ViewSwitch(view) { chosen ->
-                if (chosen != view) {
-                    history = history + view
-                    view = chosen
-                }
-            }
+            LibraryViewSwitch(order, view, viewModel::showView, Modifier.statusBarsPadding())
             AnimatedContent(
                 targetState = view,
                 transitionSpec = { fadeIn(fadeInSpec) togetherWith fadeOut(fadeOutSpec) },
@@ -154,20 +159,19 @@ fun LibraryScreen(
 
 /**
  * The view switch (SPEC-playlists §3.2): connected toggle buttons, an icon on each, the label only on
- * the selected one, which takes the remaining width; switching animates the widths.
+ * the selected one, which takes the remaining width; switching animates the widths. In the user's
+ * order (Settings › Library views, which also shows it as a preview).
  */
 @Composable
-private fun ViewSwitch(selected: LibraryView, onSelect: (LibraryView) -> Unit) {
+fun LibraryViewSwitch(views: List<LibraryView>, selected: LibraryView, onSelect: (LibraryView) -> Unit, modifier: Modifier = Modifier) {
     val groupLabel = stringResource(R.string.content_description_library_view)
     BoxWithConstraints(
-        Modifier
+        modifier
             .fillMaxWidth()
-            .statusBarsPadding()
             .heightIn(min = 64.dp)
             .padding(horizontal = 16.dp),
         contentAlignment = Alignment.CenterStart,
     ) {
-        val views = LibraryView.entries
         val gap = ButtonGroupDefaults.ConnectedSpaceBetween
         val compact = 56.dp
         val wide = maxWidth - (compact + gap) * (views.size - 1)

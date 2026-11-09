@@ -61,8 +61,8 @@ fun LibrarySettingsScreen(viewModel: LibraryViewModel, onBack: () -> Unit, onOpe
         onPauseOrDispose {}
     }
 
-    SettingsPage(title = stringResource(R.string.title_settings_library), onBack = onBack) {
-        SettingsGroup(title = stringResource(R.string.title_music_folders)) {
+    SettingsPage(title = stringResource(R.string.title_music_folders), onBack = onBack) {
+        SettingsGroup(title = stringResource(R.string.title_folders)) {
             folders.forEach { folder ->
                 row { shapes ->
                     FolderRowItem(shapes, folder) {

@@ -104,6 +104,7 @@ import sh.hnet.music.about.WhatsNew
 import sh.hnet.music.ui.settings.AboutScreen
 import sh.hnet.music.ui.settings.AppLicenseScreen
 import sh.hnet.music.ui.settings.LanguageScreen
+import sh.hnet.music.ui.settings.LibraryViewsScreen
 import sh.hnet.music.ui.settings.ResetScreen
 import sh.hnet.music.ui.settings.WhatsNewScreen
 import sh.hnet.music.ui.settings.FolderScreen
@@ -395,6 +396,7 @@ fun MusicApp(openNowPlaying: Int = 0) {
                         SettingsRootScreen(
                             library,
                             onOpenLibrary = { currentStack.add(Screen.SettingsLibrary) },
+                            onOpenViews = { currentStack.add(Screen.SettingsLibraryViews) },
                             onOpenPlayback = { currentStack.add(Screen.SettingsPlayback) },
                             onOpenLanguage = { currentStack.add(Screen.SettingsLanguage) },
                             onOpenReset = { currentStack.add(Screen.SettingsReset) },
@@ -425,6 +427,7 @@ fun MusicApp(openNowPlaying: Int = 0) {
                     entry<Screen.SettingsReset> { ResetScreen(onBack = back) }
                     entry<Screen.SettingsWhatsNew> { WhatsNewScreen(onBack = back) }
                     entry<Screen.SettingsLicense> { AppLicenseScreen(onBack = back) }
+                    entry<Screen.SettingsLibraryViews> { LibraryViewsScreen(browse, onBack = back) }
                 },
             )
         }

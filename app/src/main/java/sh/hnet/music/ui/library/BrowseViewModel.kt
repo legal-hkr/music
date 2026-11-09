@@ -6,6 +6,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -38,6 +40,49 @@ import java.util.Locale
 class BrowseViewModel(private val app: MusicApplication) : ViewModel() {
     private val repository = app.library
     private val player = app.player
+
+    /** The Library's views in the user's order (Settings › Library views). */
+    val viewOrder: StateFlow<List<LibraryView>> = app.preferences.viewOrder
+        .stateIn(viewModelScope, SharingStarted.Eagerly, LibraryView.entries)
+
+    /**
+     * The view the Library shows; null until the start view is read. Kept here, not in saved
+     * state: it lives as long as the activity's view model, so switching tabs keeps it and a new
+     * process opens on the chosen start view (SPEC-settings-v2 §4.2).
+     */
+    val view = MutableStateFlow<LibraryView?>(null)
+
+    /** Views shown before the current one: Back returns to them. */
+    var viewHistory: List<LibraryView> = emptyList()
+        private set
+
+    init {
+        viewModelScope.launch {
+            val start = app.preferences.startView.first()
+            view.value = start ?: app.preferences.lastView.first() ?: LibraryView.ALBUMS
+        }
+    }
+
+    fun showView(chosen: LibraryView) {
+        val current = view.value
+        if (chosen == current) return
+        if (current != null) viewHistory = viewHistory + current
+        view.value = chosen
+        viewModelScope.launch { app.preferences.setLastView(chosen) }
+    }
+
+    /** Back in the view history; false when there is none. */
+    fun previousView(): Boolean {
+        val previous = viewHistory.lastOrNull() ?: return false
+        viewHistory = viewHistory.dropLast(1)
+        view.value = previous
+        viewModelScope.launch { app.preferences.setLastView(previous) }
+        return true
+    }
+
+    fun setViewOrder(order: List<LibraryView>) {
+        viewModelScope.launch { app.preferences.setViewOrder(order) }
+    }
 
     val albumSort: StateFlow<AlbumSort> = app.preferences.albumSort
         .stateIn(viewModelScope, SharingStarted.Eagerly, AlbumSort.ALBUM_ARTIST)

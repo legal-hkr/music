@@ -31,4 +31,5 @@ sealed interface Screen : NavKey {
     @Serializable data object SettingsReset : Screen
     @Serializable data object SettingsWhatsNew : Screen
     @Serializable data object SettingsLicense : Screen
+    @Serializable data object SettingsLibraryViews : Screen
 }

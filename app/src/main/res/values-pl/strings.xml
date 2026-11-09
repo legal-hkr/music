@@ -20,7 +20,6 @@
 
     <!-- Settings root -->
     <string name="title_settings">Ustawienia</string>
-    <string name="title_settings_library">Biblioteka</string>
     <string name="title_settings_about">O aplikacji</string>
     <string name="label_version_value">Wersja %s</string>
     <string name="label_library_summary">%1$s – %2$s</string>
@@ -467,4 +466,13 @@
         <item quantity="other">Wersja %1$s, %2$d zmiany</item>
     </plurals>
     <string name="whats_new_updated_snackbar">Zaktualizowano do %1$s</string>
+    <!-- Ustawienia v2: widoki biblioteki -->
+    <string name="title_library_views">Widoki biblioteki</string>
+    <string name="label_opens_on_view">Domyślna karta: %s</string>
+    <string name="label_opens_on_last">Domyślna karta: ostatnio używana</string>
+    <string name="title_views_order">Kolejność</string>
+    <string name="title_opens_on">Domyślna karta</string>
+    <string name="label_last_used">Ostatnio używana</string>
+    <string name="label_views_preview">Podgląd kart ekranu Biblioteka</string>
+    <string name="title_folders">Foldery</string>
 </resources>

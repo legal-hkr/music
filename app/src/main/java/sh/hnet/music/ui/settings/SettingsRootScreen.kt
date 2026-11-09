@@ -14,13 +14,14 @@ import sh.hnet.music.ui.components.SettingsPage
 import sh.hnet.music.ui.components.formatCount
 
 /**
- * The Settings root, grouped as ComfyChair's: Library, Sound, App (language), Data (reset; backup
+ * The Settings root, grouped as ComfyChair's: Library (music folders, views), Sound, App (language), Data (reset; backup
  * comes with its stage), then About on its own.
  */
 @Composable
 fun SettingsRootScreen(
     viewModel: LibraryViewModel,
     onOpenLibrary: () -> Unit,
+    onOpenViews: () -> Unit,
     onOpenPlayback: () -> Unit,
     onOpenLanguage: () -> Unit,
     onOpenReset: () -> Unit,
@@ -31,11 +32,16 @@ fun SettingsRootScreen(
     val version = remember(context) { appVersion(context).first }
     val gain by (context.applicationContext as sh.hnet.music.MusicApplication).preferences.gain.collectAsStateWithLifecycle(sh.hnet.music.playback.GainSettings())
     // Read on every composition: changing it recreates the activity anyway
+    val startView by (context.applicationContext as sh.hnet.music.MusicApplication).preferences.startView.collectAsStateWithLifecycle(sh.hnet.music.ui.library.LibraryView.ALBUMS)
     val language = appLanguages.firstOrNull { it.tag == currentLanguageTag(context) } ?: appLanguages.first()
     SettingsPage(title = stringResource(R.string.title_settings), onBack = null) {
         SettingsGroup(stringResource(R.string.title_settings_group_library)) {
             row { shapes ->
-                SettingsNavigationRow(shapes, R.drawable.ic_library_music, stringResource(R.string.title_settings_library), librarySummary(summary), onClick = onOpenLibrary)
+                SettingsNavigationRow(shapes, R.drawable.ic_folder, stringResource(R.string.title_music_folders), librarySummary(summary), onClick = onOpenLibrary)
+            }
+            row { shapes ->
+                val opensOn = startView?.let { stringResource(R.string.label_opens_on_view, stringResource(it.label)) } ?: stringResource(R.string.label_opens_on_last)
+                SettingsNavigationRow(shapes, R.drawable.ic_view_carousel, stringResource(R.string.title_library_views), opensOn, onClick = onOpenViews)
             }
         }
         SettingsGroup(stringResource(R.string.title_settings_group_sound)) {

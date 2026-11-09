@@ -14,8 +14,11 @@ import sh.hnet.music.library.PlaylistFormat
 import sh.hnet.music.library.TrackSort
 import sh.hnet.music.playback.GainSettings
 import sh.hnet.music.playback.ReplayGainMode
+import sh.hnet.music.ui.library.LibraryView
 
 private val Context.settings by preferencesDataStore("settings")
+
+private const val LAST_USED = "LAST_USED"
 
 /** Choices the user made in the UI that outlive the process (app-private, not backed up). */
 class Preferences(private val context: Context) {
@@ -58,10 +61,39 @@ class Preferences(private val context: Context) {
 
     /**
      * Restore defaults (Settings › Reset): every setting of this store back to its default. Nothing
-     * else lives here (What's new keeps its own preferences, playlists the database); a key that
-     * isn't a setting (a date, a remembered view) must be kept out of this when it is added.
+     * else lives here (What's new keeps its own preferences, playlists the database) but the last
+     * used Library view, which is a memory, not a setting, and stays.
      */
-    suspend fun restoreDefaults() = context.settings.edit { it.clear() }
+    suspend fun restoreDefaults() = context.settings.edit { prefs ->
+        val lastView = prefs[lastViewKey]
+        prefs.clear()
+        lastView?.let { prefs[lastViewKey] = it }
+    }
+
+    private val viewOrderKey = stringPreferencesKey("library_view_order")
+    private val startViewKey = stringPreferencesKey("library_start_view")
+    private val lastViewKey = stringPreferencesKey("library_last_view")
+
+    /** The order of the Library's views (SPEC-settings-v2 §4.1). */
+    val viewOrder: Flow<List<LibraryView>> = context.settings.data.map { LibraryView.order(it[viewOrderKey]) }
+
+    suspend fun setViewOrder(order: List<LibraryView>) = context.settings.edit { it[viewOrderKey] = LibraryView.save(order) }
+
+    /** The view the Library opens on: one of the four, or null for Last used (§4.2); Albums by default. */
+    val startView: Flow<LibraryView?> = context.settings.data.map { prefs ->
+        when (val name = prefs[startViewKey]) {
+            null -> LibraryView.ALBUMS
+            LAST_USED -> null
+            else -> LibraryView.entries.firstOrNull { it.name == name } ?: LibraryView.ALBUMS
+        }
+    }
+
+    suspend fun setStartView(view: LibraryView?) = context.settings.edit { it[startViewKey] = view?.name ?: LAST_USED }
+
+    /** The view the Library showed last, for Last used. */
+    val lastView: Flow<LibraryView?> = context.settings.data.map { prefs -> prefs[lastViewKey]?.let { name -> LibraryView.entries.firstOrNull { it.name == name } } }
+
+    suspend fun setLastView(view: LibraryView) = context.settings.edit { it[lastViewKey] = view.name }
 
     private val gainModeKey = stringPreferencesKey("replaygain_mode")
     private val preampKey = floatPreferencesKey("replaygain_preamp_db")

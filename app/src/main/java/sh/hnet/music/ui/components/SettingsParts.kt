@@ -8,6 +8,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -101,6 +105,48 @@ fun SettingsPage(
     }
 }
 
+/**
+ * A settings page whose content is a lazy list, for rows that reorder by dragging (the drag
+ * component works on a LazyListState). Same bar and padding as [SettingsPage]; the caller spaces
+ * its groups ([SETTINGS_GROUP_GAP] between groups, [SETTINGS_ROW_GAP] between a group's rows).
+ */
+@Composable
+fun LazySettingsPage(
+    title: String,
+    onBack: () -> Unit,
+    state: LazyListState,
+    content: LazyListScope.() -> Unit,
+) {
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    Column(Modifier.fillMaxSize()) {
+        TopAppBar(
+            title = { Text(title, maxLines = 1, modifier = Modifier.semantics { heading() }) },
+            navigationIcon = { TooltipIconButton(R.drawable.ic_arrow_back, stringResource(R.string.content_description_back), onBack) },
+            scrollBehavior = scrollBehavior,
+        )
+        LazyColumn(
+            state = state,
+            modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
+            content = content,
+        )
+    }
+}
+
+val SETTINGS_GROUP_GAP = 16.dp
+val SETTINGS_ROW_GAP = 2.dp
+
+/** A group's header, as [SettingsGroup] draws it, for a group laid out row by row in a lazy list. */
+@Composable
+fun SettingsGroupHeader(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(start = 16.dp, bottom = 8.dp).semantics { heading() },
+    )
+}
+
 /** An icon-only button with its label as content description and as a tooltip on long press. */
 @Composable
 fun TooltipIconButton(@DrawableRes icon: Int, label: String, onClick: () -> Unit, enabled: Boolean = true) {
@@ -130,14 +176,7 @@ fun SettingsGroup(title: String? = null, content: SettingsGroupScope.() -> Unit)
     val scope = SettingsGroupScope().apply(content)
     if (scope.rows.isEmpty()) return
     Column(Modifier.fillMaxWidth()) {
-        title?.let {
-            Text(
-                text = it,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(start = 16.dp, bottom = 8.dp).semantics { heading() },
-            )
-        }
+        title?.let { SettingsGroupHeader(it) }
         Column(
             verticalArrangement = Arrangement.spacedBy(2.dp),
             modifier = Modifier.animateContentSize(MaterialTheme.motionScheme.fastSpatialSpec()),
@@ -152,7 +191,7 @@ fun SettingsGroup(title: String? = null, content: SettingsGroupScope.() -> Unit)
  * (taken from the library's first and last segments) rather than the single-item shape.
  */
 @Composable
-private fun groupShapes(index: Int, count: Int): ListItemShapes {
+fun groupShapes(index: Int, count: Int): ListItemShapes {
     val segmented = ListItemDefaults.segmentedShapes(index, count)
     if (count > 1) return segmented
     val first = ListItemDefaults.segmentedShapes(0, 2).shape as? CornerBasedShape ?: return segmented
