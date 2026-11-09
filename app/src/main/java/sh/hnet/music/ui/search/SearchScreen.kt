@@ -4,7 +4,6 @@ package sh.hnet.music.ui.search
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -17,17 +16,17 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SearchBar
+import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -82,27 +81,27 @@ fun SearchScreen(
     }
 
     Column(Modifier.fillMaxSize().statusBarsPadding()) {
-        SearchBar(
-            inputField = {
-                SearchBarDefaults.InputField(
-                    query = query,
-                    onQueryChange = viewModel::setQuery,
-                    onSearch = { keyboard?.hide() },
-                    expanded = false,
-                    onExpandedChange = {},
-                    placeholder = { Text(stringResource(R.string.hint_search), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                    leadingIcon = { Icon(painterResource(R.drawable.ic_search), contentDescription = null) },
-                    trailingIcon = if (query.isNotEmpty()) {
-                        { TooltipIconButton(R.drawable.ic_close, stringResource(R.string.content_description_clear_search), viewModel::clear) }
-                    } else null,
-                    modifier = Modifier.fillMaxWidth().focusRequester(focus),
-                )
-            },
-            expanded = false,
-            onExpandedChange = {},
-            windowInsets = WindowInsets(0),
-            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 8.dp),
-        ) {}
+        // The input alone: a collapsed SearchBar takes no typing (it hands that to its expanded
+        // form, which this screen doesn't use), so the field carries the bar's container itself
+        SearchBarDefaults.InputField(
+            textFieldState = viewModel.field,
+            searchBarState = rememberSearchBarState(),
+            onSearch = { keyboard?.hide() },
+            placeholder = { Text(stringResource(R.string.hint_search), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+            leadingIcon = { Icon(painterResource(R.drawable.ic_search), contentDescription = null) },
+            trailingIcon = if (query.isNotEmpty()) {
+                { TooltipIconButton(R.drawable.ic_close, stringResource(R.string.content_description_clear_search), viewModel::clear) }
+            } else null,
+            colors = SearchBarDefaults.inputFieldColors(
+                focusedContainerColor = SearchBarDefaults.colors().containerColor,
+                unfocusedContainerColor = SearchBarDefaults.colors().containerColor,
+                disabledContainerColor = SearchBarDefaults.colors().containerColor,
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 8.dp)
+                .focusRequester(focus),
+        )
 
         when {
             query.isBlank() -> EmptyState(R.drawable.ic_search, stringResource(R.string.msg_search_empty), Modifier.imePadding())

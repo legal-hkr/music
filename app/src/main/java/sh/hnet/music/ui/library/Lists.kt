@@ -3,7 +3,6 @@
 package sh.hnet.music.ui.library
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -21,8 +20,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -111,11 +110,12 @@ fun TrackList(
 @Composable
 fun ArtistRow(artist: Artist, onClick: () -> Unit) {
     ListItem(
-        modifier = Modifier.clickable(onClick = onClick),
+        onClick = onClick,
         leadingContent = { ArtistAvatar(artist, 48) },
-        headlineContent = { Text(artist.name, maxLines = 1, overflow = TextOverflow.Ellipsis) },
         supportingContent = { Text(artistSummary(artist), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-    )
+    ) {
+        Text(artist.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
 }
 
 @Composable

@@ -197,9 +197,11 @@ class PlaybackService : MediaSessionService() {
 
     private inner class Callback : MediaSession.Callback {
         override fun onConnect(session: MediaSession, controller: MediaSession.ControllerInfo): MediaSession.ConnectionResult =
-            MediaSession.ConnectionResult.AcceptedResultBuilder(session)
+            MediaSession.ConnectionResult.AcceptedResultBuilder(session, controller)
                 .setAvailableSessionCommands(
-                    MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon()
+                    // The defaults for the controller's trust, plus Shuffle and Repeat
+                    (if (controller.isTrusted) MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS else MediaSession.ConnectionResult.DEFAULT_UNTRUSTED_SESSION_COMMANDS)
+                        .buildUpon()
                         .add(shuffleCommand)
                         .add(repeatCommand)
                         .build(),

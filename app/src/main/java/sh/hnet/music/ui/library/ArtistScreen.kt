@@ -34,9 +34,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -189,14 +189,15 @@ private fun SmallAlbumTile(album: Album, onClick: () -> Unit) {
 fun AlbumRow(album: Album, onClick: () -> Unit) {
     val artist = albumArtistText(album)
     ListItem(
-        modifier = Modifier.clickable(onClick = onClick),
+        onClick = onClick,
         leadingContent = { Cover(album.coverTrack, RoundedCornerShape(12.dp), Modifier.size(48.dp)) },
-        headlineContent = { Text(album.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
         supportingContent = {
             Text(listOfNotNull(artist.ifEmpty { null }, album.year?.toString()).joinToString(" – "), maxLines = 1, overflow = TextOverflow.Ellipsis)
         },
         trailingContent = { Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = null) },
-    )
+    ) {
+        Text(album.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
 }
 
 /** Play and Shuffle side by side, medium buttons (SPEC §4.3, §6.2). */

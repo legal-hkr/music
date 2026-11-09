@@ -1,5 +1,8 @@
 package sh.hnet.music.ui.search
 
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.clearText
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -29,8 +32,11 @@ import java.util.Locale
 class SearchViewModel(app: MusicApplication) : ViewModel() {
     private val repository = app.library
 
-    private val _query = MutableStateFlow("")
-    val query: StateFlow<String> = _query.asStateFlow()
+    /** The search field's text. */
+    val field = TextFieldState()
+
+    val query: StateFlow<String> = snapshotFlow { field.text.toString() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
     /** Bumped when the Search tab is selected; the screen focuses the field once per bump. */
     private val _focusRequest = MutableStateFlow(0)
@@ -49,15 +55,11 @@ class SearchViewModel(app: MusicApplication) : ViewModel() {
     }.flowOn(Dispatchers.Default).stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     @OptIn(FlowPreview::class)
-    val results: StateFlow<SearchResults> = combine(_query.debounce(150), index) { query, index ->
+    val results: StateFlow<SearchResults> = combine(query.debounce(150), index) { query, index ->
         index?.search(query) ?: SearchResults()
     }.flowOn(Dispatchers.Default).stateIn(viewModelScope, SharingStarted.Eagerly, SearchResults())
 
-    fun setQuery(text: String) {
-        _query.value = text
-    }
-
-    fun clear() = setQuery("")
+    fun clear() = field.clearText()
 
     fun requestFocus() {
         _focusRequest.value++

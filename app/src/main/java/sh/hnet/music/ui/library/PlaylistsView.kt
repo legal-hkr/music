@@ -6,7 +6,6 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -40,14 +39,14 @@ import androidx.compose.material3.ToggleFloatingActionButton
 import androidx.compose.material3.animateFloatingActionButton
 import androidx.compose.material3.ToggleFloatingActionButtonDefaults.animateIcon
 import androidx.compose.material3.toShape
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -236,9 +235,9 @@ private fun PlaylistRow(
         colors = ListItemDefaults.colors(
             containerColor = if (menuOpen) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surface,
         ),
-        modifier = modifier.clickable(onClick = onClick),
+        onClick = onClick,
+        modifier = modifier,
         leadingContent = { PlaylistPicture(summary, 56.dp) },
-        headlineContent = { Text(name, maxLines = 1, overflow = TextOverflow.Ellipsis) },
         supportingContent = {
             Column {
                 Text(playlistSummaryText(summary), maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -251,7 +250,9 @@ private fun PlaylistRow(
                 PlaylistMenu(menuOpen, playable = summary.tracks.isNotEmpty(), { menuOpen = false }, onPlay, onPlayNext, onAddToQueue, onRename, onDelete)
             }
         },
-    )
+    ) {
+        Text(name, maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
 }
 
 /** "18 tracks – 1 h 12 min" of the playable entries, or "No tracks yet". */

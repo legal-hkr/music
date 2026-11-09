@@ -13,15 +13,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -104,7 +104,8 @@ fun PlaybackSettingsScreen(onBack: () -> Unit) {
 /** Pre-amp for untagged files: −12 to +6 dB in 0.5 dB steps; saved when the finger lets go. */
 @Composable
 private fun PreampRow(shapes: ListItemShapes, saved: Float, onChange: (Float) -> Unit) {
-    var value by remember(saved) { mutableFloatStateOf(saved) }
+    val slider = remember(saved) { SliderState(value = saved, steps = 35, trackRange = -12f..6f) }
+    val value = slider.value
     Surface(shape = shapes.shape, color = MaterialTheme.colorScheme.surfaceContainer, modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
             Row {
@@ -118,11 +119,9 @@ private fun PreampRow(shapes: ListItemShapes, saved: Float, onChange: (Float) ->
                 )
             }
             Slider(
-                value = value,
-                onValueChange = { value = (it * 2).roundToInt() / 2f },
-                onValueChangeFinished = { onChange(value) },
-                valueRange = -12f..6f,
-                steps = 35,
+                state = slider,
+                onValueChange = { slider.value = (it * 2).roundToInt() / 2f },
+                onValueChangeFinished = { onChange(slider.value) },
             )
         }
     }

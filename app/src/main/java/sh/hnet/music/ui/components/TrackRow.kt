@@ -4,7 +4,6 @@ package sh.hnet.music.ui.components
 
 import android.widget.Toast
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,11 +22,11 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -79,8 +78,8 @@ fun TrackRow(
         colors = ListItemDefaults.colors(
             containerColor = if (menuOpen) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surface,
         ),
+        onClick = onClick,
         modifier = Modifier
-            .clickable(onClick = onClick)
             .padding(start = startPadding.dp)
             .semantics {
                 when (state) {
@@ -100,14 +99,6 @@ fun TrackRow(
                 }
             }
         } else null,
-        headlineContent = {
-            Text(
-                track.displayTitle,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                color = if (state != PlayState.NONE) MaterialTheme.colorScheme.primary else Color.Unspecified,
-            )
-        },
         supportingContent = supporting?.let { { Text(it, maxLines = 1, overflow = TextOverflow.Ellipsis) } },
         trailingContent = {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -122,7 +113,14 @@ fun TrackRow(
                 }
             }
         },
-    )
+    ) {
+        Text(
+            track.displayTitle,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            color = if (state != PlayState.NONE) MaterialTheme.colorScheme.primary else Color.Unspecified,
+        )
+    }
 }
 
 /** The row menu (SPEC §5.4): queue actions, then where to go. Several artists: a list of them first. */
