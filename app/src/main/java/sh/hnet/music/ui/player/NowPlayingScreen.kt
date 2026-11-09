@@ -106,7 +106,8 @@ fun NowPlayingScreen(
 ) {
     // A Surface, not just a background: it also sets the content colour (onSurface), which this
     // overlay outside the Scaffold wouldn't get otherwise (black text and icons in dark theme)
-    Surface(modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
+    val volumeBar = remember { VolumeBarState() }
+    Surface(modifier.fillMaxSize().closesVolumeBar(volumeBar), color = MaterialTheme.colorScheme.surface) {
     BoxWithConstraints(
         Modifier
             .fillMaxSize()
@@ -124,7 +125,7 @@ fun NowPlayingScreen(
                         Cover(track, RoundedCornerShape(28.dp), Modifier.padding(start = 24.dp).aspectRatio(1f, matchHeightConstraintsFirst = true), player = true)
                     }
                     Column(Modifier.weight(1f).padding(end = 24.dp), verticalArrangement = Arrangement.Center) {
-                        Controls(track, details, gain, state, player, onGoToArtist, onGoToAlbum, onDetails, onQueue)
+                        Controls(track, details, gain, state, player, volumeBar, onGoToArtist, onGoToAlbum, onDetails, onQueue)
                     }
                 }
             } else {
@@ -136,7 +137,7 @@ fun NowPlayingScreen(
                 }
                 Spacer(Modifier.height(20.dp))
                 Column(Modifier.padding(horizontal = 24.dp).padding(bottom = 16.dp)) {
-                    Controls(track, details, gain, state, player, onGoToArtist, onGoToAlbum, onDetails, onQueue)
+                    Controls(track, details, gain, state, player, volumeBar, onGoToArtist, onGoToAlbum, onDetails, onQueue)
                 }
             }
         }
@@ -151,6 +152,7 @@ private fun ColumnScope.Controls(
     gain: AppliedGain?,
     state: PlayerState,
     player: PlayerConnection,
+    volumeBar: VolumeBarState,
     onGoToArtist: (String) -> Unit,
     onGoToAlbum: (LibraryTrack) -> Unit,
     onDetails: () -> Unit,
@@ -193,44 +195,7 @@ private fun ColumnScope.Controls(
     Spacer(Modifier.height(16.dp))
     Transport(state, player)
     Spacer(Modifier.height(16.dp))
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        val shuffleState = stringResource(if (state.shuffle) R.string.desc_on else R.string.desc_off)
-        IconToggleButton(
-            checked = state.shuffle,
-            onCheckedChange = player::setShuffle,
-            colors = IconButtonDefaults.iconToggleButtonColors(
-                checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            ),
-            shapes = IconButtonDefaults.toggleableShapes(),
-            modifier = Modifier.semantics { stateDescription = shuffleState },
-        ) {
-            Icon(painterResource(R.drawable.ic_shuffle), contentDescription = stringResource(R.string.content_description_shuffle))
-        }
-        val (repeatIcon, repeatState) = when (state.repeatMode) {
-            Player.REPEAT_MODE_ALL -> R.drawable.ic_repeat_filled to R.string.desc_repeat_all
-            Player.REPEAT_MODE_ONE -> R.drawable.ic_repeat_one to R.string.desc_repeat_one
-            else -> R.drawable.ic_repeat to R.string.desc_repeat_off
-        }
-        val repeatDescription = stringResource(repeatState)
-        IconToggleButton(
-            checked = state.repeatMode != Player.REPEAT_MODE_OFF,
-            onCheckedChange = { player.cycleRepeat() },
-            colors = IconButtonDefaults.iconToggleButtonColors(
-                checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            ),
-            shapes = IconButtonDefaults.toggleableShapes(),
-            modifier = Modifier.semantics { stateDescription = repeatDescription },
-        ) {
-            Icon(painterResource(repeatIcon), contentDescription = stringResource(R.string.content_description_repeat))
-        }
-        Spacer(Modifier.weight(1f))
-        FilledTonalButton(onClick = onQueue, contentPadding = ButtonDefaults.SmallContentPadding, modifier = Modifier.heightIn(min = 40.dp)) {
-            Icon(painterResource(R.drawable.ic_queue_music), contentDescription = null, modifier = Modifier.size(18.dp))
-            Text(stringResource(R.string.button_queue), modifier = Modifier.padding(start = 8.dp))
-        }
-    }
+    BottomRow(volumeBar, onQueue = onQueue)
 }
 
 /** Slider with elapsed and total time; the label follows a drag, the seek happens on release. */
@@ -256,8 +221,10 @@ private fun SeekBar(state: PlayerState, player: PlayerConnection, libraryDuratio
     val known = state.durationMs.takeIf { it > 0 } ?: libraryDurationMs?.takeIf { it > 0 }
     val duration = known ?: 1
     // The player leads unless the finger does
-    SideEffect { if (!touching && known != null) sliderState.value = (position.toFloat() / duration).coerceIn(0f, 1f) }
-    val shown = if (touching) (sliderState.value * duration).toLong() else position.coerceAtMost(duration)
+    // The queue has ended: rewound to 0:00 (SPEC-now-playing-v2 §5.2)
+    val at = if (state.ended) 0L else position
+    SideEffect { if (!touching && known != null) sliderState.value = (at.toFloat() / duration).coerceIn(0f, 1f) }
+    val shown = if (touching) (sliderState.value * duration).toLong() else at.coerceAtMost(duration)
     val value = stringResource(R.string.desc_seek_position, formatDuration(shown), formatDuration(known ?: 0))
     val back = stringResource(R.string.label_seek_back)
     val forward = stringResource(R.string.label_seek_forward)
@@ -283,78 +250,6 @@ private fun SeekBar(state: PlayerState, player: PlayerConnection, libraryDuratio
     Row {
         Text(formatDuration(shown), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
         Text(formatDuration(known ?: 0), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-}
-
-/** Previous, play/pause, next in a button group (SPEC §9.2.6); play/pause is round while playing. */
-@Composable
-private fun Transport(state: PlayerState, player: PlayerConnection) {
-    val previous = remember { MutableInteractionSource() }
-    val playPause = remember { MutableInteractionSource() }
-    val next = remember { MutableInteractionSource() }
-    val previousLabel = stringResource(R.string.content_description_previous)
-    val playLabel = stringResource(if (state.isPlaying) R.string.content_description_pause else R.string.content_description_play)
-    val nextLabel = stringResource(R.string.content_description_next)
-    ButtonGroup(
-        overflowIndicator = {},
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.fillMaxWidth().height(72.dp),
-    ) {
-        customItem(
-            buttonGroupContent = {
-                TransportButton(R.drawable.ic_skip_previous, previousLabel, previous, Modifier.animateWidth(previous).width(80.dp)) { player.previous() }
-            },
-            menuContent = {},
-        )
-        customItem(
-            buttonGroupContent = {
-                FilledIconToggleButton(
-                    checked = state.isPlaying,
-                    onCheckedChange = { player.togglePlayPause() },
-                    shapes = IconButtonDefaults.toggleableShapes(
-                        shape = RoundedCornerShape(20.dp),
-                        checkedShape = RoundedCornerShape(50),
-                    ),
-                    colors = IconButtonDefaults.filledIconToggleButtonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                        checkedContainerColor = MaterialTheme.colorScheme.primary,
-                        checkedContentColor = MaterialTheme.colorScheme.onPrimary,
-                    ),
-                    interactionSource = playPause,
-                    modifier = Modifier.animateWidth(playPause).weight(1f).fillMaxSize(),
-                ) {
-                    Icon(painterResource(if (state.isPlaying) R.drawable.ic_pause else R.drawable.ic_play_arrow), contentDescription = playLabel, modifier = Modifier.size(40.dp))
-                }
-            },
-            menuContent = {},
-        )
-        customItem(
-            buttonGroupContent = {
-                TransportButton(R.drawable.ic_skip_next, nextLabel, next, Modifier.animateWidth(next).width(80.dp), enabled = state.hasNext) { player.next() }
-            },
-            menuContent = {},
-        )
-    }
-}
-
-@Composable
-private fun TransportButton(
-    @DrawableRes icon: Int,
-    label: String,
-    interaction: MutableInteractionSource,
-    modifier: Modifier,
-    enabled: Boolean = true,
-    onClick: () -> Unit,
-) {
-    FilledTonalIconButton(
-        onClick = onClick,
-        enabled = enabled,
-        interactionSource = interaction,
-        shapes = IconButtonDefaults.shapes(),
-        modifier = modifier.fillMaxSize().widthIn(min = 56.dp),
-    ) {
-        Icon(painterResource(icon), contentDescription = label, modifier = Modifier.size(32.dp))
     }
 }
 

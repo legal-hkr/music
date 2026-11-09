@@ -210,7 +210,6 @@
     <string name="label_yes">Tak</string>
     <string name="msg_no_replaygain">Ten plik nie ma tych tagów</string>
     <!-- Queue (S5) -->
-    <string name="button_queue">Kolejka</string>
     <string name="title_queue">Kolejka</string>
     <plurals name="label_queue_remaining">
         <item quantity="one">Jeszcze %1$d utwór – %2$s</item>
@@ -423,4 +422,13 @@
         <item quantity="many">Pokaż wszystkie %s playlist</item>
         <item quantity="other">Pokaż wszystkie %s playlisty</item>
     </plurals>
+    <!-- Now playing v2 -->
+    <string name="content_description_volume">Głośność</string>
+    <string name="content_description_mute">Wycisz</string>
+    <string name="content_description_unmute">Wyłącz wyciszenie</string>
+    <string name="desc_volume_percent">%d%%</string>
+    <string name="desc_volume_fixed">Głośności nie da się zmienić na tym urządzeniu</string>
+    <string name="content_description_queue">Kolejka</string>
+    <string name="content_description_replay">Odtwórz kolejkę od początku</string>
+    <string name="desc_end_of_queue">Koniec kolejki</string>
 </resources>

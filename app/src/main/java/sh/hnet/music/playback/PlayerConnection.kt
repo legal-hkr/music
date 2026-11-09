@@ -20,6 +20,8 @@ data class PlayerState(
     val shuffle: Boolean = false,
     val repeatMode: Int = Player.REPEAT_MODE_OFF,
     val hasNext: Boolean = false,
+    /** The player reached the end of the queue with repeat off (SPEC-now-playing-v2 §5.2). */
+    val ended: Boolean = false,
     val queueSize: Int = 0,
     /** The playlist entry the current item was started from, if any. */
     val currentEntryId: Long? = null,
@@ -97,6 +99,7 @@ class PlayerConnection(private val context: Context) {
             shuffle = player.shuffleModeEnabled,
             repeatMode = player.repeatMode,
             hasNext = player.hasNextMediaItem(),
+            ended = player.playbackState == Player.STATE_ENDED,
             queueSize = player.mediaItemCount,
             currentEntryId = player.currentMediaItem?.playlistEntryId,
         )
@@ -178,6 +181,14 @@ class PlayerConnection(private val context: Context) {
     }
 
     fun next() = withController { it.seekToNext() }
+
+    /** After the queue ended: from its first track (§5.2). */
+    fun playFromStart() = withController { c ->
+        if (c.mediaItemCount == 0) return@withController
+        c.seekTo(if (c.shuffleModeEnabled) c.currentTimeline.getFirstWindowIndex(true) else 0, 0)
+        c.prepare()
+        c.play()
+    }
 
     /** Within the first 3 s the previous track, after that the start of this one (Media3's default). */
     fun previous() = withController { it.seekToPrevious() }
