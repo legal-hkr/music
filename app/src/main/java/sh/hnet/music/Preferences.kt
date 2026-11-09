@@ -8,6 +8,8 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import sh.hnet.music.backup.BackupSettings
 import kotlinx.coroutines.flow.map
 import sh.hnet.music.library.AlbumSort
 import sh.hnet.music.library.PlaylistSort
@@ -73,6 +75,44 @@ class Preferences(private val context: Context) {
         prefs.clear()
         lastView?.let { prefs[lastViewKey] = it }
     }
+
+    /** The settings a backup carries (SPEC-settings-v2 §7.2): everything in this store but the last used view. */
+    suspend fun backupSettings(): BackupSettings {
+        val prefs = context.settings.data.first()
+        return BackupSettings(
+            sorts = BackupSettings.Sorts(albums = prefs[albumSortKey], tracks = prefs[trackSortKey], playlists = prefs[playlistSortKey]),
+            libraryViews = BackupSettings.LibraryViews(
+                order = prefs[viewOrderKey]?.let { LibraryView.order(it).map(LibraryView::name) }.orEmpty(),
+                opensOn = prefs[startViewKey],
+            ),
+            playback = BackupSettings.Playback(replayGain = prefs[gainModeKey], preampDb = prefs[preampKey], preventClipping = prefs[preventClippingKey]),
+            exportFormat = prefs[exportFormatKey],
+            skipShorterThanSeconds = prefs[skipShortKey] ?: 0,
+        )
+    }
+
+    /**
+     * Restore from backup: the backup's settings replace these; what it lacks or doesn't know (a
+     * name from a later version) goes back to the default, as the readers above treat it.
+     */
+    suspend fun restoreSettings(backup: BackupSettings) = context.settings.edit { prefs ->
+        val lastView = prefs[lastViewKey]
+        prefs.clear()
+        lastView?.let { prefs[lastViewKey] = it }
+        backup.sorts.albums?.let { prefs[albumSortKey] = it }
+        backup.sorts.tracks?.let { prefs[trackSortKey] = it }
+        backup.sorts.playlists?.let { prefs[playlistSortKey] = it }
+        if (backup.libraryViews.order.isNotEmpty()) prefs[viewOrderKey] = backup.libraryViews.order.joinToString(",")
+        backup.libraryViews.opensOn?.let { prefs[startViewKey] = it }
+        backup.playback.replayGain?.let { prefs[gainModeKey] = it }
+        backup.playback.preampDb?.let { prefs[preampKey] = it }
+        backup.playback.preventClipping?.let { prefs[preventClippingKey] = it }
+        backup.exportFormat?.let { prefs[exportFormatKey] = it }
+        backup.skipShorterThanSeconds.takeIf { it in SKIP_SHORT_CHOICES && it != 0 }?.let { prefs[skipShortKey] = it }
+    }
+
+    /** Whether any setting was ever stored (the first run has none). */
+    suspend fun hasAnySetting(): Boolean = context.settings.data.first().asMap().keys.any { it != lastViewKey }
 
     private val skipShortKey = intPreferencesKey("skip_short_seconds")
 

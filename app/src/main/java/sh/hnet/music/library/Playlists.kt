@@ -1,5 +1,7 @@
 package sh.hnet.music.library
 
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -94,11 +96,16 @@ class PlaylistRepository(
 ) {
     private fun Playlist.shown() = if (builtin == Playlist.STARRED) copy(name = starredName()) else this
 
+    /** Bumped when entries arrive without a library change (restore from backup), to resolve them at once. */
+    private val resolveRequests = MutableStateFlow(0)
+
+    fun requestResolve() = resolveRequests.update { it + 1 }
+
     init {
         // Missing entries find their tracks again (§6.3) once the library has settled: after every
         // scan and every change of access, never while a scan is still adding tracks
         scope.launch(Dispatchers.Default) {
-            combine(library.tracks, scanner.progress) { visible, scanning -> visible?.takeIf { scanning.isEmpty() } }
+            combine(library.tracks, scanner.progress, resolveRequests) { visible, scanning, _ -> visible?.takeIf { scanning.isEmpty() } }
                 .filterNotNull()
                 .collectLatest { resolveMissing(it) }
         }

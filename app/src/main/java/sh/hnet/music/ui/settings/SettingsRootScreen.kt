@@ -14,8 +14,7 @@ import sh.hnet.music.ui.components.SettingsPage
 import sh.hnet.music.ui.components.formatCount
 
 /**
- * The Settings root, grouped as ComfyChair's: Library (music folders, views), Sound, App (language), Data (reset; backup
- * comes with its stage), then About on its own.
+ * The Settings root, grouped as ComfyChair's: Library (music folders, views), Sound, App (language), Data (backup, reset), then About on its own.
  */
 @Composable
 fun SettingsRootScreen(
@@ -24,6 +23,7 @@ fun SettingsRootScreen(
     onOpenViews: () -> Unit,
     onOpenPlayback: () -> Unit,
     onOpenLanguage: () -> Unit,
+    onOpenBackup: () -> Unit,
     onOpenReset: () -> Unit,
     onOpenAbout: () -> Unit,
 ) {
@@ -33,6 +33,7 @@ fun SettingsRootScreen(
     val gain by (context.applicationContext as sh.hnet.music.MusicApplication).preferences.gain.collectAsStateWithLifecycle(sh.hnet.music.playback.GainSettings())
     // Read on every composition: changing it recreates the activity anyway
     val startView by (context.applicationContext as sh.hnet.music.MusicApplication).preferences.startView.collectAsStateWithLifecycle(sh.hnet.music.ui.library.LibraryView.ALBUMS)
+    val lastBackup by (context.applicationContext as sh.hnet.music.MusicApplication).backup.lastBackup.collectAsStateWithLifecycle()
     val language = appLanguages.firstOrNull { it.tag == currentLanguageTag(context) } ?: appLanguages.first()
     SettingsPage(title = stringResource(R.string.title_settings), onBack = null) {
         SettingsGroup(stringResource(R.string.title_settings_group_library)) {
@@ -61,6 +62,10 @@ fun SettingsRootScreen(
             }
         }
         SettingsGroup(stringResource(R.string.title_settings_group_data)) {
+            row { shapes ->
+                val last = lastBackup?.let { stringResource(R.string.label_last_backup, backupDate(context, it)) } ?: stringResource(R.string.label_no_backup)
+                SettingsNavigationRow(shapes, R.drawable.ic_settings_backup_restore, stringResource(R.string.title_backup_restore), last, onClick = onOpenBackup)
+            }
             row { shapes ->
                 SettingsNavigationRow(shapes, R.drawable.ic_restart_alt, stringResource(R.string.title_settings_reset), stringResource(R.string.desc_settings_reset_row), onClick = onOpenReset)
             }

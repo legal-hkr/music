@@ -129,7 +129,10 @@ fun LibraryScreen(
     when {
         hasTracks == null || view == null -> Unit
         // SPEC §12: no folder; folders being read; folders with nothing playable
-        hasTracks == false && summary.folders == 0 -> WelcomeState(onFolderPicked)
+        hasTracks == false && summary.folders == 0 -> {
+            val playlists by viewModel.playlists.collectAsStateWithLifecycle()
+            NoFoldersState(playlists.orEmpty().count { it.missing > 0 }, onFolderPicked)
+        }
         // Not in SPEC: every folder with tracks lost access, so "nothing playable" would be untrue
         hasTracks == false && summary.unavailable > 0 -> LostAccessState(onSeeSkippedFiles)
         hasTracks == false && summary.scanning > 0 -> EmptyState(R.drawable.ic_library_music, stringResource(R.string.msg_library_filling), Modifier.statusBarsPadding())

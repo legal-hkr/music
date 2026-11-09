@@ -7,7 +7,23 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import sh.hnet.music.ui.MusicApp
+import sh.hnet.music.ui.settings.LibraryViewModel
+import sh.hnet.music.ui.welcome.FirstRun
+import sh.hnet.music.ui.welcome.WelcomeWizard
 import sh.hnet.music.ui.theme.MusicTheme
 
 class MainActivity : ComponentActivity() {
@@ -25,7 +41,23 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             MusicTheme {
-                MusicApp(openNowPlaying = openNowPlaying.intValue)
+                val app = application as MusicApplication
+                // The first-run wizard while there is nothing at all; decided once, kept on rotation
+                var firstRun by rememberSaveable { mutableStateOf<Boolean?>(null) }
+                LaunchedEffect(Unit) {
+                    if (firstRun == null) firstRun = withContext(Dispatchers.IO) { FirstRun.isNeeded(app) }
+                }
+                when (firstRun) {
+                    null -> Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface))
+                    true -> {
+                        val library: LibraryViewModel = viewModel { LibraryViewModel(app) }
+                        WelcomeWizard(onFolderPicked = { uri ->
+                            library.onFolderPicked(uri)
+                            firstRun = false
+                        })
+                    }
+                    false -> MusicApp(openNowPlaying = openNowPlaying.intValue)
+                }
             }
         }
     }

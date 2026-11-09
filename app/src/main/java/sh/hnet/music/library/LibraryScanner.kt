@@ -104,9 +104,12 @@ class LibraryScanner(
                 if (!scanFolder(folder, all)) failed += folder.treeUri
                 _progress.update { it - folder.treeUri }
             }
-            val now = System.currentTimeMillis()
-            stamps.edit { putLong(LAST_SCAN, now) }
-            _lastScan.value = now
+            // Only a scan of something: no stamp means no folder was ever scanned (the first run)
+            if (all.isNotEmpty()) {
+                val now = System.currentTimeMillis()
+                stamps.edit { putLong(LAST_SCAN, now) }
+                _lastScan.value = now
+            }
         } finally {
             _progress.value = emptyMap()
             listingFailed = failed.filterTo(HashSet()) { LibraryFolders.isGranted(resolver, it) }

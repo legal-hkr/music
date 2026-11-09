@@ -96,12 +96,14 @@ import sh.hnet.music.ui.library.ArtistTracksScreen
 import sh.hnet.music.library.Albums
 import sh.hnet.music.ui.components.TrackNavigation
 import sh.hnet.music.ui.library.BrowseViewModel
+import sh.hnet.music.ui.library.LibraryView
 import sh.hnet.music.ui.library.LibraryScreen
 import sh.hnet.music.ui.library.PlaylistScreen
 import sh.hnet.music.ui.search.SearchScreen
 import sh.hnet.music.ui.search.SearchViewModel
 import sh.hnet.music.about.WhatsNew
 import sh.hnet.music.ui.settings.AboutScreen
+import sh.hnet.music.ui.settings.BackupScreen
 import sh.hnet.music.ui.settings.AppLicenseScreen
 import sh.hnet.music.ui.settings.LanguageScreen
 import sh.hnet.music.ui.settings.LibraryViewsScreen
@@ -203,6 +205,7 @@ fun MusicApp(openNowPlaying: Int = 0) {
         if (onlyFolder && single != null) settings.add(Screen.SettingsFolder(single.folder.treeUri))
     }
     // After an update, once: "Updated to x.y.z" with What's new (as ComfyChair)
+    val restoredText = stringResource(R.string.msg_restored)
     val updatedTo = stringResource(R.string.whats_new_updated_snackbar)
     val whatsNew = stringResource(R.string.whats_new_title)
     val appContext = LocalContext.current.applicationContext
@@ -399,6 +402,7 @@ fun MusicApp(openNowPlaying: Int = 0) {
                             onOpenViews = { currentStack.add(Screen.SettingsLibraryViews) },
                             onOpenPlayback = { currentStack.add(Screen.SettingsPlayback) },
                             onOpenLanguage = { currentStack.add(Screen.SettingsLanguage) },
+                            onOpenBackup = { currentStack.add(Screen.SettingsBackup) },
                             onOpenReset = { currentStack.add(Screen.SettingsReset) },
                             onOpenAbout = { currentStack.add(Screen.SettingsAbout) },
                         )
@@ -425,6 +429,20 @@ fun MusicApp(openNowPlaying: Int = 0) {
                     entry<Screen.SettingsLicences> { LicencesScreen(onBack = back) }
                     entry<Screen.SettingsLanguage> { LanguageScreen(onBack = back) }
                     entry<Screen.SettingsReset> { ResetScreen(onBack = back) }
+                    entry<Screen.SettingsBackup> {
+                        BackupScreen(onBack = back, snackbars = snackbars, messageScope = scope, onRestored = { count ->
+                            // Library › Playlists, with the result (SPEC-settings-v2 §7.3 step 5)
+                            closeNowPlaying()
+                            tab = Tab.LIBRARY
+                            val libraryStack = stacks.getValue(Tab.LIBRARY)
+                            while (libraryStack.size > 1) libraryStack.removeAt(libraryStack.lastIndex)
+                            browse.showView(LibraryView.PLAYLISTS)
+                            scope.launch {
+                                snackbars.currentSnackbarData?.dismiss()
+                                snackbars.showSnackbar(restoredText.format(count), duration = SnackbarDuration.Short)
+                            }
+                        })
+                    }
                     entry<Screen.SettingsWhatsNew> { WhatsNewScreen(onBack = back) }
                     entry<Screen.SettingsLicense> { AppLicenseScreen(onBack = back) }
                     entry<Screen.SettingsLibraryViews> { LibraryViewsScreen(browse, onBack = back) }

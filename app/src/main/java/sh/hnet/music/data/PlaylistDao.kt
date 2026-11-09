@@ -147,4 +147,24 @@ interface PlaylistDao {
         insert(playlist)
         insertEntries(entries)
     }
+
+    @Query("SELECT * FROM playlist ORDER BY id")
+    suspend fun allPlaylists(): List<Playlist>
+
+    @Query("DELETE FROM playlist_entry")
+    suspend fun deleteAllEntries()
+
+    @Query("DELETE FROM playlist")
+    suspend fun deleteAllPlaylists()
+
+    /** Restore from backup: every playlist, Starred included, replaced at once (no merging). */
+    @Transaction
+    suspend fun replaceAll(playlists: List<Pair<Playlist, List<PlaylistEntry>>>) {
+        deleteAllEntries()
+        deleteAllPlaylists()
+        playlists.forEach { (playlist, entries) ->
+            val id = insert(playlist)
+            insertEntries(entries.mapIndexed { position, entry -> entry.copy(playlistId = id, position = position) })
+        }
+    }
 }

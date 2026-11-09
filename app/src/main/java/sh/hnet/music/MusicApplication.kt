@@ -25,6 +25,7 @@ class MusicApplication : Application() {
 
     val covers: CoverCache by lazy { CoverCache(this) }
     val transfer: PlaylistTransfer by lazy { PlaylistTransfer(this, playlists, database.playlistDao(), database.libraryFolderDao(), library) }
+    val backup: sh.hnet.music.backup.BackupManager by lazy { sh.hnet.music.backup.BackupManager(this, getSharedPreferences("backup", MODE_PRIVATE)) }
     val playlists: PlaylistRepository by lazy { PlaylistRepository(database.playlistDao(), database.trackDao(), library, scanner, appScope) { getString(R.string.label_starred_playlist) } }
 
     val player: PlayerConnection by lazy { PlayerConnection(this) }
