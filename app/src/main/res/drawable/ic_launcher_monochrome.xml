@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Placeholder launcher icon: a music note in the system palette. -->
+<!-- The mark in one colour, for themed icons and wherever the logo is tinted; laid out as ic_launcher_foreground. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
     <group
-        android:scaleX="2"
-        android:scaleY="2"
-        android:translateX="30"
-        android:translateY="30">
+        android:scaleX="2.6666667"
+        android:scaleY="2.6666667"
+        android:translateX="22"
+        android:translateY="22">
         <path
-            android:fillColor="@android:color/black"
-            android:pathData="M12,3v10.55c-0.59,-0.34 -1.27,-0.55 -2,-0.55 -2.21,0 -4,1.79 -4,4s1.79,4 4,4 4,-1.79 4,-4V7h4V3h-6z" />
+            android:fillColor="#FF000000"
+            android:pathData="M11,3V13.55C10.41,13.21 9.73,13 9,13c-2.21,0 -4,1.79 -4,4c0,2.21 1.79,4 4,4c2.21,0 4,-1.79 4,-4V7c2.878696,0 6,2.0208333 6,2V5C19,5 15.137987,3 11,3Z" />
     </group>
 </vector>
