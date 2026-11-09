@@ -2,6 +2,11 @@
 
 package sh.hnet.music.ui.settings
 
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.OutlinedButton
 import android.app.LocaleManager
 import android.content.Context
 import android.os.LocaleList
@@ -30,7 +35,6 @@ import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.launch
 import sh.hnet.music.MusicApplication
 import sh.hnet.music.R
-import sh.hnet.music.ui.components.SettingsActionRow
 import sh.hnet.music.ui.components.SettingsDescription
 import sh.hnet.music.ui.components.SettingsGroup
 import sh.hnet.music.ui.components.SettingsPage
@@ -89,10 +93,15 @@ fun ResetScreen(onBack: () -> Unit) {
     val done = stringResource(R.string.msg_defaults_restored)
     SettingsPage(title = stringResource(R.string.title_settings_reset), onBack = onBack) {
         SettingsDescription(stringResource(R.string.desc_settings_reset))
-        SettingsGroup {
-            row { shapes ->
-                SettingsActionRow(shapes, R.drawable.ic_history, stringResource(R.string.button_restore_defaults), onClick = { confirming = true })
-            }
+        // A single destructive action: an outlined button in the error colour, as Remove folder and
+        // Clear queue (owner's decision)
+        OutlinedButton(
+            onClick = { confirming = true },
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+        ) {
+            Icon(painterResource(R.drawable.ic_history), contentDescription = null, modifier = Modifier.size(18.dp))
+            Text(stringResource(R.string.button_restore_defaults), modifier = Modifier.padding(start = 8.dp))
         }
     }
     if (confirming) {
