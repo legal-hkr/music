@@ -16,7 +16,7 @@
 
     <!-- Library and Search -->
     <string name="msg_library_filling">Muzyka pojawi się tutaj, gdy tylko pliki zostaną odczytane.</string>
-    <string name="msg_search_empty">Znajdź albumy, wykonawców i utwory ze swojej muzyki.</string>
+    <string name="msg_search_empty">Wpisz tytuł, wykonawcę, album lub nazwę playlisty.</string>
 
     <!-- Settings root -->
     <string name="title_settings">Ustawienia</string>

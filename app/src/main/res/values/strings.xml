@@ -14,7 +14,7 @@
 
     <!-- Library and Search (empty states until S2 and S6) -->
     <string name="msg_library_filling">Your music appears here as it\'s read.</string>
-    <string name="msg_search_empty">Find albums, artists and tracks in your music.</string>
+    <string name="msg_search_empty">Type a title, artist, album or playlist name.</string>
 
     <!-- Settings root -->
     <string name="title_settings">Settings</string>
