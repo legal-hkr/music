@@ -2,6 +2,7 @@
 
 package sh.hnet.music.ui.player
 
+import androidx.media3.common.Player
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -101,6 +102,8 @@ private fun rowsOf(queue: QueueSnapshot): List<Row> {
 fun QueueSheet(
     queue: QueueSnapshot,
     shuffle: Boolean,
+    /** Repeat one: only the current track is listed (it is the whole queue until switched off). */
+    repeatMode: Int,
     tracks: Map<String, LibraryTrack>,
     player: PlayerConnection,
     onDismiss: () -> Unit,
@@ -142,11 +145,13 @@ fun QueueSheet(
         },
     )
     // The player leads, except while a row is being dragged
-    LaunchedEffect(queue, reorder.draggedKey) {
+    LaunchedEffect(queue, repeatMode, reorder.draggedKey) {
         if (reorder.draggedKey == null) {
             val firstBefore = rows.firstOrNull()?.key
+            val shown = rowsOf(queue).drop(queue.current.coerceAtLeast(0))
             rows.clear()
-            rows.addAll(rowsOf(queue).drop(queue.current.coerceAtLeast(0)))
+            // Repeat one: the current track is all that plays; the rest comes back when it's off
+            rows.addAll(if (repeatMode == Player.REPEAT_MODE_ONE) shown.take(1) else shown)
             // The current track is always the first row: after Previous it comes back above the row
             // that was first, and the list would otherwise stay anchored to that one
             if (rows.firstOrNull()?.key != firstBefore) listState.scrollToItem(0)
@@ -162,12 +167,13 @@ fun QueueSheet(
     ) {
         Box(Modifier.fillMaxWidth()) {
             Column(Modifier.fillMaxWidth()) {
-                Header(queue, tracks) {
+                Header(queue, repeatMode, tracks) {
                     onSaveAsPlaylist(queue.items.drop(queue.current.coerceAtLeast(0)).mapNotNull { tracks[it.mediaId] })
                 }
                 LazyColumn(state = listState, contentPadding = PaddingValues(bottom = 24.dp), modifier = Modifier.fillMaxWidth()) {
                     itemsIndexed(rows, key = { _, row -> row.key }) { position, row ->
                         val isCurrent = row.key == currentKey
+                        val movable = !shuffle && !isCurrent
                         val track = tracks[row.item.mediaId]
                         val title = track?.displayTitle ?: row.item.title.orEmpty()
                         val rowModifier = Modifier
@@ -179,12 +185,12 @@ fun QueueSheet(
                                 track = track,
                                 isCurrent = isCurrent,
                                 // The current track stays where it is: no handle, no long-press drag
-                                reorderable = !shuffle && !isCurrent,
+                                reorderable = movable,
                                 onClick = { player.jumpTo(row.item.index) },
-                                onMoveUp = if (!shuffle && !isCurrent && position > 1) ({ player.move(row.item.index, row.item.index - 1) }) else null,
-                                onMoveDown = if (!shuffle && !isCurrent && position < rows.lastIndex) ({ player.move(row.item.index, row.item.index + 1) }) else null,
+                                onMoveUp = if (movable && position > 1) ({ player.move(row.item.index, row.item.index - 1) }) else null,
+                                onMoveDown = if (movable && position < rows.lastIndex) ({ player.move(row.item.index, row.item.index + 1) }) else null,
                                 onRemove = if (!isCurrent) ({ removeWithUndo(player, row.item.index, track, title, removedText, undo, snackbars, scope) { sheetState.expand() } }) else null,
-                                modifier = if (!shuffle && !isCurrent) Modifier.longPressDrag(reorder, row.key) else Modifier,
+                                modifier = if (movable) Modifier.longPressDrag(reorder, row.key) else Modifier,
                                 handleModifier = Modifier.dragHandle(reorder, row.key),
                             )
                         }
@@ -282,7 +288,7 @@ private fun removeWithUndo(
 }
 
 @Composable
-private fun Header(queue: QueueSnapshot, tracks: Map<String, LibraryTrack>, onSaveAsPlaylist: () -> Unit) {
+private fun Header(queue: QueueSnapshot, repeatMode: Int, tracks: Map<String, LibraryTrack>, onSaveAsPlaylist: () -> Unit) {
     val following = if (queue.current < 0) emptyList() else queue.items.drop(queue.current + 1)
     // The button sits beside the title, or under it when the two don't fit (Polish at 1.3)
     FlowRow(
@@ -293,7 +299,9 @@ private fun Header(queue: QueueSnapshot, tracks: Map<String, LibraryTrack>, onSa
     ) {
     Column {
         Text(stringResource(R.string.title_queue), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
-        val summary = if (following.isEmpty()) {
+        val summary = if (repeatMode == Player.REPEAT_MODE_ONE) {
+            stringResource(R.string.label_queue_repeat_one)
+        } else if (following.isEmpty()) {
             stringResource(R.string.label_queue_none_remaining)
         } else {
             val duration = following.sumOf { tracks[it.mediaId]?.durationMs ?: 0L }

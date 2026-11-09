@@ -494,7 +494,7 @@ fun MusicApp(openNowPlaying: Int = 0) {
             )
             if (queueOpen) {
                 QueueSheet(
-                    queue, playerState.shuffle, tracksByUri, playerModel.player,
+                    queue, playerState.shuffle, playerState.repeatMode, tracksByUri, playerModel.player,
                     onDismiss = { queueOpen = false },
                     // The sheet closes, so the result's snackbar (with View) can be seen
                     onSaveAsPlaylist = { queueOpen = false; queueToSave = it },

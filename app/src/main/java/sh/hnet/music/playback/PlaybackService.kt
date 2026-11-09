@@ -9,7 +9,6 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
@@ -38,9 +37,12 @@ class PlaybackService : MediaSessionService() {
     private val store by lazy { QueueStore(this) }
     private var saveJob: Job? = null
     private var restored = false
+    /** The ExoPlayer itself (the session holds it wrapped in RepeatOnePlayer). */
+    private var exoPlayer: ExoPlayer? = null
 
     private val shuffleCommand = SessionCommand(ACTION_SHUFFLE, Bundle.EMPTY)
     private val repeatCommand = SessionCommand(ACTION_REPEAT, Bundle.EMPTY)
+    private val reshuffleCommand = SessionCommand(QueueShuffleOrder.ACTION_RESHUFFLE, Bundle.EMPTY)
 
     override fun onCreate() {
         super.onCreate()
@@ -54,6 +56,8 @@ class PlaybackService : MediaSessionService() {
             .setHandleAudioBecomingNoisy(true)
             .setWakeMode(C.WAKE_MODE_LOCAL)
             .build()
+        // Our shuffle order: the current track first, inserted tracks where the queue shows them
+        player.shuffleOrder = QueueShuffleOrder(IntArray(0))
         // Tapping the notification opens the app on the now-playing screen
         val open = PendingIntent.getActivity(
             this, 0,
@@ -61,13 +65,17 @@ class PlaybackService : MediaSessionService() {
                 .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
-        session = MediaSession.Builder(this, player)
+        exoPlayer = player
+        // Repeat one: Next and Previous start the track again, wherever they come from
+        session = MediaSession.Builder(this, RepeatOnePlayer(player))
             .setSessionActivity(open)
             .setCallback(Callback())
             .setMediaButtonPreferences(buttons(player))
             .build()
         // Shuffle and repeat buttons in the notification follow the player's modes
         player.addListener(object : Player.Listener {
+            // Shuffle off needs nothing more: shuffling never changes the list, so the current track is
+            // back at its own place and what followed it there comes next (owner's decision)
             override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) = refreshButtons()
             override fun onRepeatModeChanged(repeatMode: Int) = refreshButtons()
             override fun onEvents(player: Player, events: Player.Events) {
@@ -156,7 +164,10 @@ class PlaybackService : MediaSessionService() {
             val start = if (currentKept >= 0) currentKept else kept.indexOfFirst { it.index > saved.current }.coerceAtLeast(0)
             player.setMediaItems(kept.map { known.getValue(it.value).toMediaItem() }, start, if (currentKept >= 0) saved.positionMs else 0)
             if (saved.shuffle && kept.size == saved.uris.size && saved.shuffleOrder.size == kept.size) {
-                player.shuffleOrder = DefaultShuffleOrder(saved.shuffleOrder.toIntArray(), System.nanoTime())
+                player.shuffleOrder = QueueShuffleOrder(saved.shuffleOrder.toIntArray())
+            } else if (saved.shuffle) {
+                // Some tracks left: shuffled anew from the current one
+                player.shuffleOrder = QueueShuffleOrder.fromCurrent(kept.size, start)
             }
             player.shuffleModeEnabled = saved.shuffle
             player.repeatMode = saved.repeatMode
@@ -204,6 +215,7 @@ class PlaybackService : MediaSessionService() {
                         .buildUpon()
                         .add(shuffleCommand)
                         .add(repeatCommand)
+                        .add(reshuffleCommand)
                         .build(),
                 )
                 .build()
@@ -216,7 +228,13 @@ class PlaybackService : MediaSessionService() {
         ): ListenableFuture<SessionResult> {
             val player = session.player
             when (customCommand.customAction) {
-                ACTION_SHUFFLE -> player.shuffleModeEnabled = !player.shuffleModeEnabled
+                ACTION_SHUFFLE -> {
+                    player.shuffleModeEnabled = !player.shuffleModeEnabled
+                    if (player.shuffleModeEnabled) exoPlayer?.let(::shuffleFromCurrent)
+                }
+                // Not conditional on shuffle being on: the controller's switch may arrive after this
+                // command; with shuffle off the order is simply unused
+                QueueShuffleOrder.ACTION_RESHUFFLE -> exoPlayer?.let(::shuffleFromCurrent)
                 ACTION_REPEAT -> player.repeatMode = PlayerConnection.nextRepeatMode(player.repeatMode)
                 else -> return Futures.immediateFuture(SessionResult(SessionError.ERROR_NOT_SUPPORTED))
             }
@@ -242,5 +260,10 @@ class PlaybackService : MediaSessionService() {
         const val SAVE_EVERY_MS = 10_000L
         const val ACTION_SHUFFLE = "sh.hnet.music.SHUFFLE"
         const val ACTION_REPEAT = "sh.hnet.music.REPEAT"
+
+        /** The current track first, the rest after it in random order (QueueShuffleOrder). */
+        fun shuffleFromCurrent(player: ExoPlayer) {
+            player.shuffleOrder = QueueShuffleOrder.fromCurrent(player.mediaItemCount, player.currentMediaItemIndex)
+        }
     }
 }

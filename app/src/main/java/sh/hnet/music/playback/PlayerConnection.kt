@@ -1,5 +1,7 @@
 package sh.hnet.music.playback
 
+import androidx.media3.session.SessionCommand
+import android.os.Bundle
 import android.content.ComponentName
 import android.content.Context
 import androidx.core.content.ContextCompat
@@ -98,7 +100,8 @@ class PlayerConnection(private val context: Context) {
             durationMs = player.duration.coerceAtLeast(0),
             shuffle = player.shuffleModeEnabled,
             repeatMode = player.repeatMode,
-            hasNext = player.hasNextMediaItem(),
+            // Repeat one: Next starts the track again, so there always is one
+            hasNext = player.hasNextMediaItem() || (player.repeatMode == Player.REPEAT_MODE_ONE && player.mediaItemCount > 0),
             ended = player.playbackState == Player.STATE_ENDED,
             queueSize = player.mediaItemCount,
             currentEntryId = player.currentMediaItem?.playlistEntryId,
@@ -141,6 +144,8 @@ class PlayerConnection(private val context: Context) {
             shuffle?.let { c.shuffleModeEnabled = it }
             val index = if (shuffle == true) tracks.indices.random() else start.coerceIn(tracks.indices)
             c.setMediaItems(tracks.mapIndexed { i, track -> track.toMediaItem(playlistEntries?.getOrNull(i)) }, index, 0)
+            // A new queue played shuffled: from the chosen track on, all the others after it
+            if (c.shuffleModeEnabled) reshuffle(c)
             c.prepare()
             c.play()
         }
@@ -180,7 +185,8 @@ class PlayerConnection(private val context: Context) {
         }
     }
 
-    fun next() = withController { it.seekToNext() }
+    /** Repeat one: the current track again (the queue is just this track then). */
+    fun next() = withController { if (it.repeatMode == Player.REPEAT_MODE_ONE) it.seekTo(0) else it.seekToNext() }
 
     /** After the queue ended: from its first track (§5.2). */
     fun playFromStart() = withController { c ->
@@ -191,11 +197,23 @@ class PlayerConnection(private val context: Context) {
     }
 
     /** Within the first 3 s the previous track, after that the start of this one (Media3's default). */
-    fun previous() = withController { it.seekToPrevious() }
+    fun previous() = withController { if (it.repeatMode == Player.REPEAT_MODE_ONE) it.seekTo(0) else it.seekToPrevious() }
 
     fun seekTo(positionMs: Long) = withController { it.seekTo(positionMs) }
 
-    fun setShuffle(enabled: Boolean) = withController { it.shuffleModeEnabled = enabled }
+    /**
+     * Shuffle on: the current track stays where it is and every other one follows it in random
+     * order (the queue sheet shows them all). Off: the queue's own order again, from the current
+     * track's place in it – shuffling never changes that order.
+     */
+    fun setShuffle(enabled: Boolean) = withController { c ->
+        c.shuffleModeEnabled = enabled
+        if (enabled) reshuffle(c)
+    }
+
+    private fun reshuffle(c: MediaController) {
+        c.sendCustomCommand(SessionCommand(QueueShuffleOrder.ACTION_RESHUFFLE, Bundle.EMPTY), Bundle.EMPTY)
+    }
 
     /** Off, all, one, off… */
     fun cycleRepeat() = withController { it.repeatMode = nextRepeatMode(it.repeatMode) }
