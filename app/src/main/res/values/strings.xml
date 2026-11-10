@@ -220,16 +220,16 @@
     <string name="label_settings_replaygain_value">ReplayGain: %s</string>
     <string name="title_replaygain">ReplayGain</string>
     <string name="label_rg_off">Off</string>
-    <string name="desc_rg_off">Files play at their own loudness</string>
+    <string name="desc_rg_off">No loudness levelling</string>
     <string name="label_rg_track">Track</string>
     <string name="desc_rg_track">Every track at the same loudness</string>
     <string name="label_rg_album">Album</string>
     <string name="desc_rg_album">Keeps the steps between tracks of an album</string>
     <string name="label_rg_auto">Automatic</string>
-    <string name="desc_rg_auto">Album gain when an album plays in order, track gain otherwise</string>
+    <string name="desc_rg_auto">As “Album” when playing in order, as “Track” otherwise</string>
     <string name="title_volume">Volume</string>
-    <string name="label_preamp">Files without ReplayGain</string>
-    <string name="desc_preamp">Pre-amp for files with no gain tags</string>
+    <string name="label_preamp">Pre-amp for files without tags</string>
+    <string name="desc_preamp">For files that have no ReplayGain tags</string>
     <string name="label_db">%s dB</string>
     <string name="label_prevent_clipping">Prevent clipping</string>
     <string name="desc_prevent_clipping">Lowers the gain where a track\'s peak would clip</string>
@@ -483,8 +483,8 @@
     <!-- DSD -->
     <string name="label_tech_dsd">%1$s %2$s MHz</string>
     <string name="title_dsd">DSD</string>
-    <string name="label_dsd_pcm_rate">Converted to</string>
-    <string name="msg_dsd_pcm_rate">Music plays DSD files as PCM. The higher rate keeps more of the ultrasonic range and takes more work from the phone. It applies from the next track.</string>
+    <string name="label_dsd_pcm_rate">PCM sample rate</string>
+    <string name="msg_dsd_pcm_rate">DSD files are converted to PCM for playback. The higher rate keeps more of the range above 20 kHz and takes more work from the phone. It applies from the next track.</string>
     <string name="label_khz">%s kHz</string>
     <!-- Equalizer (SPEC-equalizer) -->
     <string name="title_equalizer">Equalizer</string>

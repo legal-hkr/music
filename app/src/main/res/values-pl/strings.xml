@@ -248,19 +248,19 @@
     <string name="label_settings_replaygain_value">ReplayGain: %s</string>
     <string name="title_replaygain">ReplayGain</string>
     <string name="label_rg_off">Wyłączony</string>
-    <string name="desc_rg_off">Każdy plik gra z głośnością, z jaką go nagrano</string>
+    <string name="desc_rg_off">Bez wyrównywania głośności</string>
     <string name="label_rg_track">Utwór</string>
-    <string name="desc_rg_track">Wszystkie utwory grają równie głośno</string>
+    <string name="desc_rg_track">Wszystkie utwory są odtwarzane równie głośno</string>
     <string name="label_rg_album">Album</string>
     <string name="desc_rg_album">Zachowuje różnice głośności między utworami albumu</string>
     <string name="label_rg_auto">Automatycznie</string>
-    <string name="desc_rg_auto">Wartość albumu, gdy album gra po kolei, w innych razach wartość utworu</string>
+    <string name="desc_rg_auto">Jak „Album” przy odtwarzaniu po kolei, poza tym jak „Utwór”</string>
     <string name="title_volume">Głośność</string>
-    <string name="label_preamp">Pliki bez ReplayGain</string>
-    <string name="desc_preamp">Wzmocnienie dla plików bez tagów głośności</string>
+    <string name="label_preamp">Wzmocnienie plików bez tagów</string>
+    <string name="desc_preamp">Dla plików, które nie mają tagów ReplayGain</string>
     <string name="label_db">%s dB</string>
     <string name="label_prevent_clipping">Zapobiegaj przesterowaniu</string>
-    <string name="desc_prevent_clipping">Ścisza utwory, których szczyty zostałyby obcięte</string>
+    <string name="desc_prevent_clipping">Zmniejsza wzmocnienie, gdy szczyt utworu zostałby obcięty</string>
     <string name="label_replaygain_applied_album">ReplayGain: %s dB (album)</string>
     <string name="label_replaygain_applied_track">ReplayGain: %s dB (utwór)</string>
     <string name="label_licences">Licencje open source</string>
@@ -530,8 +530,8 @@
     <!-- DSD -->
     <string name="label_tech_dsd">%1$s %2$s MHz</string>
     <string name="title_dsd">DSD</string>
-    <string name="label_dsd_pcm_rate">Konwersja do</string>
-    <string name="msg_dsd_pcm_rate">Pliki DSD są odtwarzane jako PCM. Wyższa częstotliwość zachowuje szersze pasmo ultradźwięków, ale bardziej obciąża telefon. Zmiana działa od następnego utworu.</string>
+    <string name="label_dsd_pcm_rate">Częstotliwość PCM</string>
+    <string name="msg_dsd_pcm_rate">Pliki DSD są odtwarzane po konwersji na PCM. Wyższa częstotliwość zachowuje więcej pasma powyżej 20 kHz, ale bardziej obciąża telefon. Zmiana obowiązuje od następnego utworu.</string>
     <string name="label_khz">%s kHz</string>
     <!-- Korektor (SPEC-equalizer) -->
     <string name="title_equalizer">Korektor</string>
