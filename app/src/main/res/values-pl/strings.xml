@@ -640,4 +640,7 @@
     <string name="label_eq_bypassed">%s (pominięty: bit-perfect)</string>
     <string name="label_curve_not_applied">Nie zastosowano</string>
     <string name="msg_eq_bitperfect">Wyjście bit-perfect jest aktywne, więc korektora nie słychać. Wszystkie nastawy pozostają bez zmian.</string>
+    <string name="label_dsd_boost">Wyrównanie głośności DSD i PCM</string>
+    <string name="desc_dsd_boost">Wzmocnienie o 6 dB przy konwersji DSD na PCM</string>
+    <string name="msg_dsd_native">Przy aktywnym wyjściu bit-perfect dźwięk DSD trafia do przetwornika bez konwersji (DoP), jeśli urządzenie obsługuje wymaganą częstotliwość próbkowania. Te ustawienia są wtedy pomijane.</string>
 </resources>

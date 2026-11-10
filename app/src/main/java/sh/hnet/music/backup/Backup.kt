@@ -65,6 +65,8 @@ data class BackupSettings(
         val dsdPcmRate: Int? = null,
         /** Bit-perfect output; absent in backups from before it. */
         val bitPerfect: Boolean? = null,
+        /** +6 dB for DSD converted to PCM; absent in backups from before the switch. */
+        val dsdBoost: Boolean? = null,
     )
 }
 

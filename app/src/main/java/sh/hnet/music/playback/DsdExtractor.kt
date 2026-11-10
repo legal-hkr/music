@@ -2,9 +2,6 @@
 
 package sh.hnet.music.playback
 
-// DRAFT: written against the Media3 extractor API from memory and not compiled (the place it was
-// written in had no Media3 artifacts). The logic it leans on – DsdFormat and DsdToPcm – is tested.
-
 import android.net.Uri
 import androidx.media3.common.C
 import androidx.media3.common.Format
@@ -29,15 +26,27 @@ import java.io.EOFException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
+/** How a DSD file is to be played, asked when it is opened. */
+interface DsdPlayback {
+    /** The PCM rate from the settings (88 200 or 176 400). */
+    fun pcmRate(): Int
+
+    /** The gain of the conversion to PCM: 6 dB to play DSD as loud as PCM, or 0. */
+    fun pcmGainDb(): Float
+
+    /** Whether this stream goes out as DoP, untouched, instead (bit-perfect output to a DAC that takes its rate). */
+    fun asDop(dsdRate: Int, channels: Int): Boolean
+}
+
 /** Media3's own extractors, with DSD asked first. */
-class DsdExtractorsFactory(private val preferredPcmRate: () -> Int) : ExtractorsFactory {
+class DsdExtractorsFactory(private val settings: DsdPlayback) : ExtractorsFactory {
     private val defaults = DefaultExtractorsFactory()
 
     override fun createExtractors(): Array<Extractor> =
-        arrayOf<Extractor>(DsdExtractor(preferredPcmRate)) + defaults.createExtractors()
+        arrayOf<Extractor>(DsdExtractor(settings)) + defaults.createExtractors()
 
     override fun createExtractors(uri: Uri, responseHeaders: Map<String, List<String>>): Array<Extractor> =
-        arrayOf<Extractor>(DsdExtractor(preferredPcmRate)) + defaults.createExtractors(uri, responseHeaders)
+        arrayOf<Extractor>(DsdExtractor(settings)) + defaults.createExtractors(uri, responseHeaders)
 }
 
 /**
@@ -51,14 +60,20 @@ class DsdExtractorsFactory(private val preferredPcmRate: () -> Int) : Extractors
  * Each file has its own extractor, so the converter's filter doesn't run across two tracks of a
  * gapless album: the last 0.15 ms of one and the first of the next fade to and from silence.
  *
- * @param preferredPcmRate the output rate from the settings (88 200 or 176 400), read when a file is opened
+ * With bit-perfect output to a DAC that takes the rate, the 1-bit audio isn't converted at all: it is
+ * packed as DoP ([DsdToDop]) into 24-bit samples the DAC unpacks.
+ *
+ * @param settings the conversion's rate and gain, and whether to hand on DoP, read when a file is opened
  */
-class DsdExtractor(private val preferredPcmRate: () -> Int) : Extractor {
+class DsdExtractor(private val settings: DsdPlayback) : Extractor {
     private lateinit var output: ExtractorOutput
     private lateinit var track: TrackOutput
 
     private var stream: DsdStream? = null
-    private lateinit var converter: DsdToPcm
+    private var converter: DsdToPcm? = null
+    private var dop: DsdToDop? = null
+    private var outRate = 0
+    private var outFrameBytes = 0
 
     /** Bytes of one channel that hold audio (the last DSF block is filled up with padding). */
     private var totalFrames = 0L
@@ -104,13 +119,19 @@ class DsdExtractor(private val preferredPcmRate: () -> Int) : Extractor {
         }
         pcm.clear()
         if (!read) {
-            converter.finish(pcm)
+            dop?.finish(pcm) ?: converter?.finish(pcm)
             writeSample()
             finished = true
             return Extractor.RESULT_END_OF_INPUT
         }
-        if (s.blockSize > 0) converter.planar(this.input, s.blockSize, frames, s.lsbFirst, pcm)
-        else converter.interleaved(this.input, 0, frames, s.lsbFirst, pcm)
+        val packer = dop
+        if (packer != null) {
+            if (s.blockSize > 0) packer.planar(this.input, s.blockSize, frames, s.lsbFirst, pcm)
+            else packer.interleaved(this.input, 0, frames, s.lsbFirst, pcm)
+        } else {
+            if (s.blockSize > 0) converter?.planar(this.input, s.blockSize, frames, s.lsbFirst, pcm)
+            else converter?.interleaved(this.input, 0, frames, s.lsbFirst, pcm)
+        }
         nextFrame += frames
         writeSample()
         return Extractor.RESULT_CONTINUE
@@ -127,25 +148,40 @@ class DsdExtractor(private val preferredPcmRate: () -> Int) : Extractor {
         // DSF blocks of another size than ours would need groups of their own
         if (s.blockSize > 0 && s.blockSize != GROUP) throw ParserException.createForUnsupportedContainerFeature("DSF block size")
 
-        val pcmRate = DsdToPcm.pcmRateFor(s.sampleRate, preferredPcmRate())
-        converter = DsdToPcm(s.channels, s.sampleRate, pcmRate)
+        val asDop = settings.asDop(s.sampleRate, s.channels)
+        val maxBytes: Int
+        if (asDop) {
+            val packer = DsdToDop(s.channels)
+            dop = packer
+            converter = null
+            outRate = DsdToDop.pcmRate(s.sampleRate)
+            outFrameBytes = s.channels * 3
+            maxBytes = packer.maxOutputBytes(GROUP)
+        } else {
+            val pcm = DsdToPcm(s.channels, s.sampleRate, DsdToPcm.pcmRateFor(s.sampleRate, settings.pcmRate()), settings.pcmGainDb())
+            converter = pcm
+            dop = null
+            outRate = pcm.pcmRate
+            outFrameBytes = s.channels * 4
+            maxBytes = pcm.maxOutputBytes(GROUP)
+        }
         totalFrames = (s.sampleCount + 7) / 8
         nextFrame = 0
         startTimeUs = 0
         framesOut = 0
         finished = false
         this.input = ByteArray(GROUP * s.channels)
-        pcmBytes = ByteArray(converter.maxOutputBytes(GROUP))
+        pcmBytes = ByteArray(maxBytes)
         pcm = ByteBuffer.wrap(pcmBytes).order(ByteOrder.LITTLE_ENDIAN)
         stream = s
 
         track.format(
             Format.Builder()
                 .setSampleMimeType(MimeTypes.AUDIO_RAW)
-                .setPcmEncoding(C.ENCODING_PCM_FLOAT)
+                .setPcmEncoding(if (asDop) C.ENCODING_PCM_24BIT else C.ENCODING_PCM_FLOAT)
                 .setChannelCount(s.channels)
-                .setSampleRate(pcmRate)
-                .setAverageBitrate(pcmRate * s.channels * 32)
+                .setSampleRate(outRate)
+                .setAverageBitrate(outRate * outFrameBytes * 8)
                 .build(),
         )
         output.seekMap(Seeking(s, totalFrames))
@@ -157,12 +193,12 @@ class DsdExtractor(private val preferredPcmRate: () -> Int) : Extractor {
     private fun writeSample() {
         val size = pcm.position()
         if (size == 0) return
-        val s = stream ?: return
+        if (stream == null) return
         sample.reset(pcmBytes, size)
         track.sampleData(sample, size)
-        val timeUs = startTimeUs + framesOut * C.MICROS_PER_SECOND / converter.pcmRate
+        val timeUs = startTimeUs + framesOut * C.MICROS_PER_SECOND / outRate
         track.sampleMetadata(timeUs, C.BUFFER_FLAG_KEY_FRAME, size, 0, null)
-        framesOut += size / (s.channels * 4)
+        framesOut += size / outFrameBytes
     }
 
     override fun seek(position: Long, timeUs: Long) {
@@ -177,7 +213,8 @@ class DsdExtractor(private val preferredPcmRate: () -> Int) : Extractor {
         startTimeUs = nextFrame * 8 * C.MICROS_PER_SECOND / s.sampleRate
         framesOut = 0
         finished = false
-        converter.reset()
+        converter?.reset()
+        dop?.reset()
     }
 
     override fun release() = Unit

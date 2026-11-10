@@ -587,4 +587,7 @@
     <string name="label_eq_bypassed">%s (bypassed: bit-perfect)</string>
     <string name="label_curve_not_applied">Not applied</string>
     <string name="msg_eq_bitperfect">Bit-perfect output is on, so the equalizer isn’t heard. Everything here stays as set.</string>
+    <string name="label_dsd_boost">Play DSD as loud as PCM</string>
+    <string name="desc_dsd_boost">Adds 6 dB when DSD is converted to PCM</string>
+    <string name="msg_dsd_native">With bit-perfect output active, DSD goes to the DAC unconverted (DoP) when the device supports the required sample rate. These settings are then bypassed.</string>
 </resources>

@@ -41,6 +41,7 @@ import sh.hnet.music.R
 import sh.hnet.music.playback.GainSettings
 import sh.hnet.music.playback.ReplayGainMode
 import sh.hnet.music.ui.components.SettingsGroup
+import sh.hnet.music.ui.components.SettingsNote
 import sh.hnet.music.ui.components.SettingsPage
 import sh.hnet.music.ui.components.settingsRowColors
 import sh.hnet.music.ui.player.decibels
@@ -66,6 +67,7 @@ fun PlaybackSettingsScreen(onBack: () -> Unit) {
     val preferences = (LocalContext.current.applicationContext as MusicApplication).preferences
     val settings by preferences.gain.collectAsStateWithLifecycle(GainSettings())
     val dsdRate by preferences.dsdPcmRate.collectAsStateWithLifecycle(DSD_PCM_RATES.first())
+    val dsdBoost by preferences.dsdBoost.collectAsStateWithLifecycle(true)
     var choosingDsdRate by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val groupLabel = stringResource(R.string.title_replaygain)
@@ -118,7 +120,20 @@ fun PlaybackSettingsScreen(onBack: () -> Unit) {
                     Text(stringResource(R.string.label_dsd_pcm_rate))
                 }
             }
+            row { shapes ->
+                SegmentedListItem(
+                    checked = dsdBoost,
+                    onCheckedChange = { on -> scope.launch { preferences.setDsdBoost(on) } },
+                    shapes = shapes,
+                    colors = settingsRowColors(),
+                    trailingContent = { Switch(checked = dsdBoost, onCheckedChange = null) },
+                    supportingContent = { Text(stringResource(R.string.desc_dsd_boost)) },
+                ) {
+                    Text(stringResource(R.string.label_dsd_boost))
+                }
+            }
         }
+        SettingsNote(stringResource(R.string.msg_dsd_native))
     }
 
     if (choosingDsdRate) {

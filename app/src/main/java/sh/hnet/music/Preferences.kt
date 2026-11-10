@@ -94,6 +94,7 @@ class Preferences(private val context: Context) {
                 preventClipping = prefs[preventClippingKey],
                 dsdPcmRate = prefs[dsdPcmRateKey],
                 bitPerfect = prefs[bitPerfectKey],
+                dsdBoost = prefs[dsdBoostKey],
             ),
             exportFormat = prefs[exportFormatKey],
             skipShorterThanSeconds = prefs[skipShortKey] ?: 0,
@@ -118,6 +119,7 @@ class Preferences(private val context: Context) {
         backup.playback.preampDb?.let { prefs[preampKey] = it }
         backup.playback.preventClipping?.let { prefs[preventClippingKey] = it }
         backup.playback.bitPerfect?.let { prefs[bitPerfectKey] = it }
+        backup.playback.dsdBoost?.let { prefs[dsdBoostKey] = it }
         backup.playback.dsdPcmRate?.takeIf { it in DSD_PCM_RATES }?.let { prefs[dsdPcmRateKey] = it }
         backup.exportFormat?.let { prefs[exportFormatKey] = it }
         backup.artistsWithAlbumsOnly?.let { prefs[artistsWithAlbumsKey] = it }
@@ -197,4 +199,11 @@ class Preferences(private val context: Context) {
     val dsdPcmRate: Flow<Int> = context.settings.data.map { prefs -> prefs[dsdPcmRateKey]?.takeIf { it in DSD_PCM_RATES } ?: DSD_PCM_RATES.first() }
 
     suspend fun setDsdPcmRate(rate: Int) = context.settings.edit { it[dsdPcmRateKey] = rate }
+
+    private val dsdBoostKey = booleanPreferencesKey("dsd_boost")
+
+    /** DSD converted to PCM gets +6 dB, to play as loud as PCM; on by default. */
+    val dsdBoost: Flow<Boolean> = context.settings.data.map { prefs -> prefs[dsdBoostKey] ?: true }
+
+    suspend fun setDsdBoost(on: Boolean) = context.settings.edit { it[dsdBoostKey] = on }
 }

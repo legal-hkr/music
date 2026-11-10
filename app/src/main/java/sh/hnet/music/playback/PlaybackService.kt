@@ -49,6 +49,7 @@ class PlaybackService : MediaSessionService() {
     private val undoClearCommand = SessionCommand(QueueCommands.ACTION_UNDO_CLEAR, Bundle.EMPTY)
     /** The PCM rate DSD files are converted to (Settings › Playback); read on the loading thread. */
     @Volatile private var dsdPcmRate = DSD_PCM_RATES.first()
+    @Volatile private var dsdBoost = true
     /** Files that failed one after another with nothing playing in between. */
     private var failedInARow = 0
     /** The last Clear queue, until its Undo or the next one. */
@@ -64,7 +65,18 @@ class PlaybackService : MediaSessionService() {
         val gainSink = ReplayGainRenderersFactory.sink(this, bitPerfect)
         val player = ExoPlayer.Builder(this, ReplayGainRenderersFactory(this, gainSink))
             // DSD (DSF, DSDIFF) is converted to PCM by our own extractor, asked before Media3's
-            .setMediaSourceFactory(DefaultMediaSourceFactory(this, DsdExtractorsFactory { dsdPcmRate }))
+            .setMediaSourceFactory(
+                DefaultMediaSourceFactory(
+                    this,
+                    DsdExtractorsFactory(
+                        object : DsdPlayback {
+                            override fun pcmRate() = dsdPcmRate
+                            override fun pcmGainDb() = if (dsdBoost) 6f else 0f
+                            override fun asDop(dsdRate: Int, channels: Int) = bitPerfect.wantsDop(dsdRate, channels)
+                        },
+                    ),
+                ),
+            )
             .setAudioAttributes(attributes, /* handleAudioFocus = */ true)
             .setHandleAudioBecomingNoisy(true)
             .setWakeMode(C.WAKE_MODE_LOCAL)
@@ -153,6 +165,9 @@ class PlaybackService : MediaSessionService() {
         // Read by the extractor when it opens a file: a new rate applies from the next one
         scope.launch {
             (application as MusicApplication).preferences.dsdPcmRate.collect { dsdPcmRate = it }
+        }
+        scope.launch {
+            (application as MusicApplication).preferences.dsdBoost.collect { dsdBoost = it }
         }
         // Play counts: a listen of at least half a track (checked every second while playing)
         val trackDao = (application as MusicApplication).database.trackDao()

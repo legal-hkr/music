@@ -133,6 +133,7 @@ class ReplayGainSink(sink: AudioSink, private val bitPerfect: BitPerfectControll
     private var passing = false
     /** The stream goes out bit-perfect: nothing changes its samples. */
     private var exact = false
+    private var sampleRate = 0
 
     /** Called on the playback thread as a track's first sample is about to be written. */
     fun startTrack(next: TrackGain?) {
@@ -149,6 +150,7 @@ class ReplayGainSink(sink: AudioSink, private val bitPerfect: BitPerfectControll
         val format = audioSinkConfig.format
         encoding = if (format.pcmEncoding in CONVERTIBLE) format.pcmEncoding else C.ENCODING_INVALID
         channels = format.channelCount
+        sampleRate = format.sampleRate
         if (encoding != C.ENCODING_INVALID) eq.configure(format.sampleRate, channels)
         // Decided here, per stream; the output is opened to match when this stream's first sample is due
         exact = bitPerfect?.prepare(format.sampleRate, exactBits(encoding), channels) == true
@@ -204,6 +206,10 @@ class ReplayGainSink(sink: AudioSink, private val bitPerfect: BitPerfectControll
         when (encoding) {
             C.ENCODING_PCM_FLOAT -> repeat(samples) { converted.putFloat(src.getFloat() * g) }
             C.ENCODING_PCM_16BIT -> repeat(samples) { converted.putFloat(src.getShort() / 32768f * g) }
+            // DSD prepared as DoP while bit-perfect output was possible, and it no longer is: as PCM it
+            // would be noise, so silence until the player has opened the file again (as PCM)
+            C.ENCODING_PCM_24BIT if !exact && sampleRate >= DOP_MIN_RATE && channels > 0 && BitPerfect.isDop24(input, channels) ->
+                repeat(samples) { converted.putFloat(0f) }
             C.ENCODING_PCM_24BIT -> repeat(samples) {
                 val v = (src.get().toInt() and 0xFF) or ((src.get().toInt() and 0xFF) shl 8) or (src.get().toInt() shl 16)
                 converted.putFloat(v / 8388608f * g)
@@ -242,6 +248,8 @@ class ReplayGainSink(sink: AudioSink, private val bitPerfect: BitPerfectControll
     }
 
     private companion object {
+        /** DSD64 as DoP; nothing slower can be DoP. */
+        const val DOP_MIN_RATE = 176_400
         val CONVERTIBLE = setOf(C.ENCODING_PCM_16BIT, C.ENCODING_PCM_24BIT, C.ENCODING_PCM_32BIT, C.ENCODING_PCM_FLOAT)
 
         /** The size of integer samples the float path carries exactly; 0 for the rest (32-bit, float, not PCM). */

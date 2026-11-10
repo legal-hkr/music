@@ -75,6 +75,35 @@ object BitPerfect {
         }
     }
 
+    /**
+     * Whether [input] (24-bit little-endian samples, interleaved) is DoP: the marker byte on top of
+     * every sample, alternating from frame to frame. Checked over the first frames; music doesn't
+     * look like this.
+     */
+    fun isDop24(input: ByteBuffer, channels: Int): Boolean =
+        isDop(input.remaining() / (3 * channels), channels) { frame, channel -> input.get(input.position() + (frame * channels + channel) * 3 + 2) }
+
+    /** The same for float samples made from such 24-bit ones. */
+    fun isDopFloat(input: ByteBuffer, channels: Int): Boolean {
+        val source = input.duplicate().order(ByteOrder.nativeOrder())
+        return isDop(source.remaining() / (4 * channels), channels) { frame, channel ->
+            ((source.getFloat(source.position() + (frame * channels + channel) * 4) * SCALE_24).roundToInt() shr 16).toByte()
+        }
+    }
+
+    private inline fun isDop(frames: Int, channels: Int, top: (frame: Int, channel: Int) -> Byte): Boolean {
+        if (channels <= 0 || frames < 2) return false
+        var expected = top(0, 0)
+        if (expected != DsdToDop.MARKER_A && expected != DsdToDop.MARKER_B) return false
+        for (frame in 0 until minOf(frames, DOP_FRAMES_CHECKED)) {
+            for (channel in 0 until channels) if (top(frame, channel) != expected) return false
+            expected = if (expected == DsdToDop.MARKER_A) DsdToDop.MARKER_B else DsdToDop.MARKER_A
+        }
+        return true
+    }
+
+    private const val DOP_FRAMES_CHECKED = 8
+
     /** Sources the float path carries exactly. */
     private val EXACT_BITS = setOf(16, 24)
     private val OUTPUT_BITS = setOf(16, 24, 32)
@@ -162,6 +191,15 @@ class BitPerfectController(context: Context) {
         return Choice(device, attributes, chosen.bits, channels)
     }
 
+    /**
+     * Whether a DSD stream is handed on as DoP rather than converted to PCM: bit-perfect output is
+     * on and the connected device takes 24-bit samples at the rate DoP needs. Asked when a file is opened.
+     */
+    fun wantsDop(dsdRate: Int, channels: Int): Boolean {
+        val rate = DsdToDop.pcmRate(dsdRate)
+        return rate > 0 && choose(rate, 24, channels) != null
+    }
+
     /** Sets the device's mixer for [choice]; false when the system refuses (the stream then plays the usual way). */
     fun open(choice: Choice): Boolean {
         val done = try {
@@ -230,7 +268,8 @@ class BitPerfectOutputProvider private constructor(
             }
         }
         controller.close()
-        return ChosenOutput(super.getAudioOutput(config), null, controller)
+        // A stream prepared as bit-perfect that couldn't be opened so: DoP must not be heard as PCM
+        return ChosenOutput(super.getAudioOutput(config), null, controller, guardChannels = if (choice != null) Integer.bitCount(config.channelMask) else 0)
     }
 
     companion object {
@@ -253,25 +292,44 @@ private class ChosenOutput(
     private val output: AudioOutput,
     private val choice: BitPerfectController.Choice?,
     private val controller: BitPerfectController,
+    /** Without a [choice]: the channels of a float stream to check for DoP and silence; 0 not to. */
+    private val guardChannels: Int = 0,
 ) : ForwardingAudioOutput(output) {
     private var converted: ByteBuffer = ByteBuffer.allocateDirect(0).apply { limit(0) }
     private var sourceStart = 0
+    private var inFrame = 1
+    private var outFrame = 1
 
     override fun write(buffer: ByteBuffer, encodedAccessUnitCount: Int, presentationTimeUs: Long): Boolean {
-        if (choice == null) return output.write(buffer, encodedAccessUnitCount, presentationTimeUs)
-        val inFrame = 4 * choice.sourceChannels
         // The same buffer comes back until the track has taken all of it
         if (!converted.hasRemaining()) {
-            val size = BitPerfect.outputBytes(buffer.remaining(), choice.sourceChannels, choice.bits)
-            if (converted.capacity() < size) converted = ByteBuffer.allocateDirect(size)
-            converted.clear()
-            BitPerfect.toIntegers(buffer, choice.sourceChannels, choice.bits, converted)
-            converted.flip()
+            when {
+                choice != null -> {
+                    val size = BitPerfect.outputBytes(buffer.remaining(), choice.sourceChannels, choice.bits)
+                    if (converted.capacity() < size) converted = ByteBuffer.allocateDirect(size)
+                    converted.clear()
+                    BitPerfect.toIntegers(buffer, choice.sourceChannels, choice.bits, converted)
+                    converted.flip()
+                    inFrame = 4 * choice.sourceChannels
+                    outFrame = choice.bits / 8 * 2
+                }
+                guardChannels > 0 && BitPerfect.isDopFloat(buffer, guardChannels) -> {
+                    // Silence of the same length
+                    val size = buffer.remaining()
+                    if (converted.capacity() < size) converted = ByteBuffer.allocateDirect(size)
+                    converted.clear()
+                    repeat(size) { converted.put(0) }
+                    converted.flip()
+                    inFrame = 1
+                    outFrame = 1
+                }
+                else -> return output.write(buffer, encodedAccessUnitCount, presentationTimeUs)
+            }
             sourceStart = buffer.position()
         }
         val done = output.write(converted, encodedAccessUnitCount, presentationTimeUs)
         // Mirror what the track took, in the sink's frames
-        buffer.position(sourceStart + converted.position() / (choice.bits / 8 * 2) * inFrame)
+        buffer.position(sourceStart + converted.position() / outFrame * inFrame)
         return done
     }
 
