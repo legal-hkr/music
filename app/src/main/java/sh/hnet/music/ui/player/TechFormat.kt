@@ -10,6 +10,7 @@ import sh.hnet.music.tags.AudioCodec
 import java.text.NumberFormat
 
 fun codecName(codec: AudioCodec): String = when (codec) {
+    AudioCodec.DSD -> "DSD"
     AudioCodec.FLAC -> "FLAC"
     AudioCodec.ALAC -> "ALAC"
     AudioCodec.AAC -> "AAC"
@@ -28,12 +29,23 @@ fun sampleRateText(rate: Int): String {
     return format.format(rate / 1000.0)
 }
 
-/** "FLAC – 24 bit / 96 kHz", "AAC – 256 kb/s" (SPEC §9.3). */
+/** "DSD64", "DSD128": the bit rate as a multiple of a CD's sample rate (streams based on 48 kHz alike). */
+fun dsdName(sampleRate: Int): String = "DSD" + sampleRate / (if (sampleRate % 44_100 == 0) 44_100 else 48_000)
+
+/** "FLAC 24 bit / 96 kHz", "AAC 256 kb/s", "DSD64 2.8 MHz" (SPEC §9.3). */
 @Composable
 fun techLabel(track: Track): String {
     val codec = codecName(track.codec)
     val bits = track.bitsPerSample
     return when {
+        // 1-bit audio: its rate in MHz says more than "1 bit"
+        track.codec == AudioCodec.DSD && track.sampleRate > 0 -> {
+            val megahertz = NumberFormat.getNumberInstance(LocalConfiguration.current.locales[0]).apply {
+                minimumFractionDigits = 1
+                maximumFractionDigits = 1
+            }.format(track.sampleRate / 1_000_000.0)
+            stringResource(R.string.label_tech_dsd, dsdName(track.sampleRate), megahertz)
+        }
         bits != null && track.sampleRate > 0 -> stringResource(R.string.label_tech_lossless, codec, bits.toString(), sampleRateText(track.sampleRate))
         track.bitrateKbps != null -> stringResource(R.string.label_tech_lossy, codec, NumberFormat.getIntegerInstance(LocalConfiguration.current.locales[0]).format(track.bitrateKbps))
         else -> codec

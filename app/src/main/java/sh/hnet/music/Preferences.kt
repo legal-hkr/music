@@ -26,6 +26,9 @@ private const val LAST_USED = "LAST_USED"
 /** Skip short files: Off, 10, 30 or 60 s. */
 val SKIP_SHORT_CHOICES = listOf(0, 10, 30, 60)
 
+/** DSD is played as PCM at 88.2 or 176.4 kHz (streams based on 48 kHz get 96 or 192 kHz). */
+val DSD_PCM_RATES = listOf(88_200, 176_400)
+
 /** Choices the user made in the UI that outlive the process (app-private, not backed up). */
 class Preferences(private val context: Context) {
     private val albumSortKey = stringPreferencesKey("album_sort")
@@ -85,7 +88,12 @@ class Preferences(private val context: Context) {
                 order = prefs[viewOrderKey]?.let { LibraryView.order(it).map(LibraryView::name) }.orEmpty(),
                 opensOn = prefs[startViewKey],
             ),
-            playback = BackupSettings.Playback(replayGain = prefs[gainModeKey], preampDb = prefs[preampKey], preventClipping = prefs[preventClippingKey]),
+            playback = BackupSettings.Playback(
+                replayGain = prefs[gainModeKey],
+                preampDb = prefs[preampKey],
+                preventClipping = prefs[preventClippingKey],
+                dsdPcmRate = prefs[dsdPcmRateKey],
+            ),
             exportFormat = prefs[exportFormatKey],
             skipShorterThanSeconds = prefs[skipShortKey] ?: 0,
             artistsWithAlbumsOnly = prefs[artistsWithAlbumsKey],
@@ -108,6 +116,7 @@ class Preferences(private val context: Context) {
         backup.playback.replayGain?.let { prefs[gainModeKey] = it }
         backup.playback.preampDb?.let { prefs[preampKey] = it }
         backup.playback.preventClipping?.let { prefs[preventClippingKey] = it }
+        backup.playback.dsdPcmRate?.takeIf { it in DSD_PCM_RATES }?.let { prefs[dsdPcmRateKey] = it }
         backup.exportFormat?.let { prefs[exportFormatKey] = it }
         backup.artistsWithAlbumsOnly?.let { prefs[artistsWithAlbumsKey] = it }
         backup.skipShorterThanSeconds.takeIf { it in SKIP_SHORT_CHOICES && it != 0 }?.let { prefs[skipShortKey] = it }
@@ -172,4 +181,11 @@ class Preferences(private val context: Context) {
     suspend fun setPreamp(db: Float) = context.settings.edit { it[preampKey] = db }
 
     suspend fun setPreventClipping(on: Boolean) = context.settings.edit { it[preventClippingKey] = on }
+
+    private val dsdPcmRateKey = intPreferencesKey("dsd_pcm_rate")
+
+    /** The PCM rate DSD is converted to for playback: one of [DSD_PCM_RATES], the first by default. */
+    val dsdPcmRate: Flow<Int> = context.settings.data.map { prefs -> prefs[dsdPcmRateKey]?.takeIf { it in DSD_PCM_RATES } ?: DSD_PCM_RATES.first() }
+
+    suspend fun setDsdPcmRate(rate: Int) = context.settings.edit { it[dsdPcmRateKey] = rate }
 }

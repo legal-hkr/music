@@ -3,6 +3,9 @@ package sh.hnet.music.tags
 enum class AudioCodec {
     FLAC, ALAC, MP3, MP2, MP1, AAC, VORBIS, OPUS,
 
+    /** 1-bit audio (DSF, DSDIFF): the sample rate is the bit rate of a channel, 2.8 MHz and up. */
+    DSD,
+
     /** Encrypted (old iTunes FairPlay .m4p): tags are readable, the audio isn't. */
     PROTECTED,
     UNKNOWN,

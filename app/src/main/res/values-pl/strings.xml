@@ -66,7 +66,7 @@
     <string name="title_skipped_not_supported">Nieobsługiwane</string>
     <string name="title_skipped_drm">Zabezpieczone DRM</string>
     <string name="title_skipped_unreadable">Nie do odczytania</string>
-    <string name="msg_skipped_dsd">Pliki DSD nie są jeszcze obsługiwane.</string>
+    <string name="msg_skipped_dsd">Ten plik DSD nie jest obsługiwany (np. kompresja DST).</string>
     <string name="msg_skipped_format">Ten format nie jest obsługiwany.</string>
     <string name="msg_skipped_drm">Plików z zabezpieczeniem przed kopiowaniem nie da się odtworzyć.</string>
     <string name="msg_skipped_damaged">Plik jest uszkodzony albo niekompletny.</string>
@@ -527,4 +527,10 @@
     <string name="label_artist_with_year">%1$s (%2$s)</string>
     <string name="msg_queue_cleared">Wyczyszczono kolejkę</string>
     <string name="msg_folder_removed"><![CDATA[Usunięto folder <b>%s</b>]]></string>
+    <!-- DSD -->
+    <string name="label_tech_dsd">%1$s %2$s MHz</string>
+    <string name="title_dsd">DSD</string>
+    <string name="label_dsd_pcm_rate">Konwersja do</string>
+    <string name="msg_dsd_pcm_rate">Pliki DSD są odtwarzane jako PCM. Wyższa częstotliwość zachowuje szersze pasmo ultradźwięków, ale bardziej obciąża telefon. Zmiana działa od następnego utworu.</string>
+    <string name="label_khz">%s kHz</string>
 </resources>

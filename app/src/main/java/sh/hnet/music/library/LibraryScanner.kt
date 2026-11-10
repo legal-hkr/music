@@ -98,6 +98,12 @@ class LibraryScanner(
     private suspend fun scanAll() = withContext(Dispatchers.IO) {
         val all = folders.all()
         _progress.value = all.associate { it.treeUri to FolderScan() }
+        // A parser that reads more formats than the one that last scanned: files skipped as
+        // unsupported are forgotten, so this scan reads them again (unchanged skipped files aren't)
+        if (stamps.getInt(PARSER_VERSION, 1) < CURRENT_PARSER) {
+            tracks.forgetUnsupported()
+            stamps.edit { putInt(PARSER_VERSION, CURRENT_PARSER) }
+        }
         val failed = mutableSetOf<String>()
         try {
             for (folder in all) {
@@ -178,6 +184,10 @@ class LibraryScanner(
     private companion object {
         const val PARALLEL_READS = 4
         private const val LAST_SCAN = "last_scan"
+        private const val PARSER_VERSION = "parser_version"
+
+        /** Raised whenever the parser learns a format: 2 = DSD (DSF, DSDIFF). */
+        private const val CURRENT_PARSER = 2
         const val BATCH = 100
     }
 }

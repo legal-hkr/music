@@ -52,7 +52,13 @@ data class BackupSettings(
     data class LibraryViews(val order: List<String> = emptyList(), val opensOn: String? = null)
 
     @Serializable
-    data class Playback(val replayGain: String? = null, val preampDb: Float? = null, val preventClipping: Boolean? = null)
+    data class Playback(
+        val replayGain: String? = null,
+        val preampDb: Float? = null,
+        val preventClipping: Boolean? = null,
+        /** The PCM rate DSD is converted to; absent in backups from before DSD was played. */
+        val dsdPcmRate: Int? = null,
+    )
 }
 
 @Serializable

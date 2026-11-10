@@ -26,7 +26,7 @@ Music plays the audio files in the folders you choose and nothing else. It has n
 
 ### Playback
 
-- **Formats**: FLAC, ALAC, AAC, MP3, Ogg Vorbis and Opus, with gapless playback
+- **Formats**: FLAC, ALAC, AAC, MP3, Ogg Vorbis and Opus, with gapless playback; DSD (DSF and DSDIFF) played as PCM
 - **ReplayGain**: Track, album or automatic, with a pre-amp for files without tags and clipping prevention
 - **Queue**: Reorder, remove with Undo, save as a playlist; shuffle and repeat that the queue shows as they play; the queue is kept across restarts
 - **Now playing**: Cover, technical details of the file, seek bar, volume and the track's tags

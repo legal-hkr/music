@@ -3,7 +3,7 @@ package sh.hnet.music.tags
 import java.io.IOException
 
 /**
- * Reads tags and stream properties from the start (and for MP3 the end) of an audio file,
+ * Reads tags and stream properties from the start (and for MP3 and DSD the end) of an audio file,
  * never the audio itself. The format is recognised by content, not by the file name.
  */
 object TagParser {
@@ -27,8 +27,10 @@ object TagParser {
             Id3v2.read(r, start, id3)
             start += size
         }
-        val magic = r.peek(start, 8)
+        val magic = r.peek(start, 16)
         return when {
+            start == 0L && DsdFormat.isDsf(magic) -> DsdParser.parseDsf(r, pictures)
+            start == 0L && DsdFormat.isDff(magic) -> DsdParser.parseDff(r, pictures)
             magic.startsWith("fLaC") -> FlacParser.parse(r, start, pictures)?.withFallback(id3)
             magic.startsWith("OggS") -> OggParser.parse(r, start, pictures)?.withFallback(id3)
             start == 0L && magic.startsWith("ftyp", 4) -> Mp4Parser.parse(r, pictures)

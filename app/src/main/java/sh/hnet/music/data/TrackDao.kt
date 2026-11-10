@@ -48,6 +48,10 @@ interface TrackDao {
         }
     }
 
+    /** After the parser learned a format: files it couldn't read before are read again by the next scan. */
+    @Query("DELETE FROM skipped_file WHERE reason = 'UNSUPPORTED'")
+    suspend fun forgetUnsupported()
+
     @Query("DELETE FROM play_count WHERE documentUri IN (:uris)")
     suspend fun deletePlayCounts(uris: List<String>)
 

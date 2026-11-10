@@ -56,7 +56,7 @@
     <string name="title_skipped_not_supported">Not supported</string>
     <string name="title_skipped_drm">Protected by DRM</string>
     <string name="title_skipped_unreadable">Couldn\'t be read</string>
-    <string name="msg_skipped_dsd">DSD isn\'t supported yet.</string>
+    <string name="msg_skipped_dsd">This DSD file isn’t supported (DST compression, for example).</string>
     <string name="msg_skipped_format">This format isn\'t supported.</string>
     <string name="msg_skipped_drm">Copy-protected files can\'t be played.</string>
     <string name="msg_skipped_damaged">The file is damaged or incomplete.</string>
@@ -480,4 +480,10 @@
     <string name="label_artist_with_year">%1$s (%2$s)</string>
     <string name="msg_queue_cleared">Queue cleared</string>
     <string name="msg_folder_removed"><![CDATA[Removed folder <b>%s</b>]]></string>
+    <!-- DSD -->
+    <string name="label_tech_dsd">%1$s %2$s MHz</string>
+    <string name="title_dsd">DSD</string>
+    <string name="label_dsd_pcm_rate">Converted to</string>
+    <string name="msg_dsd_pcm_rate">Music plays DSD files as PCM. The higher rate keeps more of the ultrasonic range and takes more work from the phone. It applies from the next track.</string>
+    <string name="label_khz">%s kHz</string>
 </resources>

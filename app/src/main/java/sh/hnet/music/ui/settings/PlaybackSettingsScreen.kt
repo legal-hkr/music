@@ -2,6 +2,12 @@
 
 package sh.hnet.music.ui.settings
 
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.text.AnnotatedString
+import sh.hnet.music.ui.player.sampleRateText
+import sh.hnet.music.ui.components.SingleChoiceDialog
+import sh.hnet.music.DSD_PCM_RATES
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -54,11 +60,13 @@ private fun ReplayGainMode.description(): Int = when (this) {
     ReplayGainMode.AUTO -> R.string.desc_rg_auto
 }
 
-/** Settings › Playback (SPEC §11.4): ReplayGain mode, then the volume options it uses. */
+/** Settings › Playback (SPEC §11.4): ReplayGain mode, the volume options it uses, and the PCM rate for DSD. */
 @Composable
 fun PlaybackSettingsScreen(onBack: () -> Unit) {
     val preferences = (LocalContext.current.applicationContext as MusicApplication).preferences
     val settings by preferences.gain.collectAsStateWithLifecycle(GainSettings())
+    val dsdRate by preferences.dsdPcmRate.collectAsStateWithLifecycle(DSD_PCM_RATES.first())
+    var choosingDsdRate by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val groupLabel = stringResource(R.string.title_replaygain)
 
@@ -98,8 +106,41 @@ fun PlaybackSettingsScreen(onBack: () -> Unit) {
                 }
             }
         }
+        // DSD is played as PCM; the rate it is converted to
+        SettingsGroup(stringResource(R.string.title_dsd)) {
+            row { shapes ->
+                SegmentedListItem(
+                    onClick = { choosingDsdRate = true },
+                    shapes = shapes,
+                    colors = settingsRowColors(),
+                    supportingContent = { Text(kilohertz(dsdRate)) },
+                ) {
+                    Text(stringResource(R.string.label_dsd_pcm_rate))
+                }
+            }
+        }
+    }
+
+    if (choosingDsdRate) {
+        SingleChoiceDialog(
+            title = AnnotatedString(stringResource(R.string.label_dsd_pcm_rate)),
+            options = DSD_PCM_RATES,
+            initial = dsdRate,
+            label = { kilohertz(it) },
+            confirmLabel = stringResource(R.string.button_save),
+            onConfirm = {
+                choosingDsdRate = false
+                scope.launch { preferences.setDsdPcmRate(it) }
+            },
+            onDismiss = { choosingDsdRate = false },
+            description = stringResource(R.string.msg_dsd_pcm_rate),
+        )
     }
 }
+
+/** "88.2 kHz" ("88,2 kHz" in Polish). */
+@Composable
+private fun kilohertz(rate: Int): String = stringResource(R.string.label_khz, sampleRateText(rate))
 
 /** Pre-amp for untagged files: −12 to +6 dB in 0.5 dB steps; saved when the finger lets go. */
 @Composable

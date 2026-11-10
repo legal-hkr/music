@@ -1,5 +1,7 @@
 package sh.hnet.music.playback
 
+import sh.hnet.music.DSD_PCM_RATES
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Bundle
@@ -45,6 +47,8 @@ class PlaybackService : MediaSessionService() {
     private val reshuffleCommand = SessionCommand(QueueShuffleOrder.ACTION_RESHUFFLE, Bundle.EMPTY)
     private val clearCommand = SessionCommand(QueueCommands.ACTION_CLEAR, Bundle.EMPTY)
     private val undoClearCommand = SessionCommand(QueueCommands.ACTION_UNDO_CLEAR, Bundle.EMPTY)
+    /** The PCM rate DSD files are converted to (Settings › Playback); read on the loading thread. */
+    @Volatile private var dsdPcmRate = DSD_PCM_RATES.first()
     /** Files that failed one after another with nothing playing in between. */
     private var failedInARow = 0
     /** The last Clear queue, until its Undo or the next one. */
@@ -58,6 +62,8 @@ class PlaybackService : MediaSessionService() {
             .build()
         val gainSink = ReplayGainRenderersFactory.sink(this)
         val player = ExoPlayer.Builder(this, ReplayGainRenderersFactory(this, gainSink))
+            // DSD (DSF, DSDIFF) is converted to PCM by our own extractor, asked before Media3's
+            .setMediaSourceFactory(DefaultMediaSourceFactory(this, DsdExtractorsFactory { dsdPcmRate }))
             .setAudioAttributes(attributes, /* handleAudioFocus = */ true)
             .setHandleAudioBecomingNoisy(true)
             .setWakeMode(C.WAKE_MODE_LOCAL)
@@ -126,6 +132,10 @@ class PlaybackService : MediaSessionService() {
         })
         scope.launch {
             (application as MusicApplication).preferences.gain.collect { gainSink.settings = it }
+        }
+        // Read by the extractor when it opens a file: a new rate applies from the next one
+        scope.launch {
+            (application as MusicApplication).preferences.dsdPcmRate.collect { dsdPcmRate = it }
         }
         // Play counts: a listen of at least half a track (checked every second while playing)
         val trackDao = (application as MusicApplication).database.trackDao()

@@ -12,7 +12,7 @@ class BackupTest {
         settings = BackupSettings(
             sorts = BackupSettings.Sorts(albums = "ALBUM_ARTIST", tracks = "TITLE", playlists = "RECENTLY_CHANGED"),
             libraryViews = BackupSettings.LibraryViews(order = listOf("ALBUMS", "PLAYLISTS", "ARTISTS", "TRACKS"), opensOn = "LAST_USED"),
-            playback = BackupSettings.Playback(replayGain = "ALBUM", preampDb = -6f, preventClipping = true),
+            playback = BackupSettings.Playback(replayGain = "ALBUM", preampDb = -6f, preventClipping = true, dsdPcmRate = 176_400),
             exportFormat = "M3U8",
             skipShorterThanSeconds = 30,
         ),

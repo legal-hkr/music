@@ -74,7 +74,7 @@ data class Track(
 }
 
 enum class SkipReason {
-    /** Not a format the parser reads (yet), e.g. DSD, WavPack, or not audio after all. */
+    /** Not a format the parser reads (yet), e.g. WavPack, DST-compressed DSD, or not audio after all. */
     UNSUPPORTED,
 
     /** DRM-protected (old iTunes .m4p). */
