@@ -422,6 +422,7 @@ fun MusicApp(openNowPlaying: Int = 0) {
                             onOpenViews = { currentStack.add(Screen.SettingsLibraryViews) },
                             onOpenPlayback = { currentStack.add(Screen.SettingsPlayback) },
                             onOpenEqualizer = { currentStack.add(Screen.SettingsEqualizer) },
+                            onOpenOutput = { currentStack.add(Screen.SettingsOutput) },
                             onOpenLanguage = { currentStack.add(Screen.SettingsLanguage) },
                             onOpenBackup = { currentStack.add(Screen.SettingsBackup) },
                             onOpenReset = { currentStack.add(Screen.SettingsReset) },
@@ -454,6 +455,7 @@ fun MusicApp(openNowPlaying: Int = 0) {
                         })
                     }
                     entry<Screen.SettingsPlayback> { PlaybackSettingsScreen(onBack = back) }
+                    entry<Screen.SettingsOutput> { sh.hnet.music.ui.settings.OutputScreen(onBack = back) }
                     entry<Screen.SettingsEqualizer> { EqualizerScreen(onBack = back, snackbars = snackbars, messageScope = scope) }
                     entry<Screen.SettingsAbout> {
                         AboutScreen(

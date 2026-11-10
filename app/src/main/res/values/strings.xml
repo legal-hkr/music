@@ -565,4 +565,18 @@
     <string name="msg_import_left_out_type">%1$s; left out, type not supported: %2$d</string>
     <string name="msg_import_left_out_limit">%1$s; left out, more than 20: %2$d</string>
     <string name="error_import_not_preset"><![CDATA[<b>%s</b> isn’t an equalizer preset Music can read.]]></string>
+    <!-- Output (bit-perfect B0) -->
+    <string name="title_output">Output</string>
+    <string name="label_no_usb_output">No USB device</string>
+    <string name="label_usb_audio">USB audio</string>
+    <string name="msg_no_usb_output">No USB audio device is connected. Once one is connected, the formats the system can send to it will appear here.</string>
+    <string name="title_connected_output">Connected device</string>
+    <string name="title_bit_perfect_formats">Bit-perfect</string>
+    <string name="title_mixed_formats">Through the system mixer</string>
+    <string name="msg_no_bit_perfect">The system offers no bit-perfect output for this device.</string>
+    <string name="label_bits">%s bit</string>
+    <string name="label_bits_float">%s bit float</string>
+    <string name="label_other_encoding">Other format</string>
+    <string name="label_format_channels">%1$s (%2$s)</string>
+    <string name="label_rates_khz">%s kHz</string>
 </resources>
