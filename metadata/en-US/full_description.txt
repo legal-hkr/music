@@ -1,23 +1,25 @@
-Music plays the audio files in the folders you choose and nothing else. It has no Internet permission, doesn't ask for access to your storage or media, and keeps nothing about you: the library, playlists and settings stay on your phone.
+Music plays the audio files in the folders you choose and nothing else. It has no Internet permission, doesn’t ask for access to your storage or media, and keeps nothing about you: the library, playlists and settings stay on your phone.
 
 Your library:
 - Albums, artists, tracks and playlists, in the order you like
 - Compilations and multi-disc albums grouped properly
-- Search across everything, diacritics ignored
+- Search across the whole library, ignoring diacritics
 - New and changed files picked up on every start; very short files can be left out
-- Most played tracks, from a simple play count per track
+- Most played tracks, based on a simple play count per track
 
 Playback:
-- FLAC, ALAC, AAC, MP3, Ogg Vorbis and Opus, gapless
-- ReplayGain by track, album or automatically, with clipping prevention
-- A queue you can reorder, with shuffle and repeat it shows as they play, kept across restarts
-- The file's technical details and tags on the now-playing screen
+- FLAC, ALAC, AAC, MP3, Ogg Vorbis, Opus and DSD (DSF, DSDIFF), with gapless playback
+- ReplayGain by track, by album or automatic, with clipping prevention
+- A parametric equalizer with your own presets and import of AutoEq (Equalizer APO) files
+- Bit-perfect output to USB DACs: audio sent unchanged, at each file’s own sample rate, and DSD unconverted (DoP) where the DAC supports it
+- A queue you can reorder, which shows shuffle and repeat as they play and is kept across restarts
+- The file’s technical details and tags on the now-playing screen
 
 Playlists:
 - Your own playlists and Starred
-- Import and export of M3U, M3U8, PLS and XSPF; missing tracks stay in place and come back when found
+- Import and export of M3U, M3U8, PLS and XSPF; unavailable tracks keep their place and come back when found
 
 And also:
-- Backup and restore of settings and playlists to a file you choose
+- Backup and restore of settings, playlists and equalizer presets to a file you choose
 - English and Polish, independent of the system language
-- Material 3 Expressive design with your phone's colors
+- Material 3 Expressive design with your phone’s colors

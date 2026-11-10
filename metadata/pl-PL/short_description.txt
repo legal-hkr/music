@@ -1,1 +1,1 @@
-Prywatny odtwarzacz muzyki z wybranych folderów, bez Internetu
+Odtwarzacz offline z wyjściem bit-perfect, DSD i korektorem parametrycznym

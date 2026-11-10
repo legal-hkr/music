@@ -1,1 +1,1 @@
-Private, offline player for the music in your own folders
+Offline player with bit-perfect USB output, DSD and a parametric equalizer
