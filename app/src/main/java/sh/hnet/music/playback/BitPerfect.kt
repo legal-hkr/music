@@ -135,8 +135,9 @@ class BitPerfectController(context: Context) {
     @Volatile var pending: Choice? = null
         private set
 
-    /** The device whose mixer we have set, to clear it again. */
+    /** The device whose mixer we have set, to clear it again, and what it was set for. */
     @Volatile private var set: AudioDeviceInfo? = null
+    @Volatile private var setKey: Any? = null
 
     private val _active = MutableStateFlow(false)
     /** Whether what plays now goes out bit-perfect (the now-playing chip, the equalizer's note). */
@@ -202,12 +203,21 @@ class BitPerfectController(context: Context) {
 
     /** Sets the device's mixer for [choice]; false when the system refuses (the stream then plays the usual way). */
     fun open(choice: Choice): Boolean {
+        // A seek opens a new output for the same stream: the mixer is as we left it, and setting it
+        // again would only make the system reopen the device
+        if (set != null && setKey == choice.key) {
+            _active.value = true
+            return true
+        }
         val done = try {
             audio.setPreferredMixerAttributes(media, choice.device, choice.attributes)
         } catch (_: RuntimeException) {
             false
         }
-        if (done) set = choice.device
+        if (done) {
+            set = choice.device
+            setKey = choice.key
+        }
         _active.value = done
         return done
     }
@@ -217,6 +227,7 @@ class BitPerfectController(context: Context) {
         _active.value = false
         val device = set ?: return
         set = null
+        setKey = null
         try {
             audio.clearPreferredMixerAttributes(media, device)
         } catch (_: RuntimeException) {
