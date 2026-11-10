@@ -1,0 +1,12 @@
+v0.2.0
+
+Nowości:
+- Korektor parametryczny z własnymi presetami i importem plików AutoEq
+- Presety korektora w kopii zapasowej
+- Odtwarzanie DSD (DSF, DSDIFF)
+- Wyjście bit-perfect dla przetworników USB, z DSD bez konwersji (DoP, eksperymentalnie)
+
+Zmiany:
+- Nowe przyciski sterowania na ekranie odtwarzania
+- Etykiety na ekranie odtwarzania otwierają odpowiednie ustawienia
+- Dopracowane teksty po polsku i angielsku

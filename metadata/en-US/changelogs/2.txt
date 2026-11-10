@@ -1,0 +1,12 @@
+v0.2.0
+
+New:
+- Parametric equalizer with your own presets and import of AutoEq files
+- Equalizer presets in backups
+- DSD (DSF, DSDIFF) playback
+- Bit-perfect output to USB DACs, with DSD unconverted (DoP, experimental)
+
+Changes:
+- New transport buttons on the now-playing screen
+- Chips on the now-playing screen open the related settings
+- Clearer wording in English and Polish
