@@ -139,4 +139,41 @@ class EqualizerTest {
         repeat(30) { full = full.withNewFilter() }
         assertEquals(Equalizer.MAX_FILTERS, full.current.filters.size)
     }
+
+    @Test
+    fun `own presets are saved, renamed and deleted, and built-in ones can't be saved over`() {
+        var state = EqualizerState().withBuiltIn(BuiltInPresets.AUDEZE_ISINE_10).withPreamp(-8f)
+        assertTrue(state.modified)
+        // Save does nothing on a built-in preset
+        assertEquals(state, state.saved(1))
+        state = state.savedAsNew(" Mine ", 10)
+        assertEquals("Mine", state.preset?.own)
+        assertFalse(state.modified)
+        state = state.withPreamp(-9f)
+        assertTrue(state.modified)
+        assertEquals(-8f, state.discarded().current.preampDb, 0f)
+        state = state.saved(20)
+        assertFalse(state.modified)
+        assertEquals(-9f, state.presets.single().settings.preampDb, 0f)
+        assertEquals(20L, state.presets.single().changedAt)
+
+        state = state.renamed("Mine", "Evening", 30)
+        assertEquals("Evening", state.preset?.own)
+        assertFalse(state.modified)
+        val lower = { name: String -> name.lowercase() }
+        assertTrue(state.nameTaken("evening", listOf("Flat"), lower))
+        assertTrue(state.nameTaken("FLAT", listOf("Flat"), lower))
+        assertFalse(state.nameTaken("evening", listOf("Flat"), lower, except = "Evening"))
+
+        val other = state.withBuiltIn(BuiltInPresets.FLAT)
+        assertEquals(-9f, other.withOwn("Evening").current.preampDb, 0f)
+        // Deleting the preset in use keeps its values, as unsaved settings
+        val deleted = state.withoutPreset("Evening")
+        assertEquals(null, deleted.preset)
+        assertEquals(null, deleted.saved)
+        assertFalse(deleted.modified)
+        assertEquals(-9f, deleted.current.preampDb, 0f)
+        // Deleting another one changes nothing in use
+        assertEquals(PresetRef(builtIn = "flat"), other.withoutPreset("Evening").preset)
+    }
 }

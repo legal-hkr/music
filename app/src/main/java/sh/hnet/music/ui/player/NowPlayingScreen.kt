@@ -103,6 +103,7 @@ fun NowPlayingScreen(
     onGoToAlbum: (LibraryTrack) -> Unit,
     onDetails: () -> Unit,
     onQueue: () -> Unit,
+    onEqualizer: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     // A Surface, not just a background: it also sets the content colour (onSurface), which this
@@ -126,7 +127,7 @@ fun NowPlayingScreen(
                         Cover(track, RoundedCornerShape(28.dp), Modifier.padding(start = 24.dp).aspectRatio(1f, matchHeightConstraintsFirst = true), player = true)
                     }
                     Column(Modifier.weight(1f).padding(end = 24.dp), verticalArrangement = Arrangement.Center) {
-                        Controls(track, details, gain, state, player, volumeBar, onGoToArtist, onGoToAlbum, onDetails, onQueue)
+                        Controls(track, details, gain, state, player, volumeBar, onGoToArtist, onGoToAlbum, onDetails, onQueue, onEqualizer)
                     }
                 }
             } else {
@@ -138,7 +139,7 @@ fun NowPlayingScreen(
                 }
                 Spacer(Modifier.height(20.dp))
                 Column(Modifier.padding(horizontal = 24.dp).padding(bottom = 16.dp)) {
-                    Controls(track, details, gain, state, player, volumeBar, onGoToArtist, onGoToAlbum, onDetails, onQueue)
+                    Controls(track, details, gain, state, player, volumeBar, onGoToArtist, onGoToAlbum, onDetails, onQueue, onEqualizer)
                 }
             }
         }
@@ -158,6 +159,7 @@ private fun ColumnScope.Controls(
     onGoToAlbum: (LibraryTrack) -> Unit,
     onDetails: () -> Unit,
     onQueue: () -> Unit,
+    onEqualizer: () -> Unit,
 ) {
     // Title block and the track's actions
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -199,7 +201,7 @@ private fun ColumnScope.Controls(
     Spacer(Modifier.height(16.dp))
     Transport(state, player)
     Spacer(Modifier.height(16.dp))
-    BottomRow(volumeBar, onQueue = onQueue)
+    BottomRow(volumeBar, onQueue = onQueue, onEqualizer = onEqualizer)
 }
 
 /** Slider with elapsed and total time; the label follows a drag, the seek happens on release. */

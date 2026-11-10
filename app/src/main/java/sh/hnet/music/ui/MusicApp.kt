@@ -2,6 +2,8 @@
 
 package sh.hnet.music.ui
 
+import androidx.compose.material3.Surface
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -150,6 +152,8 @@ fun MusicApp(openNowPlaying: Int = 0) {
     val nowPlaying = remember { SeekableTransitionState(false) }
     val nowPlayingTransition = rememberTransition(nowPlaying, label = "nowPlaying")
     var detailsOpen by rememberSaveable { mutableStateOf(false) }
+    // The equalizer over now playing, from the volume bar (SPEC-equalizer §2.2)
+    var equalizerOpen by rememberSaveable { mutableStateOf(false) }
     var queueOpen by rememberSaveable { mutableStateOf(false) }
     // Add to playlist and Save as playlist, shown over everything (SPEC-playlists §7, §8)
     var addRequest by remember { mutableStateOf<AddRequest?>(null) }
@@ -158,7 +162,7 @@ fun MusicApp(openNowPlaying: Int = 0) {
     val tracksByUri by playerModel.tracks.collectAsStateWithLifecycle()
     val hasQueue = playerState.queueSize > 0
     fun openNowPlaying() = scope.launch { nowPlaying.animateTo(true) }
-    fun closeNowPlaying() = scope.launch { detailsOpen = false; queueOpen = false; nowPlaying.animateTo(false) }
+    fun closeNowPlaying() = scope.launch { detailsOpen = false; equalizerOpen = false; queueOpen = false; nowPlaying.animateTo(false) }
     LaunchedEffect(openNowPlaying) { if (openNowPlaying > 0 && hasQueue) nowPlaying.animateTo(true) }
     LaunchedEffect(hasQueue) { if (!hasQueue) nowPlaying.snapTo(false) }
     val dragHeight = with(LocalDensity.current) { 600.dp.toPx() }
@@ -487,7 +491,8 @@ fun MusicApp(openNowPlaying: Int = 0) {
     nowPlayingTransition.AnimatedVisibility(visible = { open -> open }, enter = fadeIn(), exit = fadeOut()) {
         // Registered here, after the destinations, so they win over the pages' own Back while open
         BackHandler(enabled = detailsOpen) { detailsOpen = false }
-        PredictiveBackHandler(enabled = nowPlaying.targetState && !detailsOpen) { events ->
+        BackHandler(enabled = equalizerOpen) { equalizerOpen = false }
+        PredictiveBackHandler(enabled = nowPlaying.targetState && !detailsOpen && !equalizerOpen) { events ->
             try {
                 events.collect { nowPlaying.seekTo(it.progress, targetState = false) }
             } catch (cancelled: CancellationException) {
@@ -511,6 +516,7 @@ fun MusicApp(openNowPlaying: Int = 0) {
                 onGoToAlbum = goToAlbum,
                 onDetails = { detailsOpen = true },
                 onQueue = { queueOpen = true },
+                onEqualizer = { equalizerOpen = true },
             )
             if (queueOpen) {
                 QueueSheet(
@@ -526,6 +532,20 @@ fun MusicApp(openNowPlaying: Int = 0) {
                 exit = slideOutHorizontally(spatial) { shift } + fadeOut(fastEffects),
             ) {
                 TrackDetailsScreen(playerModel, onBack = { detailsOpen = false })
+            }
+            androidx.compose.animation.AnimatedVisibility(
+                visible = equalizerOpen,
+                enter = slideInHorizontally(spatial) { shift } + fadeIn(effects),
+                exit = slideOutHorizontally(spatial) { shift } + fadeOut(fastEffects),
+            ) {
+                // A Surface for the content colour as well as the background; no mini player to keep clear of here
+                Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
+                    Box(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
+                        CompositionLocalProvider(LocalBottomOverlay provides 0.dp) {
+                            EqualizerScreen(onBack = { equalizerOpen = false }, snackbars = snackbars, messageScope = scope, topInsets = false)
+                        }
+                    }
+                }
             }
             // Snackbars started here (Add to playlist) would show under this overlay otherwise
             SnackbarHost(snackbars, Modifier.align(Alignment.BottomCenter).navigationBarsPadding()) { data ->

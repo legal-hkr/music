@@ -304,7 +304,7 @@ fun Modifier.closesVolumeBar(state: VolumeBarState): Modifier = composed {
  * outside it, or 5 s after the last touch.
  */
 @Composable
-fun BottomRow(bar: VolumeBarState, onQueue: () -> Unit, modifier: Modifier = Modifier) {
+fun BottomRow(bar: VolumeBarState, onQueue: () -> Unit, onEqualizer: () -> Unit, modifier: Modifier = Modifier) {
     val volume = rememberMediaVolume()
     val open = bar.open
     BackHandler(enabled = open) { bar.open = false }
@@ -329,15 +329,15 @@ fun BottomRow(bar: VolumeBarState, onQueue: () -> Unit, modifier: Modifier = Mod
                     }
                 }
             } else {
-                VolumeBar(volume, onTouch = { bar.touched++ }, modifier = shared.onGloballyPositioned { bar.bounds = it.boundsInRoot() })
+                VolumeBar(volume, onTouch = { bar.touched++ }, onEqualizer = { bar.open = false; onEqualizer() }, modifier = shared.onGloballyPositioned { bar.bounds = it.boundsInRoot() })
             }
         }
     }
 }
 
-/** The pill (§4.2): mute, then the volume slider; the equalizer button comes with its stage. */
+/** The pill (§4.2): mute, the volume slider, and the equalizer button (SPEC-equalizer §2.2). */
 @Composable
-private fun VolumeBar(volume: MediaVolume, onTouch: () -> Unit, modifier: Modifier) {
+private fun VolumeBar(volume: MediaVolume, onTouch: () -> Unit, onEqualizer: () -> Unit, modifier: Modifier) {
     Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = CircleShape, modifier = modifier.fillMaxWidth().height(56.dp)) {
         Row(Modifier.padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
             if (!volume.fixed) {
@@ -372,6 +372,9 @@ private fun VolumeBar(volume: MediaVolume, onTouch: () -> Unit, modifier: Modifi
                         stateDescription = if (volume.fixed) fixedReason else percent
                     },
             )
+            IconButton(onClick = onEqualizer, modifier = Modifier.size(48.dp)) {
+                Icon(painterResource(R.drawable.ic_equalizer), contentDescription = stringResource(R.string.title_equalizer))
+            }
         }
     }
 }

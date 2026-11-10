@@ -495,7 +495,7 @@
     <string name="title_preset_group">Preset</string>
     <string name="title_presets">Presets</string>
     <string name="desc_builtin">Built-in</string>
-    <string name="desc_own_preset">Your preset</string>
+    <string name="desc_own_preset">Your own</string>
     <string name="desc_modified">Modified</string>
     <string name="label_all_outputs">Applies to all outputs</string>
     <string name="label_eq_preamp">Pre-amp</string>
@@ -539,4 +539,21 @@
     <string name="msg_changes_discarded">Changes discarded</string>
     <string name="title_preset_sources">Equalizer presets</string>
     <string name="desc_preset_source_isine_10">Based on measurements by oratory1990, as published by Atrium Audio (atriumaudio.net)</string>
+    <string name="title_your_presets">Your own</string>
+    <string name="title_builtin_presets">Built-in</string>
+    <string name="label_new_preset">New preset</string>
+    <string name="button_save_as_new">Save as new</string>
+    <string name="button_discard_changes">Discard changes</string>
+    <string name="title_new_preset">New preset</string>
+    <string name="title_save_as_new_preset">Save as new preset</string>
+    <string name="title_rename_preset">Rename preset</string>
+    <plurals name="msg_saves_current">
+        <item quantity="one">Saves the current values: pre-amp and %d filter.</item>
+        <item quantity="other">Saves the current values: pre-amp and %d filters.</item>
+    </plurals>
+    <string name="msg_saves_empty">Starts empty: no filters, pre-amp at 0 dB.</string>
+    <string name="title_start_from">Start from</string>
+    <string name="label_current_values">Current values</string>
+    <string name="label_empty_flat">Empty (Flat)</string>
+    <string name="error_preset_name_taken">A preset with this name already exists</string>
 </resources>

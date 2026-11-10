@@ -87,4 +87,55 @@ data class EqualizerState(
 
     /** [preset]'s values become the current ones. */
     fun withBuiltIn(preset: BuiltInPreset) = copy(preset = PresetRef(builtIn = preset.id), current = preset.settings)
+
+    /** One of the user's presets becomes the one in use; unchanged when there is none by that name. */
+    fun withOwn(name: String): EqualizerState {
+        val preset = presets.firstOrNull { it.name == name } ?: return this
+        return copy(preset = PresetRef(own = preset.name), current = preset.settings)
+    }
+
+    /** The preset in use, when it is the user's own. */
+    val ownInUse: OwnPreset? get() = preset?.own?.let { name -> presets.firstOrNull { it.name == name } }
+
+    /** Save (§9.3): the current values into the user's preset in use; built-in presets can't be saved over. */
+    fun saved(now: Long): EqualizerState {
+        val name = ownInUse?.name ?: return this
+        return copy(presets = presets.map { if (it.name == name) it.copy(settings = current, changedAt = now) else it })
+    }
+
+    /** Save as new / New preset: [settings] under [name], which becomes the preset in use. */
+    fun savedAsNew(name: String, now: Long, settings: EqSettings = current): EqualizerState {
+        val clean = name.trim()
+        return copy(presets = presets.filterNot { it.name == clean } + OwnPreset(clean, now, settings), preset = PresetRef(own = clean), current = settings)
+    }
+
+    fun renamed(from: String, to: String, now: Long): EqualizerState {
+        val clean = to.trim()
+        return copy(
+            presets = presets.map { if (it.name == from) it.copy(name = clean, changedAt = now) else it },
+            preset = if (preset?.own == from) PresetRef(own = clean) else preset,
+        )
+    }
+
+    /**
+     * Without the user's preset [name]. Deleting the one in use keeps its values in use, as
+     * "Unsaved settings" (§9.5).
+     */
+    fun withoutPreset(name: String) = copy(presets = presets.filterNot { it.name == name }, preset = if (preset?.own == name) null else preset)
+
+    /** Discard changes: back to the values of the preset in use. */
+    fun discarded() = saved?.let { copy(current = it) } ?: this
+
+    /** The user's presets, most recently changed first (§9.2). */
+    val presetsByChange: List<OwnPreset> get() = presets.sortedByDescending { it.changedAt }
+
+    /**
+     * Whether [name] is taken by one of the user's presets (but [except], the one being renamed) or
+     * by a built-in one ([builtInNames], as shown); [key] folds what a comparison ignores, as playlist
+     * names do.
+     */
+    fun nameTaken(name: String, builtInNames: List<String>, key: (String) -> String, except: String? = null): Boolean {
+        val wanted = key(name.trim())
+        return presets.any { it.name != except && key(it.name) == wanted } || builtInNames.any { key(it) == wanted }
+    }
 }

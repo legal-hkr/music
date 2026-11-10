@@ -2,6 +2,11 @@
 
 package sh.hnet.music.ui.settings
 
+import sh.hnet.music.playback.EqSettings
+import sh.hnet.music.equalizer.PresetRef
+import androidx.core.text.htmlEncode
+import androidx.compose.ui.text.fromHtml
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.remember
 import androidx.compose.material3.SliderState
@@ -101,9 +106,11 @@ import kotlin.math.pow
  * Settings › Sound › Equalizer (SPEC-equalizer §3–§9): the response curve pinned under the top bar,
  * then the main switch, the preset, the pre-amp and the filters. Every change is heard at once.
  * A filter is edited in a standard (non-modal) bottom sheet, so the curve stays in sight and live.
+ *
+ * @param topInsets false over now playing, which has taken the status bar's inset already
  */
 @Composable
-fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageScope: CoroutineScope) {
+fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageScope: CoroutineScope, topInsets: Boolean = true) {
     val store = (LocalContext.current.applicationContext as MusicApplication).equalizer
     val state by store.state.collectAsStateWithLifecycle()
     val filters = state.current.filters
@@ -116,6 +123,10 @@ fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageSco
     val edited = editing?.let(filters::getOrNull)
     if (editing != null && edited == null) editing = null
     var choosingPreset by rememberSaveable { mutableStateOf(false) }
+    var startingNew by rememberSaveable { mutableStateOf(false) }
+    var naming by rememberSaveable { mutableStateOf<PresetNaming?>(null) }
+    var renaming by rememberSaveable { mutableStateOf<String?>(null) }
+    val deletedText = stringResource(R.string.msg_playlist_deleted)
 
     val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
     val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
@@ -143,7 +154,8 @@ fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageSco
 
     BoxWithConstraints {
         // The sheet's top sits just under the curve: the bar, the curve and the sheet's own handle above its content
-        val sheetHeight = maxHeight - WindowInsets.statusBars.asPaddingValues().calculateTopPadding() - TOP_BAR - CURVE_AREA - SHEET_HANDLE
+        val statusBar = if (topInsets) WindowInsets.statusBars.asPaddingValues().calculateTopPadding() else 0.dp
+        val sheetHeight = maxHeight - statusBar - TOP_BAR - CURVE_AREA - SHEET_HANDLE
         BottomSheetScaffold(
             scaffoldState = scaffoldState,
             sheetPeekHeight = 0.dp,
@@ -171,6 +183,7 @@ fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageSco
             SettingsPage(
                 title = stringResource(R.string.title_equalizer),
                 onBack = onBack,
+                topInsets = topInsets,
                 pinned = {
                     ResponseCurve(
                         settings = state.current,
@@ -222,6 +235,16 @@ fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageSco
                         }
                     }
                 }
+                PresetActions(
+                    state,
+                    onSave = { store.update { it.saved(System.currentTimeMillis()) } },
+                    onSaveAsNew = { naming = PresetNaming.SAVE_AS_NEW },
+                    onDiscard = {
+                        val before = state
+                        store.update { it.discarded() }
+                        offerUndo(resources.getString(R.string.msg_changes_discarded), before)
+                    },
+                )
                 Preamp(state.current.preampDb) { db -> store.update { it.withPreamp(db) } }
                 val peak = Equalizer.peakDb(state.current)
                 if (peak > 0f) {
@@ -284,18 +307,65 @@ fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageSco
     }
 
     if (choosingPreset) {
+        /** Another preset in use; unsaved changes go with the one they were made to, unless undone (§9.3). */
+        fun select(change: (EqualizerState) -> EqualizerState) {
+            choosingPreset = false
+            val before = state
+            editing = null
+            store.update(change)
+            if (before.modified) offerUndo(resources.getString(R.string.msg_changes_discarded), before)
+        }
         PresetSheet(
             state = state,
             onDismiss = { choosingPreset = false },
-            onSelect = { preset ->
+            onNew = { choosingPreset = false; startingNew = true },
+            onSelectBuiltIn = { preset -> select { it.withBuiltIn(preset) } },
+            onSelectOwn = { name -> select { it.withOwn(name) } },
+            onRename = { choosingPreset = false; renaming = it },
+            // At once, with Undo (§9.5); the sheet closes so the snackbar can be seen
+            onDelete = { name ->
                 choosingPreset = false
-                val before = state
-                editing = null
-                store.update { it.withBuiltIn(preset) }
-                // Unsaved changes go with the preset they were made to, unless undone (§9.3)
-                if (before.modified) offerUndo(resources.getString(R.string.msg_changes_discarded), before)
+                val deleted = state.presets.firstOrNull { it.name == name } ?: return@PresetSheet
+                val wasInUse = state.preset?.own == name
+                store.update { it.withoutPreset(name) }
+                messageScope.launch {
+                    snackbars.currentSnackbarData?.dismiss()
+                    val text = AnnotatedString.fromHtml(deletedText.format(name.htmlEncode())).text
+                    if (snackbars.showSnackbar(text, actionLabel = undo, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed) {
+                        store.update { now ->
+                            now.copy(
+                                presets = now.presets.filterNot { it.name == name } + deleted,
+                                // In use again, unless another preset was chosen meanwhile
+                                preset = if (wasInUse && now.preset == null) PresetRef(own = name) else now.preset,
+                            )
+                        }
+                    }
+                }
             },
         )
+    }
+    if (startingNew) {
+        StartFromDialog(onDismiss = { startingNew = false }) { startingNew = false; naming = it }
+    }
+    naming?.let { kind ->
+        NewPresetDialog(kind, state, onDismiss = { naming = null }) { name ->
+            naming = null
+            val before = state
+            editing = null
+            store.update { if (kind == PresetNaming.NEW_EMPTY) it.savedAsNew(name, System.currentTimeMillis(), EqSettings()) else it.savedAsNew(name, System.currentTimeMillis()) }
+            // An empty preset replaces what was heard: unsaved changes can come back
+            if (kind == PresetNaming.NEW_EMPTY && before.modified) offerUndo(resources.getString(R.string.msg_changes_discarded), before)
+        }
+    }
+    renaming?.let { name ->
+        if (state.presets.none { it.name == name }) {
+            renaming = null
+        } else {
+            RenamePresetDialog(name, state, onDismiss = { renaming = null }) { to ->
+                renaming = null
+                if (to != name) store.update { it.renamed(name, to, System.currentTimeMillis()) }
+            }
+        }
     }
 }
 
@@ -444,39 +514,6 @@ private fun FilterSheet(number: Int, filter: EqFilter, height: Dp, onChange: (Eq
             }
         }
         DestructiveButton(stringResource(R.string.button_remove_filter), R.drawable.ic_delete, onRemove)
-    }
-}
-
-/**
- * Choosing a preset (§9.2): for now the built-in ones; the user's own, their menus and saving come
- * with the presets stage.
- */
-@Composable
-private fun PresetSheet(state: EqualizerState, onDismiss: () -> Unit, onSelect: (BuiltInPreset) -> Unit) {
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden), containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
-        Column(Modifier.padding(bottom = 8.dp)) {
-            Text(
-                stringResource(R.string.title_presets),
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp).semantics { heading() },
-            )
-            Column(Modifier.selectableGroup()) {
-                BuiltInPresets.all.forEach { preset ->
-                    val selected = state.preset?.builtIn == preset.id
-                    val count = preset.settings.filters.size
-                    ListItem(
-                        selected = selected,
-                        onClick = { onSelect(preset) },
-                        leadingContent = { RadioButton(selected = selected, onClick = null) },
-                        supportingContent = {
-                            Text(if (count == 0) stringResource(R.string.desc_no_filters) else pluralStringResource(R.plurals.desc_filter_count, count, count))
-                        },
-                    ) {
-                        Text(preset.name ?: stringResource(R.string.label_flat))
-                    }
-                }
-            }
-        }
     }
 }
 

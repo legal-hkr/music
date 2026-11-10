@@ -542,7 +542,7 @@
     <string name="title_preset_group">Preset</string>
     <string name="title_presets">Presety</string>
     <string name="desc_builtin">Wbudowany</string>
-    <string name="desc_own_preset">Twój preset</string>
+    <string name="desc_own_preset">Własny</string>
     <string name="desc_modified">Zmieniony</string>
     <string name="label_all_outputs">Dla wszystkich wyjść</string>
     <string name="label_eq_preamp">Przedwzmacniacz</string>
@@ -590,4 +590,23 @@
     <string name="msg_changes_discarded">Odrzucono zmiany</string>
     <string name="title_preset_sources">Presety korektora</string>
     <string name="desc_preset_source_isine_10">Na podstawie pomiarów oratory1990, w wersji opublikowanej przez Atrium Audio (atriumaudio.net)</string>
+    <string name="title_your_presets">Własne</string>
+    <string name="title_builtin_presets">Wbudowane</string>
+    <string name="label_new_preset">Nowy preset</string>
+    <string name="button_save_as_new">Zapisz jako nowy</string>
+    <string name="button_discard_changes">Odrzuć zmiany</string>
+    <string name="title_new_preset">Nowy preset</string>
+    <string name="title_save_as_new_preset">Zapisz jako nowy preset</string>
+    <string name="title_rename_preset">Zmień nazwę presetu</string>
+    <plurals name="msg_saves_current">
+        <item quantity="one">Zapisze bieżące wartości: przedwzmacniacz i %d filtr.</item>
+        <item quantity="few">Zapisze bieżące wartości: przedwzmacniacz i %d filtry.</item>
+        <item quantity="many">Zapisze bieżące wartości: przedwzmacniacz i %d filtrów.</item>
+        <item quantity="other">Zapisze bieżące wartości: przedwzmacniacz i %d filtra.</item>
+    </plurals>
+    <string name="msg_saves_empty">Zacznie pusty: bez filtrów, przedwzmacniacz na 0 dB.</string>
+    <string name="title_start_from">Zacznij od</string>
+    <string name="label_current_values">Bieżących wartości</string>
+    <string name="label_empty_flat">Pustego (Płaski)</string>
+    <string name="error_preset_name_taken">Preset o tej nazwie już istnieje</string>
 </resources>
