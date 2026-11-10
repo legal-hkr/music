@@ -27,6 +27,7 @@ class MusicApplication : Application() {
     val transfer: PlaylistTransfer by lazy { PlaylistTransfer(this, playlists, database.playlistDao(), database.libraryFolderDao(), library) }
     val backup: sh.hnet.music.backup.BackupManager by lazy { sh.hnet.music.backup.BackupManager(this, getSharedPreferences("backup", MODE_PRIVATE)) }
     val equalizer: sh.hnet.music.equalizer.EqualizerStore by lazy { sh.hnet.music.equalizer.EqualizerStore(java.io.File(filesDir, "equalizer.json"), appScope) }
+    val bitPerfect: sh.hnet.music.playback.BitPerfectController by lazy { sh.hnet.music.playback.BitPerfectController(this) }
     val playlists: PlaylistRepository by lazy { PlaylistRepository(database.playlistDao(), database.trackDao(), library, scanner, appScope) { getString(R.string.label_starred_playlist) } }
 
     val player: PlayerConnection by lazy { PlayerConnection(this) }

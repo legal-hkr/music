@@ -620,7 +620,6 @@
     <string name="error_import_not_preset"><![CDATA[Plik <b>%s</b> nie jest presetem korektora w obsługiwanym formacie.]]></string>
     <!-- Output (bit-perfect B0) -->
     <string name="title_output">Wyjście</string>
-    <string name="label_no_usb_output">Brak urządzenia USB</string>
     <string name="label_usb_audio">Urządzenie audio USB</string>
     <string name="msg_no_usb_output">Nie podłączono urządzenia audio USB. Po jego podłączeniu pojawią się tutaj formaty, w których system może przesyłać do niego dźwięk.</string>
     <string name="title_connected_output">Podłączone urządzenie</string>
@@ -632,4 +631,13 @@
     <string name="label_other_encoding">Inny format</string>
     <string name="label_format_channels">%1$s (%2$s)</string>
     <string name="label_rates_khz">%s kHz</string>
+    <string name="label_bit_perfect_output">Wyjście bit-perfect</string>
+    <string name="desc_bit_perfect_output">Dźwięk trafia do przetwornika USB bez zmian, z częstotliwością próbkowania pliku. Głośność systemowa, ReplayGain i korektor są wtedy pomijane, a głośność można regulować tylko na samym urządzeniu. Pliki w formacie, którego urządzenie nie obsługuje, są odtwarzane przez mikser systemowy.</string>
+    <string name="desc_bit_perfect_on">Bit-perfect włączony</string>
+    <string name="desc_bit_perfect_off">Bit-perfect wyłączony</string>
+    <string name="label_bit_perfect">Bit-perfect</string>
+    <string name="label_bit_perfect_playing">Odtwarzanie bit-perfect</string>
+    <string name="label_eq_bypassed">%s (pominięty: bit-perfect)</string>
+    <string name="label_curve_not_applied">Nie zastosowano</string>
+    <string name="msg_eq_bitperfect">Wyjście bit-perfect jest aktywne, więc korektora nie słychać. Wszystkie nastawy pozostają bez zmian.</string>
 </resources>

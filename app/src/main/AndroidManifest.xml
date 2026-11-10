@@ -7,6 +7,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Bit-perfect output: asking the system to send our audio to a USB DAC unmixed. -->
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <!-- Merged in by Media3 for network streaming; local files only. -->
     <uses-permission
         android:name="android.permission.ACCESS_NETWORK_STATE"

@@ -37,7 +37,8 @@ fun SettingsRootScreen(
     val startView by (context.applicationContext as sh.hnet.music.MusicApplication).preferences.startView.collectAsStateWithLifecycle(sh.hnet.music.ui.library.LibraryView.ALBUMS)
     val lastBackup by (context.applicationContext as sh.hnet.music.MusicApplication).backup.lastBackup.collectAsStateWithLifecycle()
     val equalizer by (context.applicationContext as sh.hnet.music.MusicApplication).equalizer.state.collectAsStateWithLifecycle()
-    val usbOutput = rememberUsbOutput()
+    val bitPerfectOn by (context.applicationContext as sh.hnet.music.MusicApplication).preferences.bitPerfect.collectAsStateWithLifecycle(false)
+    val bitPerfectActive by (context.applicationContext as sh.hnet.music.MusicApplication).bitPerfect.active.collectAsStateWithLifecycle()
     val language = appLanguages.firstOrNull { it.tag == currentLanguageTag(context) } ?: appLanguages.first()
     SettingsPage(title = stringResource(R.string.title_settings), onBack = null) {
         SettingsGroup(stringResource(R.string.title_settings_group_library)) {
@@ -60,11 +61,11 @@ fun SettingsRootScreen(
                 )
             }
             row { shapes ->
-                SettingsNavigationRow(shapes, R.drawable.ic_equalizer, stringResource(R.string.title_equalizer), equalizerSummary(equalizer), onClick = onOpenEqualizer)
+                SettingsNavigationRow(shapes, R.drawable.ic_equalizer, stringResource(R.string.title_equalizer), equalizerSummary(equalizer, bitPerfectActive), onClick = onOpenEqualizer)
             }
             row { shapes ->
-                val name = usbOutput?.let { it.name.ifEmpty { stringResource(R.string.label_usb_audio) } } ?: stringResource(R.string.label_no_usb_output)
-                SettingsNavigationRow(shapes, R.drawable.ic_usb, stringResource(R.string.title_output), name, onClick = onOpenOutput)
+                val summary = stringResource(if (bitPerfectOn) R.string.desc_bit_perfect_on else R.string.desc_bit_perfect_off)
+                SettingsNavigationRow(shapes, R.drawable.ic_usb, stringResource(R.string.title_output), summary, onClick = onOpenOutput)
             }
         }
         SettingsGroup(stringResource(R.string.title_settings_group_app)) {

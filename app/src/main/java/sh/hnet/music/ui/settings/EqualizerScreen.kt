@@ -99,6 +99,7 @@ import sh.hnet.music.playback.FilterType
 import sh.hnet.music.ui.components.DestructiveButton
 import sh.hnet.music.ui.components.LocalBottomOverlay
 import sh.hnet.music.ui.components.RowIcon
+import sh.hnet.music.ui.components.SettingsDescription
 import sh.hnet.music.ui.components.SettingsGroup
 import sh.hnet.music.ui.components.SettingsNote
 import sh.hnet.music.ui.components.SettingsPage
@@ -122,6 +123,7 @@ fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageSco
     val app = LocalContext.current.applicationContext as MusicApplication
     val store = app.equalizer
     val state by store.state.collectAsStateWithLifecycle()
+    val bypassed by app.bitPerfect.active.collectAsStateWithLifecycle()
     val filters = state.current.filters
     val resources = LocalResources.current
     val locale = LocalConfiguration.current.locales[0]
@@ -270,9 +272,13 @@ fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageSco
                 pinned = {
                     ResponseCurve(
                         settings = state.current,
-                        applied = state.enabled,
+                        applied = state.enabled && !bypassed,
                         edited = edited,
-                        tag = if (state.enabled) null else stringResource(R.string.label_curve_off),
+                        tag = when {
+                            !state.enabled -> stringResource(R.string.label_curve_off)
+                            bypassed -> stringResource(R.string.label_curve_not_applied)
+                            else -> null
+                        },
                         // A tap on the curve closes the filter sheet
                         // Space above too: scrolled, the top bar takes the curve's own color
                         modifier = Modifier
@@ -282,6 +288,8 @@ fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageSco
                     )
                 },
             ) {
+                // Everything stays editable and saved; it just isn't heard for now (§11.2)
+                if (bypassed) SettingsDescription(stringResource(R.string.msg_eq_bitperfect))
                 SettingsGroup {
                     row { shapes ->
                         SegmentedListItem(
@@ -631,8 +639,10 @@ private fun presetKind(state: EqualizerState): String? = when {
 
 /** The Settings row's line (§2.1): "Off", the preset, or the preset "(modified)". */
 @Composable
-fun equalizerSummary(state: EqualizerState): String = when {
+fun equalizerSummary(state: EqualizerState, bypassed: Boolean = false): String = when {
     !state.enabled -> stringResource(R.string.label_eq_off)
+    // What plays goes out bit-perfect: set, kept, not heard (§11.2)
+    bypassed -> stringResource(R.string.label_eq_bypassed, presetName(state))
     state.modified -> stringResource(R.string.label_eq_modified, presetName(state))
     else -> presetName(state)
 }

@@ -5,6 +5,10 @@ package sh.hnet.music.ui.settings
 import android.content.Context
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.SegmentedListItem
+import androidx.compose.material3.Switch
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import sh.hnet.music.MusicApplication
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,7 +23,6 @@ import sh.hnet.music.playback.OutputFormat
 import sh.hnet.music.playback.OutputFormatGroup
 import sh.hnet.music.playback.UsbOutput
 import sh.hnet.music.ui.components.RowIcon
-import sh.hnet.music.ui.components.SettingsDescription
 import sh.hnet.music.ui.components.SettingsGroup
 import sh.hnet.music.ui.components.SettingsNote
 import sh.hnet.music.ui.components.SettingsPage
@@ -40,19 +43,44 @@ private fun usbOutputOf(context: Context): Flow<UsbOutput?> = OutputDevices.usbO
 
 /**
  * Settings › Output (bit-perfect stage B0): the connected USB output and the formats the system
- * offers for it, bit-perfect and mixed. Nothing is set here yet; the bit-perfect switch comes with B1.
+ * offers for it, bit-perfect and mixed, under the Bit-perfect output switch (stage B1).
  */
 @Composable
 fun OutputScreen(onBack: () -> Unit) {
     val output = rememberUsbOutput()
+    val app = LocalContext.current.applicationContext as MusicApplication
+    val on by app.preferences.bitPerfect.collectAsStateWithLifecycle(false)
+    val active by app.bitPerfect.active.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
     SettingsPage(title = stringResource(R.string.title_output), onBack = onBack) {
+        // Can be set with no DAC connected: it takes effect when one is
+        SettingsGroup {
+            row { shapes ->
+                SegmentedListItem(
+                    checked = on,
+                    onCheckedChange = { value -> scope.launch { app.preferences.setBitPerfect(value) } },
+                    shapes = shapes,
+                    colors = settingsRowColors(),
+                    trailingContent = { Switch(checked = on, onCheckedChange = null) },
+                ) {
+                    Text(stringResource(R.string.label_bit_perfect_output))
+                }
+            }
+        }
+        SettingsNote(stringResource(R.string.desc_bit_perfect_output))
         if (output == null) {
-            SettingsDescription(stringResource(R.string.msg_no_usb_output))
+            SettingsNote(stringResource(R.string.msg_no_usb_output))
             return@SettingsPage
         }
         SettingsGroup(stringResource(R.string.title_connected_output)) {
             row { shapes ->
-                SegmentedListItem(onClick = {}, shapes = shapes, colors = settingsRowColors(), leadingContent = { RowIcon(R.drawable.ic_usb) }) {
+                SegmentedListItem(
+                    onClick = {},
+                    shapes = shapes,
+                    colors = settingsRowColors(),
+                    leadingContent = { RowIcon(R.drawable.ic_usb) },
+                    supportingContent = if (active) ({ Text(stringResource(R.string.label_bit_perfect_playing)) }) else null,
+                ) {
                     Text(output.name.ifEmpty { stringResource(R.string.label_usb_audio) })
                 }
             }

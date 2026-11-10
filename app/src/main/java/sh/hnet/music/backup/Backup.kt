@@ -63,6 +63,8 @@ data class BackupSettings(
         val preventClipping: Boolean? = null,
         /** The PCM rate DSD is converted to; absent in backups from before DSD was played. */
         val dsdPcmRate: Int? = null,
+        /** Bit-perfect output; absent in backups from before it. */
+        val bitPerfect: Boolean? = null,
     )
 }
 

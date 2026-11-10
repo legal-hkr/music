@@ -60,7 +60,8 @@ class PlaybackService : MediaSessionService() {
             .setUsage(C.USAGE_MEDIA)
             .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
             .build()
-        val gainSink = ReplayGainRenderersFactory.sink(this)
+        val bitPerfect = (application as MusicApplication).bitPerfect
+        val gainSink = ReplayGainRenderersFactory.sink(this, bitPerfect)
         val player = ExoPlayer.Builder(this, ReplayGainRenderersFactory(this, gainSink))
             // DSD (DSF, DSDIFF) is converted to PCM by our own extractor, asked before Media3's
             .setMediaSourceFactory(DefaultMediaSourceFactory(this, DsdExtractorsFactory { dsdPcmRate }))
@@ -132,6 +133,18 @@ class PlaybackService : MediaSessionService() {
         })
         scope.launch {
             (application as MusicApplication).preferences.gain.collect { gainSink.settings = it }
+        }
+        // Bit-perfect output: the switch, and USB outputs coming and going. Either way the output is
+        // opened again for what plays, so the change is heard (and shown) at once
+        bitPerfect.start()
+        bitPerfect.onOutputChanged = { reopenOutput(player) }
+        scope.launch {
+            (application as MusicApplication).preferences.bitPerfect.collect { on ->
+                if (bitPerfect.enabled != on) {
+                    bitPerfect.enabled = on
+                    reopenOutput(player)
+                }
+            }
         }
         // The equalizer: heard at once, whatever changes it
         scope.launch {
@@ -326,7 +339,15 @@ class PlaybackService : MediaSessionService() {
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = session
 
+    /** Stops and prepares again where it was: the renderer configures its output anew. Nothing to do while idle. */
+    private fun reopenOutput(player: Player) {
+        if (player.playbackState == Player.STATE_IDLE || player.mediaItemCount == 0) return
+        player.stop()
+        player.prepare()
+    }
+
     override fun onDestroy() {
+        (application as MusicApplication).bitPerfect.release()
         // Last chance: written at once, the scope is about to go
         if (restored) session?.player?.let { store.save(snapshot(it)) }
         scope.cancel()

@@ -45,7 +45,14 @@ class ReplayGainRenderersFactory(context: Context, private val sink: ReplayGainS
     }
 
     companion object {
-        fun sink(context: Context) = ReplayGainSink(DefaultAudioSink.Builder(context).setEnableFloatOutput(true).build())
+        /** The sink over Media3's own, whose outputs [bitPerfect] opens (the usual AudioTrack, or the device's own format). */
+        fun sink(context: Context, bitPerfect: BitPerfectController) = ReplayGainSink(
+            DefaultAudioSink.Builder(context)
+                .setEnableFloatOutput(true)
+                .setAudioOutputProvider(BitPerfectOutputProvider.create(context, bitPerfect))
+                .build(),
+            bitPerfect,
+        )
     }
 }
 
@@ -98,9 +105,10 @@ data class TrackGain(val tags: GainTags, val albumInOrder: Boolean)
 /**
  * Converts PCM to float and applies the current track's gain, then the equalizer, on the way into
  * the real sink. Input buffers are consumed through a converted copy, kept until the real sink has
- * taken all of it.
+ * taken all of it. A stream that goes out bit-perfect is converted only (exactly, for 16- and
+ * 24-bit sources): neither the gain nor the equalizer touches it.
  */
-class ReplayGainSink(sink: AudioSink) : ForwardingAudioSink(sink) {
+class ReplayGainSink(sink: AudioSink, private val bitPerfect: BitPerfectController? = null) : ForwardingAudioSink(sink) {
     @Volatile var settings = GainSettings()
         set(value) { field = value; update() }
 
@@ -123,6 +131,8 @@ class ReplayGainSink(sink: AudioSink) : ForwardingAudioSink(sink) {
     private var sourceStart = 0
     /** A buffer handed on unconverted that the real sink hasn't finished yet. */
     private var passing = false
+    /** The stream goes out bit-perfect: nothing changes its samples. */
+    private var exact = false
 
     /** Called on the playback thread as a track's first sample is about to be written. */
     fun startTrack(next: TrackGain?) {
@@ -140,6 +150,8 @@ class ReplayGainSink(sink: AudioSink) : ForwardingAudioSink(sink) {
         encoding = if (format.pcmEncoding in CONVERTIBLE) format.pcmEncoding else C.ENCODING_INVALID
         channels = format.channelCount
         if (encoding != C.ENCODING_INVALID) eq.configure(format.sampleRate, channels)
+        // Decided here, per stream; the output is opened to match when this stream's first sample is due
+        exact = bitPerfect?.prepare(format.sampleRate, exactBits(encoding), channels) == true
         if (encoding == C.ENCODING_INVALID) {
             super.configure(audioSinkConfig)
         } else {
@@ -157,11 +169,12 @@ class ReplayGainSink(sink: AudioSink) : ForwardingAudioSink(sink) {
 
     override fun handleBuffer(buffer: ByteBuffer, presentationTimeUs: Long, encodedAccessUnitCount: Int): Boolean {
         if (encoding == C.ENCODING_INVALID) return super.handleBuffer(buffer, presentationTimeUs, encodedAccessUnitCount)
-        eq.set(equalizer)
+        eq.set(if (exact) null else equalizer)
+        val gain = if (exact) 1f else gain
         // Already float and nothing to do (ReplayGain off or 0 dB, equalizer off): passed on as it is, no
         // copy. A buffer the real sink has begun stays its own until it has taken all of it: the sink
         // refuses another buffer in its place, so the equalizer switched on meanwhile starts with the next
-        if (passing || (encoding == C.ENCODING_PCM_FLOAT && gain == 1f && eq.idle && source == null)) {
+        if (passing || (encoding == C.ENCODING_PCM_FLOAT && gain == 1f && (exact || eq.idle) && source == null)) {
             val done = super.handleBuffer(buffer, presentationTimeUs, encodedAccessUnitCount)
             passing = !done
             return done
@@ -170,7 +183,7 @@ class ReplayGainSink(sink: AudioSink) : ForwardingAudioSink(sink) {
         // The same buffer comes back until it's consumed; a new one (or the same object reused by
         // the codec for the next output) is converted once
         if (buffer !== source || presentationTimeUs != sourceTimeUs || !converted.hasRemaining()) {
-            convert(buffer, inBytes)
+            convert(buffer, inBytes, gain)
             source = buffer
             sourceTimeUs = presentationTimeUs
             sourceStart = buffer.position()
@@ -182,12 +195,11 @@ class ReplayGainSink(sink: AudioSink) : ForwardingAudioSink(sink) {
         return done
     }
 
-    private fun convert(input: ByteBuffer, inBytes: Int) {
+    private fun convert(input: ByteBuffer, inBytes: Int, g: Float) {
         val samples = input.remaining() / inBytes
         if (converted.capacity() < samples * 4) converted = ByteBuffer.allocateDirect(samples * 4).order(ByteOrder.nativeOrder())
         converted.clear()
         converted.order(ByteOrder.nativeOrder())
-        val g = gain
         val src = input.duplicate().order(ByteOrder.LITTLE_ENDIAN)
         when (encoding) {
             C.ENCODING_PCM_FLOAT -> repeat(samples) { converted.putFloat(src.getFloat() * g) }
@@ -200,7 +212,7 @@ class ReplayGainSink(sink: AudioSink) : ForwardingAudioSink(sink) {
         }
         converted.flip()
         // The equalizer over the converted samples, channel by channel as they are interleaved
-        if (!eq.idle && channels > 0) {
+        if (!exact && !eq.idle && channels > 0) {
             var channel = 0
             var at = 0
             repeat(samples) {
@@ -231,6 +243,13 @@ class ReplayGainSink(sink: AudioSink) : ForwardingAudioSink(sink) {
 
     private companion object {
         val CONVERTIBLE = setOf(C.ENCODING_PCM_16BIT, C.ENCODING_PCM_24BIT, C.ENCODING_PCM_32BIT, C.ENCODING_PCM_FLOAT)
+
+        /** The size of integer samples the float path carries exactly; 0 for the rest (32-bit, float, not PCM). */
+        fun exactBits(encoding: Int) = when (encoding) {
+            C.ENCODING_PCM_16BIT -> 16
+            C.ENCODING_PCM_24BIT -> 24
+            else -> 0
+        }
 
         fun bytesPerSample(encoding: Int) = when (encoding) {
             C.ENCODING_PCM_16BIT -> 2

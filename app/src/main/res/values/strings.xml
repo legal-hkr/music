@@ -567,7 +567,6 @@
     <string name="error_import_not_preset"><![CDATA[<b>%s</b> isn’t an equalizer preset Music can read.]]></string>
     <!-- Output (bit-perfect B0) -->
     <string name="title_output">Output</string>
-    <string name="label_no_usb_output">No USB device</string>
     <string name="label_usb_audio">USB audio</string>
     <string name="msg_no_usb_output">No USB audio device is connected. Once one is connected, the formats the system can send to it will appear here.</string>
     <string name="title_connected_output">Connected device</string>
@@ -579,4 +578,13 @@
     <string name="label_other_encoding">Other format</string>
     <string name="label_format_channels">%1$s (%2$s)</string>
     <string name="label_rates_khz">%s kHz</string>
+    <string name="label_bit_perfect_output">Bit-perfect output</string>
+    <string name="desc_bit_perfect_output">With a USB DAC, Music sends the audio unchanged, at each file’s own sample rate. System volume, ReplayGain and the equalizer are bypassed, so the volume can only be set on the device itself. Files in a format the device doesn’t accept play through the system mixer.</string>
+    <string name="desc_bit_perfect_on">Bit-perfect on</string>
+    <string name="desc_bit_perfect_off">Bit-perfect off</string>
+    <string name="label_bit_perfect">Bit-perfect</string>
+    <string name="label_bit_perfect_playing">Playing bit-perfect</string>
+    <string name="label_eq_bypassed">%s (bypassed: bit-perfect)</string>
+    <string name="label_curve_not_applied">Not applied</string>
+    <string name="msg_eq_bitperfect">Bit-perfect output is on, so the equalizer isn’t heard. Everything here stays as set.</string>
 </resources>

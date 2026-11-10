@@ -93,6 +93,7 @@ class Preferences(private val context: Context) {
                 preampDb = prefs[preampKey],
                 preventClipping = prefs[preventClippingKey],
                 dsdPcmRate = prefs[dsdPcmRateKey],
+                bitPerfect = prefs[bitPerfectKey],
             ),
             exportFormat = prefs[exportFormatKey],
             skipShorterThanSeconds = prefs[skipShortKey] ?: 0,
@@ -116,6 +117,7 @@ class Preferences(private val context: Context) {
         backup.playback.replayGain?.let { prefs[gainModeKey] = it }
         backup.playback.preampDb?.let { prefs[preampKey] = it }
         backup.playback.preventClipping?.let { prefs[preventClippingKey] = it }
+        backup.playback.bitPerfect?.let { prefs[bitPerfectKey] = it }
         backup.playback.dsdPcmRate?.takeIf { it in DSD_PCM_RATES }?.let { prefs[dsdPcmRateKey] = it }
         backup.exportFormat?.let { prefs[exportFormatKey] = it }
         backup.artistsWithAlbumsOnly?.let { prefs[artistsWithAlbumsKey] = it }
@@ -181,6 +183,13 @@ class Preferences(private val context: Context) {
     suspend fun setPreamp(db: Float) = context.settings.edit { it[preampKey] = db }
 
     suspend fun setPreventClipping(on: Boolean) = context.settings.edit { it[preventClippingKey] = on }
+
+    private val bitPerfectKey = booleanPreferencesKey("bit_perfect_output")
+
+    /** Bit-perfect output to USB DACs (Settings › Output); off by default. */
+    val bitPerfect: Flow<Boolean> = context.settings.data.map { prefs -> prefs[bitPerfectKey] ?: false }
+
+    suspend fun setBitPerfect(on: Boolean) = context.settings.edit { it[bitPerfectKey] = on }
 
     private val dsdPcmRateKey = intPreferencesKey("dsd_pcm_rate")
 

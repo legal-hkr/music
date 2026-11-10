@@ -49,6 +49,8 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.runtime.SideEffect
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -177,11 +179,14 @@ private fun ColumnScope.Controls(
         }
     }
     Spacer(Modifier.height(12.dp))
+    val bitPerfect by (LocalContext.current.applicationContext as sh.hnet.music.MusicApplication).bitPerfect.active.collectAsStateWithLifecycle()
     // Technical details: only here and on the details page (SPEC §2.5)
     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.heightIn(min = 32.dp)) {
         if (details != null) item { AssistChip(onClick = onDetails, label = { Text(techLabel(details)) }) }
+        // Sent to the USB DAC unchanged: ReplayGain doesn't apply, so its chip gives way (SPEC §9.3)
+        if (bitPerfect) item { AssistChip(onClick = onDetails, label = { Text(stringResource(R.string.label_bit_perfect)) }) }
         // The gain actually applied, while ReplayGain is on (SPEC §9.3)
-        if (gain != null) item {
+        if (gain != null && !bitPerfect) item {
             AssistChip(onClick = onDetails, label = { Text(stringResource(R.string.label_replaygain_applied, decibels(gain.db))) })
         }
     }
