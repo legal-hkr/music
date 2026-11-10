@@ -154,6 +154,8 @@ fun MusicApp(openNowPlaying: Int = 0) {
     var detailsOpen by rememberSaveable { mutableStateOf(false) }
     // The equalizer over now playing, from the volume bar (SPEC-equalizer §2.2)
     var equalizerOpen by rememberSaveable { mutableStateOf(false) }
+    // A settings page opened from a chip on now playing: "output" or "playback"
+    var settingsOpen by rememberSaveable { mutableStateOf<String?>(null) }
     var queueOpen by rememberSaveable { mutableStateOf(false) }
     // Add to playlist and Save as playlist, shown over everything (SPEC-playlists §7, §8)
     var addRequest by remember { mutableStateOf<AddRequest?>(null) }
@@ -162,7 +164,7 @@ fun MusicApp(openNowPlaying: Int = 0) {
     val tracksByUri by playerModel.tracks.collectAsStateWithLifecycle()
     val hasQueue = playerState.queueSize > 0
     fun openNowPlaying() = scope.launch { nowPlaying.animateTo(true) }
-    fun closeNowPlaying() = scope.launch { detailsOpen = false; equalizerOpen = false; queueOpen = false; nowPlaying.animateTo(false) }
+    fun closeNowPlaying() = scope.launch { detailsOpen = false; equalizerOpen = false; settingsOpen = null; queueOpen = false; nowPlaying.animateTo(false) }
     LaunchedEffect(openNowPlaying) { if (openNowPlaying > 0 && hasQueue) nowPlaying.animateTo(true) }
     LaunchedEffect(hasQueue) { if (!hasQueue) nowPlaying.snapTo(false) }
     val dragHeight = with(LocalDensity.current) { 600.dp.toPx() }
@@ -494,7 +496,8 @@ fun MusicApp(openNowPlaying: Int = 0) {
         // Registered here, after the destinations, so they win over the pages' own Back while open
         BackHandler(enabled = detailsOpen) { detailsOpen = false }
         BackHandler(enabled = equalizerOpen) { equalizerOpen = false }
-        PredictiveBackHandler(enabled = nowPlaying.targetState && !detailsOpen && !equalizerOpen) { events ->
+        BackHandler(enabled = settingsOpen != null) { settingsOpen = null }
+        PredictiveBackHandler(enabled = nowPlaying.targetState && !detailsOpen && !equalizerOpen && settingsOpen == null) { events ->
             try {
                 events.collect { nowPlaying.seekTo(it.progress, targetState = false) }
             } catch (canceled: CancellationException) {
@@ -519,6 +522,8 @@ fun MusicApp(openNowPlaying: Int = 0) {
                 onDetails = { detailsOpen = true },
                 onQueue = { queueOpen = true },
                 onEqualizer = { equalizerOpen = true },
+                onOutputSettings = { settingsOpen = "output" },
+                onPlaybackSettings = { settingsOpen = "playback" },
             )
             if (queueOpen) {
                 QueueSheet(
@@ -545,6 +550,23 @@ fun MusicApp(openNowPlaying: Int = 0) {
                     Box(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
                         CompositionLocalProvider(LocalBottomOverlay provides 0.dp) {
                             EqualizerScreen(onBack = { equalizerOpen = false }, snackbars = snackbars, messageScope = scope, topInsets = false)
+                        }
+                    }
+                }
+            }
+            androidx.compose.animation.AnimatedVisibility(
+                visible = settingsOpen != null,
+                enter = slideInHorizontally(spatial) { shift } + fadeIn(effects),
+                exit = slideOutHorizontally(spatial) { shift } + fadeOut(fastEffects),
+            ) {
+                // The page stays what it was while it slides out
+                var page by remember { mutableStateOf(settingsOpen) }
+                settingsOpen?.let { page = it }
+                Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
+                    Box(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
+                        CompositionLocalProvider(LocalBottomOverlay provides 0.dp) {
+                            if (page == "output") sh.hnet.music.ui.settings.OutputScreen(onBack = { settingsOpen = null }, topInsets = false)
+                            else PlaybackSettingsScreen(onBack = { settingsOpen = null }, topInsets = false)
                         }
                     }
                 }

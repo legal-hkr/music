@@ -105,6 +105,8 @@ fun NowPlayingScreen(
     onDetails: () -> Unit,
     onQueue: () -> Unit,
     onEqualizer: () -> Unit,
+    onOutputSettings: () -> Unit,
+    onPlaybackSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     // A Surface, not just a background: it also sets the content color (onSurface), which this
@@ -128,7 +130,7 @@ fun NowPlayingScreen(
                         Cover(track, RoundedCornerShape(28.dp), Modifier.padding(start = 24.dp).aspectRatio(1f, matchHeightConstraintsFirst = true), player = true)
                     }
                     Column(Modifier.weight(1f).padding(end = 24.dp), verticalArrangement = Arrangement.Center) {
-                        Controls(track, details, gain, state, player, volumeBar, onGoToArtist, onGoToAlbum, onDetails, onQueue, onEqualizer)
+                        Controls(track, details, gain, state, player, volumeBar, onGoToArtist, onGoToAlbum, onDetails, onQueue, onEqualizer, onOutputSettings, onPlaybackSettings)
                     }
                 }
             } else {
@@ -140,7 +142,7 @@ fun NowPlayingScreen(
                 }
                 Spacer(Modifier.height(20.dp))
                 Column(Modifier.padding(horizontal = 24.dp).padding(bottom = 16.dp)) {
-                    Controls(track, details, gain, state, player, volumeBar, onGoToArtist, onGoToAlbum, onDetails, onQueue, onEqualizer)
+                    Controls(track, details, gain, state, player, volumeBar, onGoToArtist, onGoToAlbum, onDetails, onQueue, onEqualizer, onOutputSettings, onPlaybackSettings)
                 }
             }
         }
@@ -161,6 +163,8 @@ private fun ColumnScope.Controls(
     onDetails: () -> Unit,
     onQueue: () -> Unit,
     onEqualizer: () -> Unit,
+    onOutputSettings: () -> Unit,
+    onPlaybackSettings: () -> Unit,
 ) {
     // Title block and the track's actions
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -183,11 +187,12 @@ private fun ColumnScope.Controls(
     // Technical details: only here and on the details page (SPEC §2.5)
     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.heightIn(min = 32.dp)) {
         if (details != null) item { AssistChip(onClick = onDetails, label = { Text(techLabel(details)) }) }
+        // Each chip opens what it is about: the file's details, the output's or the playback settings
         // Sent to the USB DAC unchanged: ReplayGain doesn't apply, so its chip gives way (SPEC §9.3)
-        if (bitPerfect) item { AssistChip(onClick = onDetails, label = { Text(stringResource(R.string.label_bit_perfect)) }) }
+        if (bitPerfect) item { AssistChip(onClick = onOutputSettings, label = { Text(stringResource(R.string.label_bit_perfect)) }) }
         // The gain actually applied, while ReplayGain is on (SPEC §9.3)
         if (gain != null && !bitPerfect) item {
-            AssistChip(onClick = onDetails, label = { Text(stringResource(R.string.label_replaygain_applied, decibels(gain.db))) })
+            AssistChip(onClick = onPlaybackSettings, label = { Text(stringResource(R.string.label_replaygain_applied, decibels(gain.db))) })
         }
     }
     Spacer(Modifier.height(12.dp))

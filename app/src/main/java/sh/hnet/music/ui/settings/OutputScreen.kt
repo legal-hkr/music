@@ -46,13 +46,13 @@ private fun usbOutputOf(context: Context): Flow<UsbOutput?> = OutputDevices.usbO
  * offers for it, bit-perfect and mixed, under the Bit-perfect output switch (stage B1).
  */
 @Composable
-fun OutputScreen(onBack: () -> Unit) {
+fun OutputScreen(onBack: () -> Unit, topInsets: Boolean = true) {
     val output = rememberUsbOutput()
     val app = LocalContext.current.applicationContext as MusicApplication
     val on by app.preferences.bitPerfect.collectAsStateWithLifecycle(false)
     val active by app.bitPerfect.active.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
-    SettingsPage(title = stringResource(R.string.title_output), onBack = onBack) {
+    SettingsPage(title = stringResource(R.string.title_output), onBack = onBack, topInsets = topInsets) {
         // Can be set with no DAC connected: it takes effect when one is
         SettingsGroup {
             row { shapes ->

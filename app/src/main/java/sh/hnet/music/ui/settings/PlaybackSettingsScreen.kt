@@ -63,7 +63,7 @@ private fun ReplayGainMode.description(): Int = when (this) {
 
 /** Settings › Playback (SPEC §11.4): ReplayGain mode, the volume options it uses, and the PCM rate for DSD. */
 @Composable
-fun PlaybackSettingsScreen(onBack: () -> Unit) {
+fun PlaybackSettingsScreen(onBack: () -> Unit, topInsets: Boolean = true) {
     val preferences = (LocalContext.current.applicationContext as MusicApplication).preferences
     val settings by preferences.gain.collectAsStateWithLifecycle(GainSettings())
     val dsdRate by preferences.dsdPcmRate.collectAsStateWithLifecycle(DSD_PCM_RATES.first())
@@ -72,7 +72,7 @@ fun PlaybackSettingsScreen(onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
     val groupLabel = stringResource(R.string.title_replaygain)
 
-    SettingsPage(title = stringResource(R.string.title_settings_playback), onBack = onBack) {
+    SettingsPage(title = stringResource(R.string.title_settings_playback), onBack = onBack, topInsets = topInsets) {
         Column(Modifier.selectableGroup().semantics { contentDescription = groupLabel }) {
             SettingsGroup(stringResource(R.string.title_replaygain)) {
                 ReplayGainMode.entries.forEach { mode ->
