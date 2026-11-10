@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.ButtonGroup
@@ -183,17 +182,7 @@ private fun ColumnScope.Controls(
         if (details != null) item { AssistChip(onClick = onDetails, label = { Text(techLabel(details)) }) }
         // The gain actually applied, while ReplayGain is on (SPEC §9.3)
         if (gain != null) item {
-            AssistChip(
-                onClick = onDetails,
-                label = { Text(stringResource(R.string.label_replaygain_applied, decibels(gain.db))) },
-                leadingIcon = {
-                    Icon(
-                        painterResource(if (gain.db > 0f) R.drawable.ic_volume_up else R.drawable.ic_volume_down),
-                        contentDescription = null,
-                        modifier = Modifier.size(AssistChipDefaults.IconSize),
-                    )
-                },
-            )
+            AssistChip(onClick = onDetails, label = { Text(stringResource(R.string.label_replaygain_applied, decibels(gain.db))) })
         }
     }
     Spacer(Modifier.height(12.dp))
