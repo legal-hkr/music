@@ -83,7 +83,7 @@
     <string name="label_view_albums">Albumy</string>
     <string name="label_view_artists">Wykonawcy</string>
     <string name="label_view_tracks">Utwory</string>
-    <string name="content_description_library_view">Widok biblioteki</string>
+    <string name="content_description_library_view">Karta biblioteki</string>
     <plurals name="label_album_count">
         <item quantity="one">%s album</item>
         <item quantity="few">%s albumy</item>
@@ -261,8 +261,7 @@
     <string name="label_db">%s dB</string>
     <string name="label_prevent_clipping">Zapobiegaj przesterowaniu</string>
     <string name="desc_prevent_clipping">Zmniejsza wzmocnienie, gdy szczyt utworu zostałby obcięty</string>
-    <string name="label_replaygain_applied_album">ReplayGain: %s dB (album)</string>
-    <string name="label_replaygain_applied_track">ReplayGain: %s dB (utwór)</string>
+    <string name="label_replaygain_applied">ReplayGain: %s dB</string>
     <string name="label_licenses">Licencje open source</string>
     <string name="desc_licenses">Składniki open source użyte w aplikacji</string>
     <string name="label_apache_license">Apache License 2.0</string>
@@ -426,7 +425,7 @@
     <string name="desc_settings_reset">Wszystkie ustawienia wrócą do domyślnych, a język będzie zgodny z systemem. Foldery, biblioteka, playlisty i presety korektora pozostaną bez zmian.</string>
     <string name="button_restore_defaults">Przywróć ustawienia domyślne</string>
     <string name="title_confirm_restore_defaults">Przywrócić ustawienia domyślne?</string>
-    <string name="msg_confirm_restore_defaults">Sortowanie, widoki biblioteki, ustawienia odtwarzania, korektor (wyłączony, preset Płaski), format eksportu i pomijanie krótkich plików wrócą do domyślnych, a język będzie zgodny z systemem. Foldery, biblioteka, playlisty i presety korektora pozostaną bez zmian.</string>
+    <string name="msg_confirm_restore_defaults">Sortowanie, karty biblioteki, ustawienia odtwarzania, korektor (wyłączony, preset Płaski), format eksportu i pomijanie krótkich plików wrócą do domyślnych, a język będzie zgodny z systemem. Foldery, biblioteka, playlisty i presety korektora pozostaną bez zmian.</string>
     <string name="button_restore">Przywróć</string>
     <string name="msg_defaults_restored">Przywrócono ustawienia domyślne</string>
     <string name="title_about_license">Licencja</string>
@@ -442,8 +441,8 @@
         <item quantity="other">Wersja %1$s, %2$d zmiany</item>
     </plurals>
     <string name="whats_new_updated_snackbar">Zaktualizowano do wersji %1$s</string>
-    <!-- Ustawienia v2: widoki biblioteki -->
-    <string name="title_library_views">Widoki biblioteki</string>
+    <!-- Ustawienia v2: karty biblioteki -->
+    <string name="title_library_views">Karty biblioteki</string>
     <string name="label_opens_on_view">Domyślna karta: %s</string>
     <string name="label_opens_on_last">Domyślna karta: ostatnio używana</string>
     <string name="title_views_order">Kolejność</string>
@@ -497,7 +496,7 @@
     <string name="button_next">Dalej</string>
     <string name="label_backup_brings_back">Wybierz plik kopii zapasowej utworzonej w Muzyce. Przywrócone zostaną:</string>
     <string name="label_backup_item_settings">Ustawienia</string>
-    <string name="desc_backup_item_settings">Sortowanie, widoki biblioteki, odtwarzanie</string>
+    <string name="desc_backup_item_settings">Sortowanie, karty biblioteki, odtwarzanie</string>
     <string name="label_backup_item_playlists">Playlisty</string>
     <string name="desc_backup_item_playlists">Także Ulubione</string>
     <string name="label_backup_no_folders_title">Kopia nie przenosi dostępu do folderów.</string>

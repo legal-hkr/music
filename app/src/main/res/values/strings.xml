@@ -233,8 +233,7 @@
     <string name="label_db">%s dB</string>
     <string name="label_prevent_clipping">Prevent clipping</string>
     <string name="desc_prevent_clipping">Lowers the gain where a track’s peak would clip</string>
-    <string name="label_replaygain_applied_album">ReplayGain: %s dB (album)</string>
-    <string name="label_replaygain_applied_track">ReplayGain: %s dB (track)</string>
+    <string name="label_replaygain_applied">ReplayGain: %s dB</string>
     <string name="label_licenses">Open-source licenses</string>
     <string name="desc_licenses">Open-source components used by Music</string>
     <string name="label_apache_license">Apache License 2.0</string>

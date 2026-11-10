@@ -185,7 +185,7 @@ private fun ColumnScope.Controls(
         if (gain != null) item {
             AssistChip(
                 onClick = onDetails,
-                label = { Text(stringResource(if (gain.album) R.string.label_replaygain_applied_album else R.string.label_replaygain_applied_track, decibels(gain.db))) },
+                label = { Text(stringResource(R.string.label_replaygain_applied, decibels(gain.db))) },
                 leadingIcon = {
                     Icon(
                         painterResource(if (gain.db > 0f) R.drawable.ic_volume_up else R.drawable.ic_volume_down),
