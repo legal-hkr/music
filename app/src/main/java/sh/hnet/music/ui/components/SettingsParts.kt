@@ -274,7 +274,7 @@ fun SettingsLinkRow(shapes: ListItemShapes, @DrawableRes icon: Int, title: Strin
     }
 }
 
-/** One choice of a single-choice group (put the group in a selectableGroup); the chosen one keeps the component's selected colours. */
+/** One choice of a single-choice group (put the group in a selectableGroup); the chosen one keeps the component's selected colors. */
 @Composable
 fun SettingsRadioRow(shapes: ListItemShapes, title: String, selected: Boolean, onSelect: () -> Unit, supporting: String? = null) {
     SegmentedListItem(

@@ -64,7 +64,7 @@ internal fun pictureBlock(input: ByteInput): ByteArray? {
     input.skip(4) // type, read by the caller
     input.skip(input.u32be()) // MIME type
     input.skip(input.u32be()) // description
-    input.skip(16) // width, height, depth, colours
+    input.skip(16) // width, height, depth, colors
     val length = input.u32be()
     if (length > TagBuilder.MAX_PICTURE) return null
     return input.readBytes(length.toInt())

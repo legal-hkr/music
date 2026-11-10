@@ -34,8 +34,8 @@ import androidx.compose.ui.unit.dp
 import sh.hnet.music.R
 
 /**
- * Confirmation of something that can't be undone: the icon in the error colour, Cancel, then the
- * verb in the error colour, last. [onConfirm] does the work and closes the dialog.
+ * Confirmation of something that can't be undone: the icon in the error color, Cancel, then the
+ * verb in the error color, last. [onConfirm] does the work and closes the dialog.
  */
 @Composable
 fun ConfirmDestructiveDialog(
@@ -73,7 +73,7 @@ fun ConfirmDestructiveDialog(
 
 /**
  * A page's single destructive action (Remove folder, Clear queue, Restore defaults): a full-width
- * outlined button in the error colour (owner's decision); it opens a [ConfirmDestructiveDialog].
+ * outlined button in the error color (owner's decision); it opens a [ConfirmDestructiveDialog].
  */
 @Composable
 fun DestructiveButton(text: String, @DrawableRes icon: Int, onClick: () -> Unit, modifier: Modifier = Modifier) {

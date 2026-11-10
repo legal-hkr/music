@@ -45,7 +45,7 @@ object Equalizer {
     /** What a new filter starts as: no audible change. */
     val NEW_FILTER = EqFilter()
 
-    /** b0, b1, b2, a1, a2 of [filter] at [sampleRate], normalised by a0. */
+    /** b0, b1, b2, a1, a2 of [filter] at [sampleRate], normalized by a0. */
     fun coefficients(filter: EqFilter, sampleRate: Int): DoubleArray {
         val a = 10.0.pow(filter.gainDb / 40.0)
         // Below Nyquist with some room, whatever the stream's rate

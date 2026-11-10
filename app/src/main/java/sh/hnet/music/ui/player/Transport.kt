@@ -96,7 +96,7 @@ private val PAUSED_RADIUS = 28.dp
  * Shuffle – previous – play – next – repeat in one mirrored row (§2). Previous, play and next form a
  * ButtonGroup side by side (owner's decision, after the overlapping cluster), each square at rest:
  * play as large as the row allows, up to [MAX_PLAY], previous and next [SIDE_RATIO] of it. Widths
- * are weighted by size, so the pressed one widens and its neighbours give way (animateWidth on all
+ * are weighted by size, so the pressed one widens and its neighbors give way (animateWidth on all
  * three) and all come back square; each takes its own shape on press. Play is a toggle, round
  * while playing.
  */
@@ -117,7 +117,7 @@ fun Transport(state: PlayerState, player: PlayerConnection) = BoxWithConstraints
         val next = remember { MutableInteractionSource() }
         val endReason = stringResource(R.string.desc_end_of_queue)
         // Weights as the sizes, in a group exactly as wide as the three squares: square at rest. The
-        // group stretches its buttons to its height, so previous and next wrap theirs, centred
+        // group stretches its buttons to its height, so previous and next wrap theirs, centered
         ButtonGroup(
             overflowIndicator = {},
             horizontalArrangement = Arrangement.spacedBy(GROUP_GAP),
@@ -142,7 +142,7 @@ fun Transport(state: PlayerState, player: PlayerConnection) = BoxWithConstraints
                         checked = state.isPlaying,
                         onCheckedChange = { if (state.ended) player.playFromStart() else player.togglePlayPause() },
                         shapes = IconButtonDefaults.toggleableShapes(shape = RoundedCornerShape(PAUSED_RADIUS), checkedShape = CircleShape),
-                        // The same colours playing or paused: the shape tells them apart
+                        // The same colors playing or paused: the shape tells them apart
                         colors = IconButtonDefaults.filledIconToggleButtonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
                             contentColor = MaterialTheme.colorScheme.onPrimary,

@@ -15,7 +15,7 @@
     <string name="content_description_back">Wstecz</string>
 
     <!-- Library and Search -->
-    <string name="msg_library_filling">Muzyka pojawi się tutaj, gdy tylko pliki zostaną odczytane.</string>
+    <string name="msg_library_filling">Utwory pojawiają się tutaj w miarę odczytywania plików.</string>
     <string name="msg_search_empty">Wpisz tytuł, wykonawcę, album lub nazwę playlisty.</string>
 
     <!-- Settings root -->
@@ -36,10 +36,10 @@
         <item quantity="other">%s utworu</item>
     </plurals>
     <plurals name="label_scanning_folders">
-        <item quantity="one">Skanuję %d folder</item>
-        <item quantity="few">Skanuję %d foldery</item>
-        <item quantity="many">Skanuję %d folderów</item>
-        <item quantity="other">Skanuję %d folderu</item>
+        <item quantity="one">Skanowanie %d folderu</item>
+        <item quantity="few">Skanowanie %d folderów</item>
+        <item quantity="many">Skanowanie %d folderów</item>
+        <item quantity="other">Skanowanie %d folderu</item>
     </plurals>
     <string name="label_no_folders">Nie dodano jeszcze folderów</string>
     <string name="label_no_playable_files">Brak plików do odtworzenia</string>
@@ -54,10 +54,10 @@
         <item quantity="many">%s pominiętych</item>
         <item quantity="other">%s pominiętego</item>
     </plurals>
-    <string name="msg_scan_listing">Szukam plików z muzyką…</string>
-    <string name="label_scanning_progress">Skanuję… %1$s z %2$s plików</string>
+    <string name="msg_scan_listing">Wyszukiwanie plików z muzyką…</string>
+    <string name="label_scanning_progress">Skanowanie… %1$s z %2$s plików</string>
     <string name="msg_folder_no_access">Aplikacja straciła dostęp do tego folderu.</string>
-    <string name="button_choose_folder_again">Wskaż folder ponownie</string>
+    <string name="button_choose_folder_again">Wybierz folder ponownie</string>
     <string name="button_add_folder">Dodaj folder</string>
     <string name="msg_folder_already_added"><![CDATA[Folder <b>%s</b> jest już w bibliotece.]]></string>
     <string name="msg_only_listed_folders">Aplikacja widzi wyłącznie foldery z tej listy.</string>
@@ -78,7 +78,7 @@
 
     <!-- About -->
     <string name="msg_copied">Skopiowano</string>
-    <string name="msg_about_privacy">Aplikacja nie ma dostępu do internetu. Czyta tylko te foldery, które wskażesz, i nie zbiera o Tobie żadnych informacji.</string>
+    <string name="msg_about_privacy">Aplikacja działa bez dostępu do Internetu. Czyta tylko wybrane foldery i nie zbiera żadnych danych.</string>
     <!-- Library views (S2) -->
     <string name="label_view_albums">Albumy</string>
     <string name="label_view_artists">Wykonawcy</string>
@@ -127,7 +127,7 @@
         <item quantity="other">Występuje na %s albumu</item>
     </plurals>
     <string name="title_artist_albums">Albumy</string>
-    <string name="title_artist_appears_on">Występuje na</string>
+    <string name="title_artist_appears_on">Na innych albumach</string>
     <string name="title_artist_tracks">Utwory</string>
     <plurals name="button_show_all_tracks">
         <item quantity="one">Pokaż %s utwór</item>
@@ -191,11 +191,11 @@
     <string name="label_details_date">Data</string>
     <string name="label_details_genres">Gatunki</string>
     <string name="label_details_composers">Kompozytorzy</string>
-    <string name="label_details_compilation">Składanka</string>
+    <string name="label_details_compilation">Kompilacja</string>
     <string name="label_details_track_gain">Wzmocnienie utworu</string>
-    <string name="label_details_track_peak">Szczyt utworu</string>
+    <string name="label_details_track_peak">Poziom szczytowy utworu</string>
     <string name="label_details_album_gain">Wzmocnienie albumu</string>
-    <string name="label_details_album_peak">Szczyt albumu</string>
+    <string name="label_details_album_peak">Poziom szczytowy albumu</string>
     <string name="label_of">%1$d z %2$d</string>
     <string name="label_yes">Tak</string>
     <string name="msg_no_replaygain">Brak tagów</string>
@@ -231,8 +231,8 @@
         <item quantity="many">Pokaż wszystkich %s wykonawców</item>
         <item quantity="other">Pokaż wszystkich %s wykonawcy</item>
     </plurals>
-    <!-- S7: states, lost access, playback, licences -->
-    <string name="msg_welcome">Muzyka odtwarza pliki z folderów, które wskażesz. Nie widzi niczego innego w telefonie i nigdy nie łączy się z internetem.</string>
+    <!-- S7: states, lost access, playback, licenses -->
+    <string name="msg_welcome">Muzyka odtwarza pliki z wybranych folderów. Nie widzi niczego innego w telefonie i nigdy nie łączy się z Internetem.</string>
     <string name="msg_nothing_playable">Żadnego pliku z dodanych folderów nie da się odtworzyć.</string>
     <string name="button_see_skipped_files">Zobacz pominięte pliki</string>
     <string name="msg_folder_lost_access"><![CDATA[Aplikacja straciła dostęp do folderu <b>%s</b>.]]></string>
@@ -257,15 +257,15 @@
     <string name="desc_rg_auto">Jak „Album” przy odtwarzaniu po kolei, poza tym jak „Utwór”</string>
     <string name="title_volume">Głośność</string>
     <string name="label_preamp">Wzmocnienie plików bez tagów</string>
-    <string name="desc_preamp">Dla plików, które nie mają tagów ReplayGain</string>
+    <string name="desc_preamp">Dla plików bez tagów ReplayGain</string>
     <string name="label_db">%s dB</string>
     <string name="label_prevent_clipping">Zapobiegaj przesterowaniu</string>
     <string name="desc_prevent_clipping">Zmniejsza wzmocnienie, gdy szczyt utworu zostałby obcięty</string>
     <string name="label_replaygain_applied_album">ReplayGain: %s dB (album)</string>
     <string name="label_replaygain_applied_track">ReplayGain: %s dB (utwór)</string>
-    <string name="label_licences">Licencje open source</string>
-    <string name="desc_licences">Składniki open source użyte w aplikacji</string>
-    <string name="label_apache_licence">Apache License 2.0</string>
+    <string name="label_licenses">Licencje open source</string>
+    <string name="desc_licenses">Składniki open source użyte w aplikacji</string>
+    <string name="label_apache_license">Apache License 2.0</string>
     <string name="button_close">Zamknij</string>
     <!-- Playlists, stage 1 -->
     <string name="label_view_playlists">Playlisty</string>
@@ -285,7 +285,7 @@
     </plurals>
     <string name="label_sort_recently_changed">Ostatnio zmienione</string>
     <string name="label_sort_name">Nazwa</string>
-    <string name="msg_playlists_empty">Tu pojawią się Twoje playlisty.</string>
+    <string name="msg_playlists_empty">Nie ma jeszcze żadnych playlist.</string>
     <string name="content_description_playlist_fab">Nowa playlista lub import</string>
     <string name="button_new_playlist">Nowa playlista</string>
     <string name="menu_play">Odtwórz</string>
@@ -295,16 +295,16 @@
     <string name="label_name">Nazwa</string>
     <string name="button_create">Utwórz</string>
     <string name="error_name_empty">Wpisz nazwę</string>
-    <string name="error_name_taken">Masz już playlistę o tej nazwie</string>
+    <string name="error_name_taken">Playlista o tej nazwie już istnieje</string>
     <string name="title_rename_playlist">Zmień nazwę playlisty</string>
     <string name="button_rename">Zmień</string>
     <string name="msg_renamed">Zmieniono nazwę</string>
     <string name="msg_playlist_deleted"><![CDATA[Usunięto playlistę <b>%s</b>]]></string>
     <!-- Playlists, stage 2 -->
     <string name="menu_remove_from_playlist">Usuń z playlisty</string>
-    <string name="content_description_playlist_actions">Działania na playliście</string>
+    <string name="content_description_playlist_actions">Opcje playlisty</string>
     <string name="desc_no_tracks_to_play">Nie ma czego odtworzyć</string>
-    <string name="msg_playlist_empty"><![CDATA[Utwory dodasz przez <b>Dodaj do playlisty</b> w menu dowolnego utworu.]]></string>
+    <string name="msg_playlist_empty"><![CDATA[Ta playlista jest pusta. Aby dodać utwór, wybierz <b>Dodaj do playlisty</b> w jego menu.]]></string>
     <string name="msg_removed_from_playlist"><![CDATA[Usunięto <b>%1$s</b> z playlisty <b>%2$s</b>]]></string>
     <string name="msg_playlist_gone">Ta playlista została usunięta.</string>
     <string name="label_not_available">Niedostępny</string>
@@ -321,7 +321,7 @@
         <item quantity="many">%1$s (%2$d utworów)</item>
         <item quantity="other">%1$s (%2$d utworu)</item>
     </plurals>
-    <string name="label_has_this_track">Ma ten utwór</string>
+    <string name="label_has_this_track">Zawiera ten utwór</string>
     <string name="msg_added_to_playlist"><![CDATA[Dodano do playlisty <b>%s</b>]]></string>
     <plurals name="msg_added_n_to_playlist">
         <item quantity="one"><![CDATA[Dodano %1$d utwór do playlisty <b>%2$s</b>]]></item>
@@ -361,14 +361,14 @@
     </plurals>
     <string name="msg_save_queue_current">Utwór, który teraz gra.</string>
     <string name="label_save_to">Zapisz w</string>
-    <string name="msg_replace_playlist"><![CDATA[Wszystkie wpisy playlisty <b>%1$s</b> (%2$s) zastąpią utwory z kolejki (%3$s).]]></string>
+    <string name="msg_replace_playlist"><![CDATA[Zawartość playlisty <b>%1$s</b> (%2$s) zostanie zastąpiona utworami z kolejki (%3$s).]]></string>
     <string name="button_save">Zapisz</string>
     <string name="button_replace">Zastąp</string>
     <string name="msg_queue_saved"><![CDATA[Zapisano kolejkę jako <b>%s</b>]]></string>
     <string name="button_view">Pokaż</string>
     <string name="msg_playlist_replaced"><![CDATA[Zastąpiono playlistę <b>%s</b>]]></string>
     <!-- Playlists, stage 4 -->
-    <string name="menu_remove_missing">Usuń brakujące utwory</string>
+    <string name="menu_remove_missing">Usuń niedostępne utwory</string>
     <plurals name="msg_removed_n">
         <item quantity="one">Usunięto %d utwór</item>
         <item quantity="few">Usunięto %d utwory</item>
@@ -380,7 +380,7 @@
     <string name="menu_export">Eksportuj</string>
     <string name="msg_imported"><![CDATA[Zaimportowano <b>%1$s</b> – %2$s]]></string>
     <string name="msg_imported_missing"><![CDATA[Zaimportowano <b>%1$s</b> – %2$s, %3$s]]></string>
-    <string name="error_import_not_playlist"><![CDATA[Plik <b>%s</b> nie jest playlistą, którą Muzyka potrafi odczytać.]]></string>
+    <string name="error_import_not_playlist"><![CDATA[Plik <b>%s</b> nie jest playlistą w obsługiwanym formacie.]]></string>
     <string name="error_import_unreadable"><![CDATA[Nie udało się odczytać pliku <b>%s</b>.]]></string>
     <string name="error_import_empty"><![CDATA[W pliku <b>%s</b> nie ma żadnych utworów.]]></string>
     <string name="title_export"><![CDATA[Eksportuj <b>%s</b>]]></string>
@@ -412,7 +412,7 @@
     <string name="content_description_star">Dodaj do ulubionych</string>
     <string name="content_description_unstar">Usuń z ulubionych</string>
     <string name="desc_starred">W ulubionych</string>
-    <string name="desc_not_starred">Poza ulubionymi</string>
+    <string name="desc_not_starred">Nie w ulubionych</string>
     <string name="msg_unstarred"><![CDATA[Usunięto <b>%s</b> z ulubionych]]></string>
     <!-- Ustawienia v2: aplikacja, język, resetowanie, O aplikacji -->
     <string name="title_settings_group_library">Biblioteka</string>
@@ -423,10 +423,10 @@
     <string name="language_system_default">Domyślny systemowy</string>
     <string name="title_settings_reset">Resetowanie</string>
     <string name="desc_settings_reset_row">Przywróć ustawienia domyślne</string>
-    <string name="desc_settings_reset">Wszystkie ustawienia wrócą do domyślnych, a język będzie zgodny z systemem. Foldery, biblioteka i playlisty zostaną bez zmian.</string>
+    <string name="desc_settings_reset">Wszystkie ustawienia wrócą do domyślnych, a język będzie zgodny z systemem. Foldery, biblioteka, playlisty i presety korektora pozostaną bez zmian.</string>
     <string name="button_restore_defaults">Przywróć ustawienia domyślne</string>
     <string name="title_confirm_restore_defaults">Przywrócić ustawienia domyślne?</string>
-    <string name="msg_confirm_restore_defaults">Sortowanie, widoki biblioteki, ustawienia odtwarzania, format eksportu i pomijanie krótkich plików wrócą do domyślnych, a język będzie zgodny z systemem. Foldery, biblioteka i playlisty zostaną tak, jak są.</string>
+    <string name="msg_confirm_restore_defaults">Sortowanie, widoki biblioteki, ustawienia odtwarzania, korektor (wyłączony, preset Płaski), format eksportu i pomijanie krótkich plików wrócą do domyślnych, a język będzie zgodny z systemem. Foldery, biblioteka, playlisty i presety korektora pozostaną bez zmian.</string>
     <string name="button_restore">Przywróć</string>
     <string name="msg_defaults_restored">Przywrócono ustawienia domyślne</string>
     <string name="title_about_license">Licencja</string>
@@ -441,7 +441,7 @@
         <item quantity="many">Wersja %1$s, %2$d zmian</item>
         <item quantity="other">Wersja %1$s, %2$d zmiany</item>
     </plurals>
-    <string name="whats_new_updated_snackbar">Zaktualizowano do %1$s</string>
+    <string name="whats_new_updated_snackbar">Zaktualizowano do wersji %1$s</string>
     <!-- Ustawienia v2: widoki biblioteki -->
     <string name="title_library_views">Widoki biblioteki</string>
     <string name="label_opens_on_view">Domyślna karta: %s</string>
@@ -454,28 +454,28 @@
     <!-- Ustawienia v2: skanowanie i krótkie pliki -->
     <string name="title_scanning_group">Skanowanie</string>
     <string name="label_scan_now">Skanuj teraz</string>
-    <string name="label_last_scan">Ostatnio: %s</string>
-    <string name="label_never_scanned">jeszcze nie</string>
-    <string name="label_scanning_headline">Skanuję…</string>
+    <string name="label_last_scan">Ostatnie skanowanie: %s</string>
+    <string name="label_never_scanned">jeszcze nie wykonano</string>
+    <string name="label_scanning_headline">Skanowanie…</string>
     <string name="label_scanning_files">%1$s z %2$s plików</string>
-    <string name="msg_scan_counting">Liczę pliki…</string>
+    <string name="msg_scan_counting">Liczenie plików…</string>
     <string name="label_skip_short">Pomijaj krótkie pliki</string>
     <string name="label_skip_off">Wyłączone</string>
     <string name="label_skip_value">%d s</string>
     <string name="label_shorter_than">Krótsze niż %d s</string>
-    <string name="msg_skip_short_explain">Dźwięki, dżingle i notatki głosowe z folderów z muzyką nie trafią do biblioteki. Zobaczysz je na stronie każdego folderu.</string>
+    <string name="msg_skip_short_explain">Dźwięki, dżingle i notatki głosowe z folderów z muzyką nie trafią do biblioteki. Pominięte pliki są widoczne na stronie każdego folderu.</string>
     <string name="title_skipped_short">Za krótkie</string>
     <string name="msg_skipped_short">Krótszy niż %1$d s (%2$s)</string>
     <!-- Ustawienia v2: kopia zapasowa, kreator pierwszego uruchomienia -->
     <string name="title_backup_restore">Kopia zapasowa</string>
-    <string name="msg_backup_intro">Kopia zawiera ustawienia i wszystkie playlisty, także Ulubione, w jednym pliku, który zapiszesz tam, gdzie zechcesz.</string>
+    <string name="msg_backup_intro">Kopia obejmuje ustawienia, playlisty (także Ulubione) i presety korektora.</string>
     <string name="label_create_backup">Utwórz kopię</string>
     <string name="label_last_backup">Ostatnia kopia: %s</string>
     <string name="label_no_backup">Nie utworzono jeszcze kopii</string>
-    <string name="label_saving_backup">Zapisuję…</string>
+    <string name="label_saving_backup">Zapisywanie…</string>
     <string name="label_restore_backup">Przywróć z kopii</string>
-    <string name="desc_restore_backup">Zastępuje ustawienia i wszystkie playlisty</string>
-    <string name="msg_backup_no_folders">Dostępu do folderów z muzyką nie da się zapisać w kopii. Po przywróceniu na nowym telefonie dodaj foldery jeszcze raz – playlisty odnajdą utwory po skanowaniu.</string>
+    <string name="desc_restore_backup">Zastępuje ustawienia, playlisty i presety korektora</string>
+    <string name="msg_backup_no_folders">Dostępu do folderów z muzyką nie da się zapisać w kopii. Po przywróceniu na nowym telefonie dodaj foldery ponownie – playlisty same odnajdą utwory po skanowaniu.</string>
     <string name="msg_backup_saved"><![CDATA[Zapisano kopię jako <b>%s</b>]]></string>
     <string name="error_backup_write"><![CDATA[Nie udało się zapisać pliku <b>%s</b>.]]></string>
     <string name="title_restore_confirm">Zastąpić ustawienia i playlisty?</string>
@@ -483,25 +483,25 @@
     <string name="msg_restore_settings">ustawienia</string>
     <string name="msg_restore_playlists">playlisty: %1$d, utwory: %2$d</string>
     <string name="msg_restore_with_starred">%s, w tym Ulubione</string>
-    <string name="msg_restore_replaces">Obecne ustawienia i wszystkie playlisty (%d) zostaną zastąpione. Foldery i biblioteka zostaną bez zmian.</string>
+    <string name="msg_restore_replaces">Obecne ustawienia i wszystkie playlisty (%d) zostaną zastąpione. Foldery i biblioteka pozostaną bez zmian.</string>
     <string name="msg_restored">Przywrócono ustawienia i playlisty (%d)</string>
-    <string name="error_backup_not_ours"><![CDATA[Plik <b>%s</b> nie jest kopią Muzyki.]]></string>
+    <string name="error_backup_not_ours"><![CDATA[Plik <b>%s</b> nie jest kopią zapasową tej aplikacji.]]></string>
     <string name="error_backup_newer">Tę kopię utworzyła nowsza wersja Muzyki. Zaktualizuj aplikację, żeby ją przywrócić.</string>
     <string name="error_backup_unreadable"><![CDATA[Nie udało się odczytać pliku <b>%s</b>.]]></string>
     <string name="title_welcome_wizard">Witaj w Muzyce</string>
     <string name="label_welcome_question">Co chcesz zrobić?</string>
     <string name="label_welcome_add_folder">Dodaj folder z muzyką</string>
-    <string name="desc_welcome_add_folder">Wskaż folder, z którego Muzyka ma grać</string>
+    <string name="desc_welcome_add_folder">Wybierz folder, z którego aplikacja ma odtwarzać pliki</string>
     <string name="label_welcome_restore">Przywróć kopię zapasową</string>
-    <string name="desc_welcome_restore">Odzyskaj playlisty i ustawienia</string>
+    <string name="desc_welcome_restore">Odzyskaj playlisty, ustawienia i presety korektora</string>
     <string name="button_next">Dalej</string>
     <string name="label_backup_brings_back">Wybierz plik kopii zapasowej utworzonej w Muzyce. Przywrócone zostaną:</string>
     <string name="label_backup_item_settings">Ustawienia</string>
     <string name="desc_backup_item_settings">Sortowanie, widoki biblioteki, odtwarzanie</string>
     <string name="label_backup_item_playlists">Playlisty</string>
     <string name="desc_backup_item_playlists">Także Ulubione</string>
-    <string name="label_backup_no_folders_title">Kopia nie zawiera dostępu do folderów.</string>
-    <string name="label_backup_no_folders_body">Wskażesz je ponownie, a playlisty odnajdą utwory po skanowaniu.</string>
+    <string name="label_backup_no_folders_title">Kopia nie przenosi dostępu do folderów.</string>
+    <string name="label_backup_no_folders_body">Dodaj je ponownie, a playlisty same odnajdą utwory po skanowaniu.</string>
     <string name="button_backup_choose_file">Wybierz plik kopii</string>
     <string name="button_backup_choose_another">Wybierz inny plik</string>
     <string name="button_backup_change">Zmień</string>
@@ -509,20 +509,20 @@
     <string name="label_backup_file_summary">Playlisty: %1$d, utwory: %2$d (%3$s)</string>
     <string name="error_backup_unreadable_title">Nie można odczytać pliku</string>
     <string name="error_backup_unreadable_body">Nie udało się otworzyć pliku %1$s. Wybierz inny.</string>
-    <string name="error_backup_not_ours_title">To nie jest kopia Muzyki</string>
+    <string name="error_backup_not_ours_title">To nie jest kopia zapasowa tej aplikacji</string>
     <string name="error_backup_not_ours_body">Plik %1$s nie zawiera ustawień ani playlist Muzyki. Wybierz kopię utworzoną w Ustawieniach.</string>
     <string name="error_backup_newer_title">Tej kopii nie da się przywrócić</string>
     <string name="error_backup_newer_body">Plik %1$s pochodzi z nowszej wersji Muzyki. Zaktualizuj aplikację albo wybierz inny plik.</string>
     <string name="title_playlists_ready">Gotowe playlisty: %d</string>
-    <string name="msg_playlists_ready">Wypełnią się, gdy dodasz foldery z muzyką.</string>
+    <string name="msg_playlists_ready">Na razie są puste. Utwory wrócą po dodaniu folderów z muzyką.</string>
     <string name="msg_no_folders">Nie dodano jeszcze folderów z muzyką.</string>
     <string name="menu_reorder">Zmień kolejność</string>
     <string name="title_reorder">Zmień kolejność</string>
-    <string name="content_description_cancel_reorder">Cofnij zmiany</string>
+    <string name="content_description_cancel_reorder">Odrzuć zmiany</string>
     <string name="button_done">Gotowe</string>
     <string name="label_filter_all_artists">Wszyscy wykonawcy</string>
     <string name="label_queue_repeat_one">Powtarzanie tego utworu</string>
-    <string name="label_sort_most_played">Najczęściej słuchane</string>
+    <string name="label_sort_most_played">Najczęściej odtwarzane</string>
     <string name="label_count_with_length">%1$s (%2$s)</string>
     <string name="label_artist_with_year">%1$s (%2$s)</string>
     <string name="msg_queue_cleared">Wyczyszczono kolejkę</string>
@@ -547,7 +547,7 @@
     <string name="label_all_outputs">Dla wszystkich wyjść</string>
     <string name="label_eq_preamp">Przedwzmacniacz</string>
     <string name="title_filters">Filtry (%d)</string>
-    <string name="label_filter_type_peak">Szczytowy</string>
+    <string name="label_filter_type_peak">Dzwonowy</string>
     <string name="label_filter_type_low_shelf">Półka dolna</string>
     <string name="label_filter_type_high_shelf">Półka górna</string>
     <string name="content_description_filter_type">Rodzaj</string>
@@ -599,14 +599,18 @@
     <string name="title_save_as_new_preset">Zapisz jako nowy preset</string>
     <string name="title_rename_preset">Zmień nazwę presetu</string>
     <plurals name="msg_saves_current">
-        <item quantity="one">Zapisze bieżące wartości: przedwzmacniacz i %d filtr.</item>
-        <item quantity="few">Zapisze bieżące wartości: przedwzmacniacz i %d filtry.</item>
-        <item quantity="many">Zapisze bieżące wartości: przedwzmacniacz i %d filtrów.</item>
-        <item quantity="other">Zapisze bieżące wartości: przedwzmacniacz i %d filtra.</item>
+        <item quantity="one">Zostaną zapisane bieżące wartości: przedwzmacniacz i %d filtr.</item>
+        <item quantity="few">Zostaną zapisane bieżące wartości: przedwzmacniacz i %d filtry.</item>
+        <item quantity="many">Zostaną zapisane bieżące wartości: przedwzmacniacz i %d filtrów.</item>
+        <item quantity="other">Zostaną zapisane bieżące wartości: przedwzmacniacz i %d filtra.</item>
     </plurals>
-    <string name="msg_saves_empty">Zacznie pusty: bez filtrów, przedwzmacniacz na 0 dB.</string>
-    <string name="title_start_from">Zacznij od</string>
-    <string name="label_current_values">Bieżących wartości</string>
-    <string name="label_empty_flat">Pustego (Płaski)</string>
+    <string name="msg_saves_empty">Nowy preset będzie pusty: bez filtrów, przedwzmacniacz na 0 dB.</string>
+    <string name="title_start_from">Punkt wyjścia</string>
+    <string name="label_current_values">Bieżące wartości</string>
+    <string name="label_empty_flat">Pusty (Płaski)</string>
     <string name="error_preset_name_taken">Preset o tej nazwie już istnieje</string>
+    <string name="msg_restore_equalizer">korektor</string>
+    <string name="msg_restore_equalizer_presets">korektor, presety własne: %d</string>
+    <string name="msg_restore_replaces_equalizer">Obecne ustawienia, wszystkie playlisty (%d) i presety korektora zostaną zastąpione. Foldery i biblioteka pozostaną bez zmian.</string>
+    <string name="desc_backup_item_equalizer">Ustawienia i własne presety</string>
 </resources>

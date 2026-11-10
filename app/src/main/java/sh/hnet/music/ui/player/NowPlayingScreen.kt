@@ -86,7 +86,7 @@ import sh.hnet.music.ui.components.formatDuration
 
 /**
  * Now playing (SPEC §9.2), full screen. [dragArea] goes on the top bar and the cover: a downward
- * drag there closes the screen. The cover's colours are never used for the UI.
+ * drag there closes the screen. The cover's colors are never used for the UI.
  */
 // Two modifiers on purpose: [modifier] for the screen, [dragArea] for the parts that close it on a drag
 @android.annotation.SuppressLint("ModifierParameter")
@@ -106,7 +106,7 @@ fun NowPlayingScreen(
     onEqualizer: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // A Surface, not just a background: it also sets the content colour (onSurface), which this
+    // A Surface, not just a background: it also sets the content color (onSurface), which this
     // overlay outside the Scaffold wouldn't get otherwise (black text and icons in dark theme)
     val volumeBar = remember { VolumeBarState() }
     Surface(modifier.fillMaxSize().closesVolumeBar(volumeBar), color = MaterialTheme.colorScheme.surface) {

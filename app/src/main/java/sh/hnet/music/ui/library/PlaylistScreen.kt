@@ -463,7 +463,7 @@ private fun Actions(
 }
 
 /**
- * An entry the library doesn't have now (§6.2): the disabled headline colour, a readable "Not
+ * An entry the library doesn't have now (§6.2): the disabled headline color, a readable "Not
  * available" line, not playable; its menu only removes it, and it still moves and swipes.
  */
 @Composable

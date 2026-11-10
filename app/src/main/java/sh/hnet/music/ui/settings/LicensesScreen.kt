@@ -36,7 +36,7 @@ import sh.hnet.music.ui.components.settingsRowColors
 
 /**
  * What ships in the app, all under the Apache License 2.0 (checked against the release runtime
- * classpath; update when a dependency with another licence is added).
+ * classpath; update when a dependency with another license is added).
  */
 private val COMPONENTS = listOf(
     "AndroidX (Jetpack Compose, Material 3, Media3, Room, Navigation 3, DataStore, Lifecycle, Activity, Core)",
@@ -54,18 +54,18 @@ private val COMPONENTS = listOf(
 private const val ISINE_10_SOURCE = "atriumaudio.net/eq/audeze-isine-10"
 
 /**
- * Settings › About › Licences (SPEC §11.6): each component and its licence, the text on tap; then
+ * Settings › About › Licenses (SPEC §11.6): each component and its license, the text on tap; then
  * where the built-in equalizer presets come from, with a link to the source (owner's decision).
  */
 @Composable
-fun LicencesScreen(onBack: () -> Unit) {
+fun LicensesScreen(onBack: () -> Unit) {
     val resources = LocalResources.current
-    val licenceText = remember(resources) { resources.openRawResource(R.raw.apache_license_2_0).bufferedReader().use { it.readText() } }
+    val licenseText = remember(resources) { resources.openRawResource(R.raw.apache_license_2_0).bufferedReader().use { it.readText() } }
     var showing by rememberSaveable { mutableStateOf(false) }
-    val licence = stringResource(R.string.label_apache_licence)
+    val license = stringResource(R.string.label_apache_license)
     val context = LocalContext.current
     val noBrowser = stringResource(R.string.msg_no_browser)
-    SettingsPage(title = stringResource(R.string.label_licences), onBack = onBack) {
+    SettingsPage(title = stringResource(R.string.label_licenses), onBack = onBack) {
         SettingsGroup {
             COMPONENTS.forEach { name ->
                 row { shapes ->
@@ -73,7 +73,7 @@ fun LicencesScreen(onBack: () -> Unit) {
                         onClick = { showing = true },
                         shapes = shapes,
                         colors = settingsRowColors(),
-                        supportingContent = { Text(licence) },
+                        supportingContent = { Text(license) },
                     ) {
                         Text(name)
                     }
@@ -95,10 +95,10 @@ fun LicencesScreen(onBack: () -> Unit) {
     if (showing) {
         AlertDialog(
             onDismissRequest = { showing = false },
-            title = { Text(licence) },
+            title = { Text(license) },
             text = {
                 SelectionContainer(Modifier.heightIn(max = 480.dp).verticalScroll(rememberScrollState())) {
-                    Text(licenceText, style = MaterialTheme.typography.bodySmall)
+                    Text(licenseText, style = MaterialTheme.typography.bodySmall)
                 }
             },
             confirmButton = { TextButton(onClick = { showing = false }) { Text(stringResource(R.string.button_close)) } },

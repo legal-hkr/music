@@ -4,7 +4,7 @@ import java.io.IOException
 
 /**
  * Reads tags and stream properties from the start (and for MP3 and DSD the end) of an audio file,
- * never the audio itself. The format is recognised by content, not by the file name.
+ * never the audio itself. The format is recognized by content, not by the file name.
  */
 object TagParser {
     /** Null when the file isn't a supported audio format or is damaged. */

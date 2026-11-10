@@ -364,6 +364,7 @@ private fun BackupContentsCard() {
         Column(Modifier.padding(vertical = 6.dp)) {
             ContentsRow(R.drawable.ic_tune, stringResource(R.string.label_backup_item_settings), stringResource(R.string.desc_backup_item_settings))
             ContentsRow(R.drawable.ic_playlist_play, stringResource(R.string.label_backup_item_playlists), stringResource(R.string.desc_backup_item_playlists))
+            ContentsRow(R.drawable.ic_equalizer, stringResource(R.string.title_equalizer), stringResource(R.string.desc_backup_item_equalizer))
         }
     }
 }

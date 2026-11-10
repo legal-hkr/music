@@ -53,7 +53,7 @@ fun WhatsNewScreen(onBack: () -> Unit) {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     val sections = notes.changelog.sections
                     if (sections.isEmpty()) {
-                        // Nothing recognised: the file as it is
+                        // Nothing recognized: the file as it is
                         NotesCard(listOf(Changelog.Block.Paragraph(notes.text.trim())))
                     } else {
                         sections.forEach { section -> NotesSection(section) }

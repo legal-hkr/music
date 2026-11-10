@@ -29,7 +29,7 @@ import sh.hnet.music.ui.components.SettingsPage
 import sh.hnet.music.about.LicenseText
 
 /**
- * The app's licence, GPL-3.0, as the FSF publishes it (its standalone page in the assets, always in English: only the
+ * The app's license, GPL-3.0, as the FSF publishes it (its standalone page in the assets, always in English: only the
  * original is binding, which a line in the app's language says). Laid out as What's new: headings, then the text
  * between them in cards; selectable. Example notices scroll sideways, never wrap.
  */
@@ -119,7 +119,7 @@ private fun LicenseCard(blocks: List<LicenseText.Block>) {
 }
 
 /**
- * A list item: the licence letters its items itself ("a)", "b)"…), so no dot; the letter hangs, the text wraps beside
+ * A list item: the license letters its items itself ("a)", "b)"…), so no dot; the letter hangs, the text wraps beside
  * it.
  */
 @Composable

@@ -9,7 +9,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
-/** System (dynamic) colours only, standard motion. minSdk 34 always has dynamic colour. */
+/** System (dynamic) colors only, standard motion. minSdk 34 always has dynamic color. */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun MusicTheme(content: @Composable () -> Unit) {

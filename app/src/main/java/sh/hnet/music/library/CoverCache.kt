@@ -84,7 +84,7 @@ class CoverCache(context: Context) {
         while (minOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= size) sample *= 2
         val decoded = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, BitmapFactory.Options().apply { inSampleSize = sample })
             ?: return null
-        // Square, cropped to the centre, as every place showing a cover crops it
+        // Square, cropped to the center, as every place showing a cover crops it
         val side = minOf(decoded.width, decoded.height)
         val square = Bitmap.createBitmap(decoded, (decoded.width - side) / 2, (decoded.height - side) / 2, side, side)
         return if (side > size) square.scale(size, size) else square

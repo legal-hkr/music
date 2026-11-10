@@ -86,7 +86,7 @@ private class ReplayGainRenderer(
         val windowIndex = timeline.getPeriodByUid(id.periodUid, Timeline.Period()).windowIndex
         fun item(index: Int): MediaItem? = if (index in 0 until timeline.windowCount) timeline.getWindow(index, Timeline.Window()).mediaItem else null
         val current = item(windowIndex) ?: return null
-        // Neighbours in queue order; with shuffle on the album never counts as playing in order
+        // Neighbors in queue order; with shuffle on the album never counts as playing in order
         val inOrder = albumInOrder(false, { i -> item(i)?.albumKey }, windowIndex, timeline.windowCount)
         return TrackGain(current.gainTags(), inOrder)
     }

@@ -40,11 +40,11 @@ const val SOURCE_ADDRESS = "git.hnet.sh/hkr/music"
 
 /**
  * Settings › About, as ComfyChair's: the app's mark, name and version, then What's new (badge New
- * until opened for this version), License with the open-source licences under it, Source code; then
+ * until opened for this version), License with the open-source licenses under it, Source code; then
  * the privacy note.
  */
 @Composable
-fun AboutScreen(onBack: () -> Unit, onOpenWhatsNew: () -> Unit, onOpenLicense: () -> Unit, onOpenLicences: () -> Unit) {
+fun AboutScreen(onBack: () -> Unit, onOpenWhatsNew: () -> Unit, onOpenLicense: () -> Unit, onOpenLicenses: () -> Unit) {
     val context = LocalContext.current
     // No row without this version's notes; the badge until the page was opened (checked again on coming back)
     val notes = remember { WhatsNew.notes(context) }
@@ -81,7 +81,7 @@ fun AboutScreen(onBack: () -> Unit, onOpenWhatsNew: () -> Unit, onOpenLicense: (
                 SettingsNavigationRow(shapes, R.drawable.ic_workspace_premium, stringResource(R.string.title_about_license), stringResource(R.string.label_about_license_name), onClick = onOpenLicense)
             }
             row { shapes ->
-                SettingsNavigationRow(shapes, R.drawable.ic_description, stringResource(R.string.label_licences), stringResource(R.string.desc_licences), onClick = onOpenLicences)
+                SettingsNavigationRow(shapes, R.drawable.ic_description, stringResource(R.string.label_licenses), stringResource(R.string.desc_licenses), onClick = onOpenLicenses)
             }
             row { shapes ->
                 SettingsLinkRow(shapes, R.drawable.ic_code, stringResource(R.string.title_about_source), SOURCE_ADDRESS) {

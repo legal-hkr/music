@@ -246,7 +246,7 @@ private fun AddToPlaylistSheet(
 
 /**
  * Save as playlist (§8): the track playing and what follows, to a new playlist (a name) or over an
- * existing one (Replace, in the error colour: it removes entries).
+ * existing one (Replace, in the error color: it removes entries).
  */
 @Composable
 private fun SaveQueueDialog(

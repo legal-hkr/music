@@ -52,7 +52,7 @@ class ReplayGainTest {
     }
 
     @Test
-    fun albumInOrderNeedsANeighbourFromTheAlbumAndNoShuffle() {
+    fun albumInOrderNeedsANeighborFromTheAlbumAndNoShuffle() {
         val queue = listOf("A", "A", "B", null)
         assertTrue(albumInOrder(false, queue::getOrNull, 0, queue.size))
         assertTrue(albumInOrder(false, queue::getOrNull, 1, queue.size))

@@ -121,7 +121,7 @@ import sh.hnet.music.ui.settings.LibrarySettingsScreen
 import sh.hnet.music.ui.settings.LibraryViewModel
 import sh.hnet.music.ui.settings.SettingsRootScreen
 import sh.hnet.music.ui.settings.PlaybackSettingsScreen
-import sh.hnet.music.ui.settings.LicencesScreen
+import sh.hnet.music.ui.settings.LicensesScreen
 
 /** The app's shell: one back stack per navigation bar destination, the bottom block, snackbars. */
 @Composable
@@ -460,10 +460,10 @@ fun MusicApp(openNowPlaying: Int = 0) {
                             onBack = back,
                             onOpenWhatsNew = { currentStack.add(Screen.SettingsWhatsNew) },
                             onOpenLicense = { currentStack.add(Screen.SettingsLicense) },
-                            onOpenLicences = { currentStack.add(Screen.SettingsLicences) },
+                            onOpenLicenses = { currentStack.add(Screen.SettingsLicenses) },
                         )
                     }
-                    entry<Screen.SettingsLicences> { LicencesScreen(onBack = back) }
+                    entry<Screen.SettingsLicenses> { LicensesScreen(onBack = back) }
                     entry<Screen.SettingsLanguage> { LanguageScreen(onBack = back) }
                     entry<Screen.SettingsReset> { ResetScreen(onBack = back) }
                     entry<Screen.SettingsBackup> {
@@ -495,10 +495,10 @@ fun MusicApp(openNowPlaying: Int = 0) {
         PredictiveBackHandler(enabled = nowPlaying.targetState && !detailsOpen && !equalizerOpen) { events ->
             try {
                 events.collect { nowPlaying.seekTo(it.progress, targetState = false) }
-            } catch (cancelled: CancellationException) {
-                // The gesture was cancelled: back to fully open
+            } catch (canceled: CancellationException) {
+                // The gesture was canceled: back to fully open
                 scope.launch { nowPlaying.animateTo(true) }
-                throw cancelled
+                throw canceled
             }
             // Closing disables this handler, which cancels its coroutine: run outside it
             scope.launch { nowPlaying.animateTo(false) }
@@ -538,7 +538,7 @@ fun MusicApp(openNowPlaying: Int = 0) {
                 enter = slideInHorizontally(spatial) { shift } + fadeIn(effects),
                 exit = slideOutHorizontally(spatial) { shift } + fadeOut(fastEffects),
             ) {
-                // A Surface for the content colour as well as the background; no mini player to keep clear of here
+                // A Surface for the content color as well as the background; no mini player to keep clear of here
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
                     Box(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
                         CompositionLocalProvider(LocalBottomOverlay provides 0.dp) {

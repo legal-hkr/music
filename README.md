@@ -8,7 +8,7 @@ Source code and releases: [git.hnet.sh/hkr/music](https://git.hnet.sh/hkr/music)
 
 ## Overview
 
-Music plays the audio files in the folders you choose and nothing else. It has no internet permission, doesn't ask for access to your storage or media, and keeps nothing about you: the library, playlists and settings stay on the device. It is built for people who keep their own collection – FLAC and hi-res included – and want a player that respects it.
+Music plays the audio files in the folders you choose and nothing else. It has no Internet permission, doesn't ask for access to your storage or media, and keeps nothing about you: the library, playlists and settings stay on the device. It is built for people who keep their own collection – FLAC and hi-res included – and want a player that respects it.
 
 ## Screenshots
 
@@ -40,7 +40,7 @@ Music plays the audio files in the folders you choose and nothing else. It has n
 
 - **Backup and restore** of settings and playlists to a file you choose, also offered on the first start
 - **Language**: English or Polish, independent of the system
-- **What's new**, the **license** and the open-source licences, readable offline
+- **What's new**, the **license** and the open-source licenses, readable offline
 
 ## Requirements
 

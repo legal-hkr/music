@@ -191,7 +191,7 @@ fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageSco
                         edited = edited,
                         tag = if (state.enabled) null else stringResource(R.string.label_curve_off),
                         // A tap on the curve closes the filter sheet
-                        // Space above too: scrolled, the top bar takes the curve's own colour
+                        // Space above too: scrolled, the top bar takes the curve's own color
                         modifier = Modifier
                             .padding(horizontal = 16.dp, vertical = 8.dp)
                             .clip(RoundedCornerShape(20.dp))

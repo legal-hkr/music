@@ -1,4 +1,4 @@
-Muzyka odtwarza pliki z folderów, które wskażesz, i nic poza nimi. Nie ma dostępu do internetu, nie prosi o dostęp do pamięci ani multimediów i nie zbiera o Tobie żadnych informacji: biblioteka, playlisty i ustawienia zostają w telefonie.
+Muzyka odtwarza pliki z wybranych folderów i nic poza nimi. Nie ma dostępu do Internetu, nie prosi o dostęp do pamięci ani multimediów i nie zbiera żadnych danych: biblioteka, playlisty i ustawienia zostają w telefonie.
 
 Biblioteka:
 - Albumy, wykonawcy, utwory i playlisty, w kolejności, jaką lubisz
@@ -20,4 +20,4 @@ Playlisty:
 A także:
 - Kopia zapasowa ustawień i playlist do wskazanego pliku
 - Polski i angielski, niezależnie od języka systemu
-- Wygląd Material 3 Expressive w kolorach Twojego telefonu
+- Wygląd Material 3 Expressive w kolorach systemu

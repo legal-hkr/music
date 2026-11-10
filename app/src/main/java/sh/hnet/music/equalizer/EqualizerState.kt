@@ -13,7 +13,7 @@ object BuiltInPresets {
     /** No filters, pre-amp 0: where the equalizer starts and what Restore defaults selects. */
     val FLAT = BuiltInPreset("flat", null, null, EqSettings())
 
-    /** From measurements by oratory1990 (see the open-source licences page). */
+    /** From measurements by oratory1990 (see the open-source licenses page). */
     val AUDEZE_ISINE_10 = BuiltInPreset(
         "audeze_isine_10", "Audeze iSine 10", "Audeze",
         EqSettings(

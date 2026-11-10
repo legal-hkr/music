@@ -38,7 +38,7 @@ import sh.hnet.music.library.Albums
 /**
  * A track's embedded cover, square and cropped, or the placeholder (SPEC §4.5) when it has none.
  * The placeholder also shows while the picture loads, so nothing jumps. [player] marks the mini
- * player and now playing, whose neighbouring tracks' covers are loaded ahead.
+ * player and now playing, whose neighboring tracks' covers are loaded ahead.
  */
 @Composable
 fun Cover(track: LibraryTrack?, shape: Shape, modifier: Modifier = Modifier, player: Boolean = false) {

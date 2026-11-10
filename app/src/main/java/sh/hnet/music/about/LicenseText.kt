@@ -1,7 +1,7 @@
 package sh.hnet.music.about
 
 /**
- * The licence's text, read from the FSF's standalone HTML page (kept in the assets as it is): headings, paragraphs,
+ * The license's text, read from the FSF's standalone HTML page (kept in the assets as it is): headings, paragraphs,
  * list items and preformatted examples, in order, with whitespace joined and entities decoded. Only what that page
  * uses; pure Kotlin, so it's tested without Android.
  */

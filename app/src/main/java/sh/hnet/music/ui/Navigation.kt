@@ -26,7 +26,7 @@ sealed interface Screen : NavKey {
     @Serializable data class SettingsFolder(val treeUri: String) : Screen
     @Serializable data object SettingsAbout : Screen
     @Serializable data object SettingsPlayback : Screen
-    @Serializable data object SettingsLicences : Screen
+    @Serializable data object SettingsLicenses : Screen
     @Serializable data object SettingsLanguage : Screen
     @Serializable data object SettingsReset : Screen
     @Serializable data object SettingsWhatsNew : Screen

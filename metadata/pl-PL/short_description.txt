@@ -1,1 +1,1 @@
-Prywatny odtwarzacz muzyki z Twoich folderów, bez internetu
+Prywatny odtwarzacz muzyki z wybranych folderów, bez Internetu

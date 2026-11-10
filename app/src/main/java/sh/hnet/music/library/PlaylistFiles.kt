@@ -49,7 +49,7 @@ object PlaylistFiles {
             firstLine.equals("[playlist]", ignoreCase = true) -> parsePls(text)
             text.contains("<playlist") && text.contains(XSPF_NS) -> parseXspf(text)
             looksLikeM3u(text) -> parseM3u(text)
-            else -> throw PlaylistFileException(PlaylistFileException.Kind.NOT_A_PLAYLIST, "No playlist format recognised")
+            else -> throw PlaylistFileException(PlaylistFileException.Kind.NOT_A_PLAYLIST, "No playlist format recognized")
         }
         if (parsed.lines.isEmpty()) throw PlaylistFileException(PlaylistFileException.Kind.EMPTY, "No entries")
         return parsed

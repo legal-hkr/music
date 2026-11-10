@@ -13,7 +13,7 @@
     <string name="content_description_back">Back</string>
 
     <!-- Library and Search (empty states until S2 and S6) -->
-    <string name="msg_library_filling">Your music appears here as it\'s read.</string>
+    <string name="msg_library_filling">Your music appears here as it’s read.</string>
     <string name="msg_search_empty">Type a title, artist, album or playlist name.</string>
 
     <!-- Settings root -->
@@ -46,7 +46,7 @@
     </plurals>
     <string name="msg_scan_listing">Looking for music files…</string>
     <string name="label_scanning_progress">Scanning… %1$s of %2$s files</string>
-    <string name="msg_folder_no_access">Music can\'t read this folder anymore.</string>
+    <string name="msg_folder_no_access">Music can’t read this folder anymore.</string>
     <string name="button_choose_folder_again">Choose the folder again</string>
     <string name="button_add_folder">Add folder</string>
     <string name="msg_folder_already_added"><![CDATA[<b>%s</b> is already in your library.]]></string>
@@ -55,12 +55,12 @@
     <!-- Folder page -->
     <string name="title_skipped_not_supported">Not supported</string>
     <string name="title_skipped_drm">Protected by DRM</string>
-    <string name="title_skipped_unreadable">Couldn\'t be read</string>
+    <string name="title_skipped_unreadable">Couldn’t be read</string>
     <string name="msg_skipped_dsd">This DSD file isn’t supported (DST compression, for example).</string>
-    <string name="msg_skipped_format">This format isn\'t supported.</string>
-    <string name="msg_skipped_drm">Copy-protected files can\'t be played.</string>
+    <string name="msg_skipped_format">This format isn’t supported.</string>
+    <string name="msg_skipped_drm">Copy-protected files can’t be played.</string>
     <string name="msg_skipped_damaged">The file is damaged or incomplete.</string>
-    <string name="msg_skipped_unreadable">Music couldn\'t open this file.</string>
+    <string name="msg_skipped_unreadable">Music couldn’t open this file.</string>
     <string name="msg_no_skipped_files">Every file in this folder plays.</string>
     <string name="button_show_all">Show all %s</string>
     <string name="button_remove_folder">Remove folder</string>
@@ -68,7 +68,7 @@
 
     <!-- About -->
     <string name="msg_copied">Copied</string>
-    <string name="msg_about_privacy">Music has no internet access. It reads only the folders you choose and keeps nothing about you.</string>
+    <string name="msg_about_privacy">Music has no Internet access. It reads only the folders you choose and keeps nothing about you.</string>
     <!-- Library views (S2) -->
     <string name="label_view_albums">Albums</string>
     <string name="label_view_artists">Artists</string>
@@ -114,7 +114,7 @@
     <string name="title_artist_appears_on">Appears on</string>
     <string name="title_artist_tracks">Tracks</string>
     <plurals name="button_show_all_tracks">
-        <item quantity="one">Show all %s tracks</item>
+        <item quantity="one">Show %s track</item>
         <item quantity="other">Show all %s tracks</item>
     </plurals>
     <!-- Player (S4) -->
@@ -198,21 +198,21 @@
     <string name="content_description_clear_search">Clear search</string>
     <string name="msg_search_no_results"><![CDATA[Nothing in your library matches <b>%s</b>.]]></string>
     <plurals name="button_show_all_albums">
-        <item quantity="one">Show all %s albums</item>
+        <item quantity="one">Show %s album</item>
         <item quantity="other">Show all %s albums</item>
     </plurals>
     <plurals name="button_show_all_artists">
-        <item quantity="one">Show all %s artists</item>
+        <item quantity="one">Show %s artist</item>
         <item quantity="other">Show all %s artists</item>
     </plurals>
-    <!-- S7: states, lost access, playback, licences -->
-    <string name="msg_welcome">Music plays the files in the folders you choose. It can\'t see anything else on your phone and never goes online.</string>
+    <!-- S7: states, lost access, playback, licenses -->
+    <string name="msg_welcome">Music plays the files in the folders you choose. It can’t see anything else on your phone and never goes online.</string>
     <string name="msg_nothing_playable">None of the files in your folders can be played.</string>
     <string name="button_see_skipped_files">See skipped files</string>
-    <string name="msg_folder_lost_access"><![CDATA[Music can\'t read <b>%s</b> anymore.]]></string>
+    <string name="msg_folder_lost_access"><![CDATA[Music can’t read <b>%s</b> anymore.]]></string>
     <plurals name="msg_folders_lost_access">
-        <item quantity="one">Music can\'t read %d of your folders anymore.</item>
-        <item quantity="other">Music can\'t read %d of your folders anymore.</item>
+        <item quantity="one">Music can’t read %d of your folders anymore.</item>
+        <item quantity="other">Music can’t read %d of your folders anymore.</item>
     </plurals>
     <string name="button_fix">Fix</string>
     <string name="content_description_settings_attention">Settings, a folder needs attention</string>
@@ -220,24 +220,24 @@
     <string name="label_settings_replaygain_value">ReplayGain: %s</string>
     <string name="title_replaygain">ReplayGain</string>
     <string name="label_rg_off">Off</string>
-    <string name="desc_rg_off">No loudness levelling</string>
+    <string name="desc_rg_off">No loudness leveling</string>
     <string name="label_rg_track">Track</string>
     <string name="desc_rg_track">Every track at the same loudness</string>
     <string name="label_rg_album">Album</string>
-    <string name="desc_rg_album">Keeps the steps between tracks of an album</string>
+    <string name="desc_rg_album">Keeps the loudness differences between an album’s tracks</string>
     <string name="label_rg_auto">Automatic</string>
     <string name="desc_rg_auto">As “Album” when playing in order, as “Track” otherwise</string>
     <string name="title_volume">Volume</string>
     <string name="label_preamp">Pre-amp for files without tags</string>
-    <string name="desc_preamp">For files that have no ReplayGain tags</string>
+    <string name="desc_preamp">For files without ReplayGain tags</string>
     <string name="label_db">%s dB</string>
     <string name="label_prevent_clipping">Prevent clipping</string>
-    <string name="desc_prevent_clipping">Lowers the gain where a track\'s peak would clip</string>
+    <string name="desc_prevent_clipping">Lowers the gain where a track’s peak would clip</string>
     <string name="label_replaygain_applied_album">ReplayGain: %s dB (album)</string>
     <string name="label_replaygain_applied_track">ReplayGain: %s dB (track)</string>
-    <string name="label_licences">Open-source licences</string>
-    <string name="desc_licences">Open-source components used by Music</string>
-    <string name="label_apache_licence">Apache License 2.0</string>
+    <string name="label_licenses">Open-source licenses</string>
+    <string name="desc_licenses">Open-source components used by Music</string>
+    <string name="label_apache_license">Apache License 2.0</string>
     <string name="button_close">Close</string>
     <!-- Playlists, stage 1 -->
     <string name="label_view_playlists">Playlists</string>
@@ -253,8 +253,8 @@
     </plurals>
     <string name="label_sort_recently_changed">Recently changed</string>
     <string name="label_sort_name">Name</string>
-    <string name="msg_playlists_empty">Your playlists appear here.</string>
-    <string name="content_description_playlist_fab">New or import playlist</string>
+    <string name="msg_playlists_empty">No playlists yet.</string>
+    <string name="content_description_playlist_fab">New playlist or import</string>
     <string name="button_new_playlist">New playlist</string>
     <string name="menu_play">Play</string>
     <string name="menu_rename">Rename</string>
@@ -272,7 +272,7 @@
     <string name="menu_remove_from_playlist">Remove from playlist</string>
     <string name="content_description_playlist_actions">Playlist actions</string>
     <string name="desc_no_tracks_to_play">No tracks to play</string>
-    <string name="msg_playlist_empty"><![CDATA[Add tracks with <b>Add to playlist</b> in any track\'s menu.]]></string>
+    <string name="msg_playlist_empty"><![CDATA[This playlist is empty. To add a track, choose <b>Add to playlist</b> in its menu.]]></string>
     <string name="msg_removed_from_playlist"><![CDATA[Removed <b>%1$s</b> from <b>%2$s</b>]]></string>
     <string name="msg_playlist_gone">This playlist was deleted.</string>
     <string name="label_not_available">Not available</string>
@@ -298,33 +298,33 @@
         <item quantity="one"><![CDATA[Added %1$d tracks to <b>%2$s</b> – %3$d was already there]]></item>
         <item quantity="other"><![CDATA[Added %1$d tracks to <b>%2$s</b> – %3$d were already there]]></item>
     </plurals>
-    <string name="msg_track_added_to_new"><![CDATA[<b>%s</b> is added to it.]]></string>
+    <string name="msg_track_added_to_new"><![CDATA[<b>%s</b> will be added to it.]]></string>
     <plurals name="msg_tracks_added_to_new">
-        <item quantity="one">%d track is added to it.</item>
-        <item quantity="other">%d tracks are added to it.</item>
+        <item quantity="one">%d track will be added to it.</item>
+        <item quantity="other">%d tracks will be added to it.</item>
     </plurals>
     <plurals name="msg_playlist_created_with">
         <item quantity="one"><![CDATA[Created <b>%1$s</b> with %2$d track]]></item>
         <item quantity="other"><![CDATA[Created <b>%1$s</b> with %2$d tracks]]></item>
     </plurals>
     <string name="content_description_add_album_to_playlist">Add album to playlist</string>
-    <string name="content_description_add_artist_to_playlist">Add artist\'s tracks to playlist</string>
+    <string name="content_description_add_artist_to_playlist">Add artist’s tracks to playlist</string>
     <string name="button_save_as_playlist">Save as playlist</string>
     <string name="title_save_as_playlist">Save as playlist</string>
     <plurals name="msg_save_queue_what">
-        <item quantity="one">The track playing now and the %d after it.</item>
+        <item quantity="one">The track playing now and the one after it.</item>
         <item quantity="other">The track playing now and the %d after it.</item>
     </plurals>
     <string name="msg_save_queue_current">The track playing now.</string>
     <string name="label_save_to">Save to</string>
-    <string name="msg_replace_playlist"><![CDATA[All entries of <b>%1$s</b> (%2$s) are replaced by these tracks (%3$s).]]></string>
+    <string name="msg_replace_playlist"><![CDATA[All entries of <b>%1$s</b> (%2$s) will be replaced by these tracks (%3$s).]]></string>
     <string name="button_save">Save</string>
     <string name="button_replace">Replace</string>
     <string name="msg_queue_saved"><![CDATA[Saved the queue as <b>%s</b>]]></string>
     <string name="button_view">View</string>
     <string name="msg_playlist_replaced"><![CDATA[Replaced <b>%s</b>]]></string>
     <!-- Playlists, stage 4 -->
-    <string name="menu_remove_missing">Remove missing tracks</string>
+    <string name="menu_remove_missing">Remove unavailable tracks</string>
     <plurals name="msg_removed_n">
         <item quantity="one">Removed %d track</item>
         <item quantity="other">Removed %d tracks</item>
@@ -334,18 +334,18 @@
     <string name="menu_export">Export</string>
     <string name="msg_imported"><![CDATA[Imported <b>%1$s</b> – %2$s]]></string>
     <string name="msg_imported_missing"><![CDATA[Imported <b>%1$s</b> – %2$s, %3$s]]></string>
-    <string name="error_import_not_playlist"><![CDATA[<b>%s</b> isn\'t a playlist Music can read.]]></string>
-    <string name="error_import_unreadable"><![CDATA[Music couldn\'t read <b>%s</b>.]]></string>
+    <string name="error_import_not_playlist"><![CDATA[<b>%s</b> isn’t a playlist Music can read.]]></string>
+    <string name="error_import_unreadable"><![CDATA[Music couldn’t read <b>%s</b>.]]></string>
     <string name="error_import_empty"><![CDATA[<b>%s</b> has no tracks.]]></string>
     <string name="title_export"><![CDATA[Export <b>%s</b>]]></string>
     <string name="button_export">Export</string>
     <string name="msg_exported"><![CDATA[Exported <b>%s</b>]]></string>
-    <string name="error_export_write"><![CDATA[Music couldn\'t write <b>%s</b>.]]></string>
+    <string name="error_export_write"><![CDATA[Music couldn’t write <b>%s</b>.]]></string>
     <string name="button_show">Show</string>
     <string name="button_copy">Copy</string>
     <!-- Playlists, stage 6 -->
     <plurals name="button_show_all_playlists">
-        <item quantity="one">Show all %s playlists</item>
+        <item quantity="one">Show %s playlist</item>
         <item quantity="other">Show all %s playlists</item>
     </plurals>
     <!-- Now playing v2 -->
@@ -377,10 +377,10 @@
     <string name="language_name_pl" translatable="false">Polski</string>
     <string name="title_settings_reset">Reset</string>
     <string name="desc_settings_reset_row">Restore default settings</string>
-    <string name="desc_settings_reset">Every setting returns to its default and the app follows the system language. Your folders, the library and playlists stay.</string>
+    <string name="desc_settings_reset">Every setting returns to its default and the app follows the system language. Your folders, the library, playlists and equalizer presets stay.</string>
     <string name="button_restore_defaults">Restore defaults</string>
     <string name="title_confirm_restore_defaults">Restore defaults?</string>
-    <string name="msg_confirm_restore_defaults">Sorting, the Library views, the playback settings, the export format and Skip short files return to their defaults, and the app follows the system language. Folders, the library and playlists stay as they are.</string>
+    <string name="msg_confirm_restore_defaults">Sorting, the Library views, the playback settings, the equalizer (switched off, Flat), the export format and Skip short files will return to their defaults, and the app will follow the system language. Folders, the library, playlists and equalizer presets will stay as they are.</string>
     <string name="button_restore">Restore</string>
     <string name="msg_defaults_restored">Default settings restored</string>
     <string name="title_about_license">License</string>
@@ -421,22 +421,22 @@
     <string name="msg_skipped_short">Shorter than %1$d s (%2$s)</string>
     <!-- Settings v2: backup and restore, first-run wizard -->
     <string name="title_backup_restore">Backup and restore</string>
-    <string name="msg_backup_intro">A backup keeps your settings and all your playlists, Starred included, in one file you choose where to save.</string>
+    <string name="msg_backup_intro">A backup holds your settings, playlists (Starred included) and equalizer presets.</string>
     <string name="label_create_backup">Create backup</string>
     <string name="label_last_backup">Last backup: %s</string>
     <string name="label_no_backup">No backup yet</string>
     <string name="label_saving_backup">Saving…</string>
     <string name="label_restore_backup">Restore from backup</string>
-    <string name="desc_restore_backup">Replaces your settings and all playlists</string>
+    <string name="desc_restore_backup">Replaces your settings, playlists and equalizer presets</string>
     <string name="msg_backup_no_folders">Access to your music folders can’t be saved. After restoring on a new phone, add your folders again – playlists find their tracks after the scan.</string>
     <string name="msg_backup_saved"><![CDATA[Backup saved as <b>%s</b>]]></string>
     <string name="error_backup_write"><![CDATA[Music couldn’t write <b>%s</b>.]]></string>
     <string name="title_restore_confirm">Replace your settings and playlists?</string>
-    <string name="msg_restore_from"><![CDATA[<b>%1$s</b> – made on %2$s with version %3$s. It brings:]]></string>
+    <string name="msg_restore_from"><![CDATA[<b>%1$s</b> – made on %2$s with version %3$s. It contains:]]></string>
     <string name="msg_restore_settings">your settings</string>
     <string name="msg_restore_playlists">playlists: %1$d, tracks: %2$d</string>
     <string name="msg_restore_with_starred">%s, Starred included</string>
-    <string name="msg_restore_replaces">Your current settings and all your playlists (%d) are replaced. Folders and the library stay.</string>
+    <string name="msg_restore_replaces">Your current settings and all your playlists (%d) will be replaced. Folders and the library will stay as they are.</string>
     <string name="msg_restored">Restored your settings and playlists (%d)</string>
     <string name="error_backup_not_ours"><![CDATA[<b>%s</b> isn’t a Music backup.]]></string>
     <string name="error_backup_newer">This backup was made by a newer version of Music. Update the app to restore it.</string>
@@ -446,7 +446,7 @@
     <string name="label_welcome_add_folder">Add a music folder</string>
     <string name="desc_welcome_add_folder">Choose the folder Music plays from</string>
     <string name="label_welcome_restore">Restore a backup</string>
-    <string name="desc_welcome_restore">Bring back your playlists and settings</string>
+    <string name="desc_welcome_restore">Bring back your playlists, settings and equalizer presets</string>
     <string name="button_next">Next</string>
     <string name="label_backup_brings_back">Choose a backup made in Music. It brings back:</string>
     <string name="label_backup_item_settings">Settings</string>
@@ -454,7 +454,7 @@
     <string name="label_backup_item_playlists">Playlists</string>
     <string name="desc_backup_item_playlists">Starred included</string>
     <string name="label_backup_no_folders_title">Folder access isn’t in the backup.</string>
-    <string name="label_backup_no_folders_body">You choose your folders again, and playlists find their tracks after the scan.</string>
+    <string name="label_backup_no_folders_body">Add the folders again, and playlists find their tracks after the scan.</string>
     <string name="button_backup_choose_file">Choose backup file</string>
     <string name="button_backup_choose_another">Choose another file</string>
     <string name="button_backup_change">Change</string>
@@ -467,7 +467,7 @@
     <string name="error_backup_newer_title">This backup can’t be restored</string>
     <string name="error_backup_newer_body">%1$s comes from a newer version of Music. Update the app or choose another file.</string>
     <string name="title_playlists_ready">Playlists ready: %d</string>
-    <string name="msg_playlists_ready">They fill in once you add the folders with your music.</string>
+    <string name="msg_playlists_ready">They’re empty for now. The tracks return once the folders with your music are added.</string>
     <string name="msg_no_folders">No music folders yet.</string>
     <string name="menu_reorder">Change order</string>
     <string name="title_reorder">Change order</string>
@@ -556,4 +556,8 @@
     <string name="label_current_values">Current values</string>
     <string name="label_empty_flat">Empty (Flat)</string>
     <string name="error_preset_name_taken">A preset with this name already exists</string>
+    <string name="msg_restore_equalizer">the equalizer</string>
+    <string name="msg_restore_equalizer_presets">the equalizer, presets of your own: %d</string>
+    <string name="msg_restore_replaces_equalizer">Your current settings, all your playlists (%d) and your equalizer presets will be replaced. Folders and the library will stay as they are.</string>
+    <string name="desc_backup_item_equalizer">Its values and your own presets</string>
 </resources>

@@ -19,8 +19,8 @@ import java.time.Instant
 import java.time.format.DateTimeParseException
 
 /**
- * Backup and restore (SPEC-settings-v2 §7): writes the settings and all playlists to a file the
- * user picked, and reads one back. A restore replaces the settings and every playlist; entries come
+ * Backup and restore (SPEC-settings-v2 §7): writes the settings, all playlists and the equalizer
+ * with its presets to a file the user picked, and reads one back. A restore replaces all of them; entries come
  * back unresolved and find their tracks in the library (now, or after the folders are added).
  * Nothing is logged: names and paths stay private.
  */
@@ -91,6 +91,11 @@ class BackupManager(private val app: MusicApplication, private val stamps: Share
             playlist to stored.entries.map { it.toEntry() }
         }
         app.preferences.restoreSettings(backup.settings)
+        // A backup from before the equalizer says nothing about it: it stays as it is
+        backup.settings.equalizer?.let { stored ->
+            val restored = EqualizerBackup.restore(stored, backup.equalizerPresets.orEmpty(), now, PlaylistRepository::nameKey)
+            app.equalizer.update { restored }
+        }
         app.database.playlistDao().replaceAll(playlists)
         app.playlists.requestResolve()
         playlists.count { (playlist, entries) -> playlist.builtin == null || entries.isNotEmpty() }
@@ -118,12 +123,14 @@ class BackupManager(private val app: MusicApplication, private val stamps: Share
                 },
             )
         }
+        val equalizer = app.equalizer.state.value
         return BackupFile(
             appVersion = BuildConfig.VERSION_NAME.removePrefix("v"),
             appVersionCode = BuildConfig.VERSION_CODE.toLong(),
             createdAt = Instant.now().toString(),
-            settings = app.preferences.backupSettings(),
+            settings = app.preferences.backupSettings().copy(equalizer = EqualizerBackup.settings(equalizer)),
             playlists = playlists,
+            equalizerPresets = EqualizerBackup.presets(equalizer),
         )
     }
 

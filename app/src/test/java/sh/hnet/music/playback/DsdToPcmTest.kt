@@ -59,7 +59,7 @@ class DsdToPcmTest {
         var sum = 0.0
         val range = 200 until pcm.size - 200
         for (i in range) {
-            // Sample i is centred on the start of input byte i × decimation: between two bits
+            // Sample i is centered on the start of input byte i × decimation: between two bits
             val t = (i * decimation * 8 - 0.5) / dsd64
             val d = pcm[i] - amplitude * sin(2 * PI * hz * t)
             sum += d * d

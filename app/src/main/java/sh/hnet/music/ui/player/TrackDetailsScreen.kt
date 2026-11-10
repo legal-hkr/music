@@ -38,7 +38,7 @@ import java.util.Date
 @Composable
 fun TrackDetailsScreen(viewModel: PlayerViewModel, onBack: () -> Unit) {
     val track by viewModel.details.collectAsStateWithLifecycle()
-    // A Surface for the content colour as well as the background (see NowPlayingScreen)
+    // A Surface for the content color as well as the background (see NowPlayingScreen)
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
     Column(
         Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding(),

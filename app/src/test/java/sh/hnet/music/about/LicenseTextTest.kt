@@ -11,7 +11,7 @@ class LicenseTextTest {
     private val blocks = LicenseText.parse(File("src/main/assets/licenses/gpl-3.0.html").readText())
 
     @Test
-    fun `the whole licence is there, in order`() {
+    fun `the whole license is there, in order`() {
         assertEquals(LicenseText.Block.Heading(1, "GNU GENERAL PUBLIC LICENSE"), blocks.first())
         val sections = blocks.filterIsInstance<LicenseText.Block.Heading>().filter { it.level == 3 }
         // Sections 0 to 17

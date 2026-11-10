@@ -15,7 +15,7 @@ import kotlin.math.sqrt
  * The filter works on whole bytes: for each byte position in its window a table holds the sum of
  * the eight taps for every byte value, so a sample costs one lookup per byte, not one per bit.
  *
- * The output isn't delayed: sample i is centred on the start of input byte i × [decimation], which
+ * The output isn't delayed: sample i is centered on the start of input byte i × [decimation], which
  * needs half a window of input beyond it – fed by the next call, or by [finish] at the end. Before
  * the start and after the end the input counts as DSD silence.
  *
@@ -104,9 +104,9 @@ class DsdToPcm(private val channels: Int, dsdRate: Int, val pcmRate: Int, gainDb
     /** One byte of every channel is in: moves on, and writes a sample when one is due. */
     private fun advance(out: ByteBuffer) {
         if (++oldest == window) oldest = 0
-        // Sample i is due once the half window after its centre is in: up to byte i × decimation + window / 2 - 1
-        val centre = fed++ - (window / 2 - 1)
-        if (centre < 0 || centre % decimation != 0L) return
+        // Sample i is due once the half window after its center is in: up to byte i × decimation + window / 2 - 1
+        val center = fed++ - (window / 2 - 1)
+        if (center < 0 || center % decimation != 0L) return
         for (c in 0 until channels) {
             val h = history[c]
             var sum = 0.0

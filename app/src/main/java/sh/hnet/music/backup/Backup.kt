@@ -12,7 +12,8 @@ import kotlinx.serialization.json.contentOrNull
 
 /**
  * Music's backup file (SPEC-settings-v2 §7.2): the settings and every playlist, Starred included,
- * each entry with the snapshot that finds its track again on another phone. Not in it: the library
+ * each entry with the snapshot that finds its track again on another phone, and the equalizer with
+ * the user's presets (EqualizerBackup.kt). Not in it: the library
  * index, covers, the queue, folder access, the app language and the last used view. Pure Kotlin, so
  * the format is unit-tested.
  */
@@ -26,6 +27,8 @@ data class BackupFile(
     val createdAt: String,
     val settings: BackupSettings,
     val playlists: List<BackupPlaylist>,
+    /** The user's own equalizer presets; absent in backups from before the equalizer. */
+    val equalizerPresets: List<BackupEqPreset>? = null,
 ) {
     companion object {
         const val FORMAT = "sh.hnet.music.backup"
@@ -43,6 +46,8 @@ data class BackupSettings(
     val skipShorterThanSeconds: Int = 0,
     /** The Artists view's "With albums only"; absent in backups from before it existed. */
     val artistsWithAlbumsOnly: Boolean? = null,
+    /** Absent in backups from before the equalizer: a restore then leaves it as it is. */
+    val equalizer: BackupEqualizer? = null,
 ) {
     @Serializable
     data class Sorts(val albums: String? = null, val tracks: String? = null, val playlists: String? = null)
@@ -92,6 +97,8 @@ sealed interface BackupCheck {
         val playlists: Int get() = backup.playlists.count { it.builtIn != BackupPlaylist.STARRED || it.entries.isNotEmpty() }
         val tracks: Int get() = backup.playlists.sumOf { it.entries.size }
         val hasStarred: Boolean get() = backup.playlists.any { it.builtIn == BackupPlaylist.STARRED && it.entries.isNotEmpty() }
+        val hasEqualizer: Boolean get() = backup.settings.equalizer != null
+        val presets: Int get() = backup.equalizerPresets.orEmpty().size
     }
 
     /** Not JSON, or JSON of something else. */

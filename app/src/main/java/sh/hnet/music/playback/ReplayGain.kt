@@ -64,7 +64,7 @@ fun sh.hnet.music.data.Track.gainTags() = GainTags(trackGainDb, trackPeak, album
 fun sh.hnet.music.data.LibraryTrack.gainTags() = GainTags(trackGainDb, trackPeak, albumGainDb, albumPeak)
 
 /**
- * "An album plays in order" (SPEC §11.4) as the queue shows it: shuffle off and a neighbour in the
+ * "An album plays in order" (SPEC §11.4) as the queue shows it: shuffle off and a neighbor in the
  * queue is from the same album, so the album's own steps between tracks are what's heard.
  */
 fun albumInOrder(shuffle: Boolean, albumKeyOf: (Int) -> String?, current: Int, count: Int): Boolean {

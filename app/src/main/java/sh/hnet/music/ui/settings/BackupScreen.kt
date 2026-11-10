@@ -200,7 +200,7 @@ fun rememberBackupFailures(): BackupFailures {
 
 /**
  * Restore's confirmation (§7.3 step 3): destructive, with what the file brings and what it replaces;
- * Replace in the error colour, last.
+ * Replace in the error color, last.
  */
 @Composable
 private fun RestoreConfirmDialog(picked: BackupManager.Picked, onDismiss: () -> Unit, onConfirm: (BackupCheck.Valid) -> Unit) {
@@ -221,16 +221,22 @@ private fun RestoreConfirmDialog(picked: BackupManager.Picked, onDismiss: () -> 
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(boldNamesResource(R.string.msg_restore_from, picked.fileName, backupDate(context, backup.createdAt), backup.appVersion))
             val playlists = resources.getString(R.string.msg_restore_playlists, valid.playlists, valid.tracks)
-            listOf(
+            listOfNotNull(
                 stringResource(R.string.msg_restore_settings),
                 if (valid.hasStarred) resources.getString(R.string.msg_restore_with_starred, playlists) else playlists,
+                // Absent in a backup from before the equalizer, which then stays as it is
+                when {
+                    !valid.hasEqualizer -> null
+                    valid.presets == 0 -> stringResource(R.string.msg_restore_equalizer)
+                    else -> stringResource(R.string.msg_restore_equalizer_presets, valid.presets)
+                },
             ).forEach { item ->
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text("–")
                     Text(item)
                 }
             }
-            Text(stringResource(R.string.msg_restore_replaces, currentCount))
+            Text(stringResource(if (valid.hasEqualizer) R.string.msg_restore_replaces_equalizer else R.string.msg_restore_replaces, currentCount))
         }
     }
 }

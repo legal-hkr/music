@@ -2,6 +2,7 @@
 
 package sh.hnet.music.ui.settings
 
+import sh.hnet.music.equalizer.BuiltInPresets
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.text.AnnotatedString
@@ -86,7 +87,7 @@ fun ResetScreen(onBack: () -> Unit) {
     val done = stringResource(R.string.msg_defaults_restored)
     SettingsPage(title = stringResource(R.string.title_settings_reset), onBack = onBack) {
         SettingsDescription(stringResource(R.string.desc_settings_reset))
-        // A single destructive action: an outlined button in the error colour, as Remove folder and
+        // A single destructive action: an outlined button in the error color, as Remove folder and
         // Clear queue (owner's decision)
         DestructiveButton(stringResource(R.string.button_restore_defaults), R.drawable.ic_history, { confirming = true }, Modifier.padding(top = 8.dp))
     }
@@ -100,6 +101,8 @@ fun ResetScreen(onBack: () -> Unit) {
                 confirming = false
                 scope.launch {
                     preferences.restoreDefaults()
+                    // The equalizer: off, on Flat; the user's presets are data and stay (SPEC-equalizer §13.2)
+                    (context.applicationContext as MusicApplication).equalizer.update { it.copy(enabled = false).withBuiltIn(BuiltInPresets.FLAT) }
                     Toast.makeText(context, done, Toast.LENGTH_SHORT).show()
                     // Last: a language change recreates the activity
                     if (currentLanguageTag(context).isNotEmpty()) setLanguage(context, "")

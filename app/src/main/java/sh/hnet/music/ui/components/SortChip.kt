@@ -34,7 +34,7 @@ import sh.hnet.music.R
 
 /**
  * A filter chip for a list's header row, beside or instead of the sort chip: on, it shows a check
- * and the selected colours (FilterChip's own).
+ * and the selected colors (FilterChip's own).
  */
 @Composable
 fun FilterToggleChip(label: String, selected: Boolean, onToggle: () -> Unit) {

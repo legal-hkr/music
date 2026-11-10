@@ -45,7 +45,7 @@ import kotlin.math.log10
  * The equalizer's response curve (SPEC-equalizer §4): the combined response of the enabled filters
  * and the pre-amp, 20 Hz to 20 kHz on a logarithmic axis, ±12 dB widening to ±20 dB when the curve
  * or the edited filter's marker goes beyond. A picture only, drawn from the coefficients the audio
- * path uses; theme colour roles, no fills.
+ * path uses; theme color roles, no fills.
  *
  * @param applied false while the equalizer is off: the curve keeps its shape, muted, under [tag]
  * @param edited the filter being edited: its own response dashed, its marker at (frequency, gain)
@@ -97,7 +97,7 @@ fun ResponseCurve(settings: EqSettings, applied: Boolean, edited: EqFilter?, tag
                 val layout = measurer.measure(text, labelStyle)
                 drawText(layout, topLeft = Offset(left - layout.size.width - 4.dp.toPx(), y(db) - layout.size.height / 2f))
             }
-            LABELLED_FREQUENCIES.forEach { (f, text) ->
+            LABELED_FREQUENCIES.forEach { (f, text) ->
                 val layout = measurer.measure(text, labelStyle)
                 drawText(layout, topLeft = Offset(x(f) - layout.size.width / 2f, bottom + 2.dp.toPx()))
             }
@@ -143,4 +143,4 @@ private const val WIDE_DB = 20f
 /** 20 Hz to 20 kHz. */
 private const val DECADES = 3.0
 private val GRID_FREQUENCIES = doubleArrayOf(50.0, 100.0, 200.0, 500.0, 1000.0, 2000.0, 5000.0, 10_000.0)
-private val LABELLED_FREQUENCIES = listOf(100.0 to "100", 1000.0 to "1k", 10_000.0 to "10k")
+private val LABELED_FREQUENCIES = listOf(100.0 to "100", 1000.0 to "1k", 10_000.0 to "10k")

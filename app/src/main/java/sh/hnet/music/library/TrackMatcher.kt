@@ -18,7 +18,7 @@ data class TrackHint(
  * path, then by its tags. Pure; built once per pass over the library's visible tracks.
  */
 class TrackMatcher(tracks: List<LibraryTrack>) {
-    /** Tracks by their file name, with their path's parts (normalised) for the suffix comparison. */
+    /** Tracks by their file name, with their path's parts (normalized) for the suffix comparison. */
     private val byFileName: Map<String, List<Pair<List<String>, LibraryTrack>>> = tracks
         .map { pathParts(it.relativePath) to it }
         .filter { it.first.isNotEmpty() }
@@ -76,7 +76,7 @@ class TrackMatcher(tracks: List<LibraryTrack>) {
         private val ARTIST_SEPARATORS = Regex("""\s*(?:,|;|/|&|\+|\band\b|\bx\b|\bvs\.?)\s*""", RegexOption.IGNORE_CASE)
 
         /**
-         * A path's parts, normalised for comparison: `file://` and percent-encoding decoded, `\` as
+         * A path's parts, normalized for comparison: `file://` and percent-encoding decoded, `\` as
          * `/`, a drive letter dropped, case and Unicode form folded. Roots don't matter: only the
          * trailing parts are compared.
          */

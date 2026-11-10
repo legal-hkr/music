@@ -32,7 +32,7 @@ import kotlinx.coroutines.delay
 
 /**
  * Drag-to-reorder for a [LazyListState] (our own, no library): the dragged row follows the
- * finger, swaps with a neighbour once it passes the neighbour's middle, and the list scrolls when
+ * finger, swaps with a neighbor once it passes the neighbor's middle, and the list scrolls when
  * the row reaches an edge. The caller reorders its own list on [onMove] while dragging and
  * commits once on [onDrop], so the player sees one move per drag.
  */
@@ -80,7 +80,7 @@ class ReorderState internal constructor(
         val middle = desiredTop + dragged.size / 2f
         val target = listState.layoutInfo.visibleItemsInfo.firstOrNull { other ->
             other.key != key && canMove(other.key) && middle > other.offset && middle < other.offset + other.size &&
-                // Only once past the neighbour's middle, so rows don't flip back and forth
+                // Only once past the neighbor's middle, so rows don't flip back and forth
                 (if (other.index > dragged.index) middle > other.offset + other.size / 2f else middle < other.offset + other.size / 2f)
         } ?: return
         onMove(key, target.key)

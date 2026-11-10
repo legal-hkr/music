@@ -63,7 +63,7 @@ class PlayerViewModel(app: MusicApplication) : ViewModel() {
         viewModelScope.launch {
             combine(player.queue, app.library.playableByUri) { queue, tracks ->
                 listOf(queue.current + 1, queue.current - 1).mapNotNull { i -> queue.items.getOrNull(i)?.let { tracks[it.mediaId] } }
-            }.distinctUntilChanged().collectLatest { neighbours -> neighbours.forEach { app.covers.prefetch(it) } }
+            }.distinctUntilChanged().collectLatest { neighbors -> neighbors.forEach { app.covers.prefetch(it) } }
         }
     }
 }
