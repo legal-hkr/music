@@ -94,14 +94,31 @@ class EqualizerTest {
     }
 
     @Test
-    fun `the processor passes samples through while off and keeps running when settings change`() {
-        val processor = EqProcessor().apply { configure(44_100, 2) }
+    fun `switching on and off glides between the sound before and after`() {
+        val rate = 48_000
+        val processor = EqProcessor().apply { configure(rate, 2) }
         assertTrue(processor.idle)
-        processor.set(EqSettings(preampDb = -6f))
+        assertEquals(1f, processor.process(0, 1f), 0f)
+        // On: from the plain sample towards half of it (−6 dB), never jumping
+        processor.set(EqSettings(preampDb = -6.02f))
+        assertFalse(processor.idle)
+        var previous = 1f
+        var largestStep = 0f
+        repeat(rate / 10) {
+            val out = processor.process(0, 1f)
+            processor.process(1, 1f)
+            largestStep = maxOf(largestStep, abs(out - previous))
+            previous = out
+        }
+        assertEquals(0.5f, previous, 0.002f)
+        assertTrue("no jump on the way: $largestStep", largestStep < 0.001f)
+        // Off: back the same way, and only then idle
+        processor.set(null)
         assertFalse(processor.idle)
         assertEquals(0.5f, processor.process(0, 1f), 0.002f)
-        processor.set(null)
+        repeat(rate / 10) { processor.process(0, 1f); processor.process(1, 1f) }
         assertTrue(processor.idle)
+        assertEquals(1f, processor.process(0, 1f), 0f)
     }
 
     @Test

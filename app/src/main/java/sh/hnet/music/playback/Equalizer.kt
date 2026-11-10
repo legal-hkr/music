@@ -131,47 +131,72 @@ object Equalizer {
  * The equalizer in the audio path: every sample of every channel through the pre-amp and the enabled
  * filters (transposed direct form II, in double precision: low frequencies at high sample rates need
  * it). Used on the playback thread only; [set] swaps the settings between samples and keeps the
- * filters' memory when their number doesn't change, so moving a slider doesn't click.
+ * filters' memory when their number doesn't change, so moving a slider doesn't click. Switching the
+ * equalizer on or off glides: for [FADE_MS] the output is a mix of the sound before and after it.
  */
 class EqProcessor {
     private var sampleRate = 0
     private var channels = 0
-    private var applied: EqSettings? = null
+    /** What was asked for last; null = off. */
+    private var requested: EqSettings? = null
+    /** Whether the coefficients below are those of [requested] (not before the format is known). */
+    private var loaded = false
     private var preamp = 1.0
     private var count = 0
     private var coefficients = DoubleArray(0)
     private var state = DoubleArray(0)
 
-    /** Whether samples pass through unchanged. */
-    val idle: Boolean get() = applied == null
+    /** How much of the output is the equalized sound: 0 off, 1 on, between them while gliding. */
+    private var mix = 0.0
+    private var mixStep = 0.0
+
+    /** Whether samples pass through unchanged: off, and the glide to off has ended. */
+    val idle: Boolean get() = requested == null && mix == 0.0
 
     fun configure(sampleRate: Int, channels: Int) {
         if (sampleRate == this.sampleRate && channels == this.channels) return
         this.sampleRate = sampleRate
         this.channels = channels
-        val settings = applied
-        applied = null
+        mixStep = 1000.0 / (FADE_MS * sampleRate)
         state = DoubleArray(0)
-        set(settings)
+        count = 0
+        loaded = false
+        requested?.let(::load)
     }
 
-    /** [settings] null: off. The same object as before: nothing to do. */
+    /** [settings] null: off (after the glide). The same object as before: nothing to do. */
     fun set(settings: EqSettings?) {
-        if (settings === applied) return
-        applied = settings
-        if (settings == null || sampleRate <= 0 || channels <= 0) return
+        if (settings === requested) return
+        val wasIdle = idle
+        requested = settings
+        // Off keeps the filters as they were, to glide out of them
+        if (settings != null) {
+            load(settings)
+            // From off: the filters start from silence, not from what they last heard
+            if (wasIdle) reset()
+        }
+    }
+
+    private fun load(settings: EqSettings) {
+        if (sampleRate <= 0 || channels <= 0) return
         val enabled = settings.filters.filter { it.enabled }
         preamp = Math.pow(10.0, settings.preampDb / 20.0)
         coefficients = DoubleArray(enabled.size * 5)
         enabled.forEachIndexed { i, filter -> Equalizer.coefficients(filter, sampleRate).copyInto(coefficients, i * 5) }
         if (enabled.size != count || state.size != enabled.size * channels * 2) state = DoubleArray(enabled.size * channels * 2)
         count = enabled.size
+        loaded = true
     }
 
     /** After a seek or a new stream: the filters start from silence. */
     fun reset() = state.fill(0.0)
 
     fun process(channel: Int, sample: Float): Float {
+        if (!loaded) return sample
+        // The mix moves once per frame, towards on or off
+        if (channel == 0) {
+            mix = if (requested != null) minOf(1.0, mix + mixStep) else maxOf(0.0, mix - mixStep)
+        }
         var x = sample * preamp
         var c = 0
         var s = channel * 2
@@ -184,6 +209,11 @@ class EqProcessor {
             c += 5
             s += stride
         }
-        return x.toFloat()
+        return (sample + (x - sample) * mix).toFloat()
+    }
+
+    private companion object {
+        /** Long enough not to click, short enough to feel immediate. */
+        const val FADE_MS = 40
     }
 }
