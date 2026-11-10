@@ -486,4 +486,57 @@
     <string name="label_dsd_pcm_rate">Converted to</string>
     <string name="msg_dsd_pcm_rate">Music plays DSD files as PCM. The higher rate keeps more of the ultrasonic range and takes more work from the phone. It applies from the next track.</string>
     <string name="label_khz">%s kHz</string>
+    <!-- Equalizer (SPEC-equalizer) -->
+    <string name="title_equalizer">Equalizer</string>
+    <string name="label_eq_off">Off</string>
+    <string name="label_eq_modified">%s (modified)</string>
+    <string name="label_eq_unsaved">Unsaved settings</string>
+    <string name="label_use_equalizer">Use equalizer</string>
+    <string name="title_preset_group">Preset</string>
+    <string name="title_presets">Presets</string>
+    <string name="desc_builtin">Built-in</string>
+    <string name="desc_own_preset">Your preset</string>
+    <string name="desc_modified">Modified</string>
+    <string name="label_all_outputs">Applies to all outputs</string>
+    <string name="label_eq_preamp">Pre-amp</string>
+    <string name="title_filters">Filters (%d)</string>
+    <string name="label_filter_type_peak">Peak</string>
+    <string name="label_filter_type_low_shelf">Low shelf</string>
+    <string name="label_filter_type_high_shelf">High shelf</string>
+    <string name="content_description_filter_type">Type</string>
+    <string name="label_filter_row">%1$s: %2$s Hz</string>
+    <string name="desc_filter_row">Gain %1$s dB, Q %2$s</string>
+    <string name="title_filter">Filter %d</string>
+    <string name="label_frequency">Frequency</string>
+    <string name="label_gain">Gain</string>
+    <string name="label_q">Q</string>
+    <string name="unit_hz">Hz</string>
+    <string name="unit_db">dB</string>
+    <string name="error_frequency_range">Enter 20 to 20,000 Hz</string>
+    <string name="error_gain_range">Enter −20 to 20 dB</string>
+    <string name="error_q_range">Enter 0.10 to 10.00</string>
+    <string name="content_description_decrease">Decrease: %s</string>
+    <string name="content_description_increase">Increase: %s</string>
+    <string name="button_add_filter">Add filter</string>
+    <string name="desc_filter_limit">20 filters at most</string>
+    <string name="button_sort_by_frequency">Sort by frequency</string>
+    <string name="msg_sorted_by_frequency">Sorted by frequency</string>
+    <string name="button_remove_filter">Remove filter</string>
+    <string name="msg_removed_filter">Removed filter %1$d (%2$s: %3$s Hz)</string>
+    <string name="msg_clipping">The curve peaks at %s dB, so loud passages can distort.</string>
+    <string name="button_set_preamp">Set pre-amp to %s dB</string>
+    <string name="label_curve_off">Off</string>
+    <plurals name="desc_curve">
+        <item quantity="one">Response curve: %1$d filter, peak %2$s dB</item>
+        <item quantity="other">Response curve: %1$d filters, peak %2$s dB</item>
+    </plurals>
+    <plurals name="desc_filter_count">
+        <item quantity="one">%d filter</item>
+        <item quantity="other">%d filters</item>
+    </plurals>
+    <string name="desc_no_filters">No filters</string>
+    <string name="label_flat">Flat</string>
+    <string name="msg_changes_discarded">Changes discarded</string>
+    <string name="title_preset_sources">Equalizer presets</string>
+    <string name="desc_preset_source_isine_10">Based on measurements by oratory1990, as published by Atrium Audio (atriumaudio.net)</string>
 </resources>

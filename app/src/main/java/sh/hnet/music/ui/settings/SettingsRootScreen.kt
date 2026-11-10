@@ -22,6 +22,7 @@ fun SettingsRootScreen(
     onOpenLibrary: () -> Unit,
     onOpenViews: () -> Unit,
     onOpenPlayback: () -> Unit,
+    onOpenEqualizer: () -> Unit,
     onOpenLanguage: () -> Unit,
     onOpenBackup: () -> Unit,
     onOpenReset: () -> Unit,
@@ -34,6 +35,7 @@ fun SettingsRootScreen(
     // Read on every composition: changing it recreates the activity anyway
     val startView by (context.applicationContext as sh.hnet.music.MusicApplication).preferences.startView.collectAsStateWithLifecycle(sh.hnet.music.ui.library.LibraryView.ALBUMS)
     val lastBackup by (context.applicationContext as sh.hnet.music.MusicApplication).backup.lastBackup.collectAsStateWithLifecycle()
+    val equalizer by (context.applicationContext as sh.hnet.music.MusicApplication).equalizer.state.collectAsStateWithLifecycle()
     val language = appLanguages.firstOrNull { it.tag == currentLanguageTag(context) } ?: appLanguages.first()
     SettingsPage(title = stringResource(R.string.title_settings), onBack = null) {
         SettingsGroup(stringResource(R.string.title_settings_group_library)) {
@@ -54,6 +56,9 @@ fun SettingsRootScreen(
                     stringResource(R.string.label_settings_replaygain_value, stringResource(gain.mode.label())),
                     onClick = onOpenPlayback,
                 )
+            }
+            row { shapes ->
+                SettingsNavigationRow(shapes, R.drawable.ic_equalizer, stringResource(R.string.title_equalizer), equalizerSummary(equalizer), onClick = onOpenEqualizer)
             }
         }
         SettingsGroup(stringResource(R.string.title_settings_group_app)) {

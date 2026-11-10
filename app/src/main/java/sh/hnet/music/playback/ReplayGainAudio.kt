@@ -96,8 +96,9 @@ private class ReplayGainRenderer(
 data class TrackGain(val tags: GainTags, val albumInOrder: Boolean)
 
 /**
- * Converts PCM to float and applies the current track's gain on the way into the real sink. Input
- * buffers are consumed through a converted copy, kept until the real sink has taken all of it.
+ * Converts PCM to float and applies the current track's gain, then the equalizer, on the way into
+ * the real sink. Input buffers are consumed through a converted copy, kept until the real sink has
+ * taken all of it.
  */
 class ReplayGainSink(sink: AudioSink) : ForwardingAudioSink(sink) {
     @Volatile var settings = GainSettings()
@@ -105,6 +106,12 @@ class ReplayGainSink(sink: AudioSink) : ForwardingAudioSink(sink) {
 
     @Volatile var shuffle = false
         set(value) { field = value; update() }
+
+    /** What the equalizer applies, or null while it is off (SPEC-equalizer §11.1: after ReplayGain). */
+    @Volatile var equalizer: EqSettings? = null
+
+    private val eq = EqProcessor()
+    private var channels = 0
 
     @Volatile private var track: TrackGain? = null
     @Volatile private var gain = 1f
@@ -114,6 +121,8 @@ class ReplayGainSink(sink: AudioSink) : ForwardingAudioSink(sink) {
     private var source: ByteBuffer? = null
     private var sourceTimeUs = C.TIME_UNSET
     private var sourceStart = 0
+    /** A buffer handed on unconverted that the real sink hasn't finished yet. */
+    private var passing = false
 
     /** Called on the playback thread as a track's first sample is about to be written. */
     fun startTrack(next: TrackGain?) {
@@ -129,6 +138,8 @@ class ReplayGainSink(sink: AudioSink) : ForwardingAudioSink(sink) {
     override fun configure(audioSinkConfig: AudioSink.AudioSinkConfig) {
         val format = audioSinkConfig.format
         encoding = if (format.pcmEncoding in CONVERTIBLE) format.pcmEncoding else C.ENCODING_INVALID
+        channels = format.channelCount
+        if (encoding != C.ENCODING_INVALID) eq.configure(format.sampleRate, channels)
         if (encoding == C.ENCODING_INVALID) {
             super.configure(audioSinkConfig)
         } else {
@@ -146,8 +157,15 @@ class ReplayGainSink(sink: AudioSink) : ForwardingAudioSink(sink) {
 
     override fun handleBuffer(buffer: ByteBuffer, presentationTimeUs: Long, encodedAccessUnitCount: Int): Boolean {
         if (encoding == C.ENCODING_INVALID) return super.handleBuffer(buffer, presentationTimeUs, encodedAccessUnitCount)
-        // Already float and nothing to scale (ReplayGain off, or 0 dB): passed on as it is, no copy
-        if (encoding == C.ENCODING_PCM_FLOAT && gain == 1f && source == null) return super.handleBuffer(buffer, presentationTimeUs, encodedAccessUnitCount)
+        eq.set(equalizer)
+        // Already float and nothing to do (ReplayGain off or 0 dB, equalizer off): passed on as it is, no
+        // copy. A buffer the real sink has begun stays its own until it has taken all of it: the sink
+        // refuses another buffer in its place, so the equalizer switched on meanwhile starts with the next
+        if (passing || (encoding == C.ENCODING_PCM_FLOAT && gain == 1f && eq.idle && source == null)) {
+            val done = super.handleBuffer(buffer, presentationTimeUs, encodedAccessUnitCount)
+            passing = !done
+            return done
+        }
         val inBytes = bytesPerSample(encoding)
         // The same buffer comes back until it's consumed; a new one (or the same object reused by
         // the codec for the next output) is converted once
@@ -181,9 +199,20 @@ class ReplayGainSink(sink: AudioSink) : ForwardingAudioSink(sink) {
             C.ENCODING_PCM_32BIT -> repeat(samples) { converted.putFloat((src.getInt() / 2147483648.0).toFloat() * g) }
         }
         converted.flip()
+        // The equalizer over the converted samples, channel by channel as they are interleaved
+        if (!eq.idle && channels > 0) {
+            var channel = 0
+            var at = 0
+            repeat(samples) {
+                converted.putFloat(at, eq.process(channel, converted.getFloat(at)))
+                at += 4
+                if (++channel == channels) channel = 0
+            }
+        }
     }
 
     private fun clearPending() {
+        passing = false
         source = null
         sourceTimeUs = C.TIME_UNSET
         converted.clear().limit(0)
@@ -191,6 +220,7 @@ class ReplayGainSink(sink: AudioSink) : ForwardingAudioSink(sink) {
 
     override fun flush() {
         clearPending()
+        eq.reset()
         super.flush()
     }
 

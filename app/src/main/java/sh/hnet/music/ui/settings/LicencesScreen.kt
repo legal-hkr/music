@@ -2,6 +2,13 @@
 
 package sh.hnet.music.ui.settings
 
+import sh.hnet.music.ui.components.SettingsLinkRow
+import sh.hnet.music.equalizer.BuiltInPresets
+import androidx.core.net.toUri
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
+import android.content.Intent
+import android.content.ActivityNotFoundException
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -43,13 +50,21 @@ private val COMPONENTS = listOf(
     "Material Symbols",
 )
 
-/** Settings › About › Licences (SPEC §11.6): each component and its licence; the text on tap. */
+/** Where the built-in Audeze iSine 10 preset's values were published; handed to the browser (the app has no network). */
+private const val ISINE_10_SOURCE = "atriumaudio.net/eq/audeze-isine-10"
+
+/**
+ * Settings › About › Licences (SPEC §11.6): each component and its licence, the text on tap; then
+ * where the built-in equalizer presets come from, with a link to the source (owner's decision).
+ */
 @Composable
 fun LicencesScreen(onBack: () -> Unit) {
     val resources = LocalResources.current
     val licenceText = remember(resources) { resources.openRawResource(R.raw.apache_license_2_0).bufferedReader().use { it.readText() } }
     var showing by rememberSaveable { mutableStateOf(false) }
     val licence = stringResource(R.string.label_apache_licence)
+    val context = LocalContext.current
+    val noBrowser = stringResource(R.string.msg_no_browser)
     SettingsPage(title = stringResource(R.string.label_licences), onBack = onBack) {
         SettingsGroup {
             COMPONENTS.forEach { name ->
@@ -61,6 +76,17 @@ fun LicencesScreen(onBack: () -> Unit) {
                         supportingContent = { Text(licence) },
                     ) {
                         Text(name)
+                    }
+                }
+            }
+        }
+        SettingsGroup(stringResource(R.string.title_preset_sources)) {
+            row { shapes ->
+                SettingsLinkRow(shapes, R.drawable.ic_equalizer, BuiltInPresets.AUDEZE_ISINE_10.name.orEmpty(), stringResource(R.string.desc_preset_source_isine_10)) {
+                    try {
+                        context.startActivity(Intent(Intent.ACTION_VIEW, "https://$ISINE_10_SOURCE".toUri()))
+                    } catch (_: ActivityNotFoundException) {
+                        Toast.makeText(context, noBrowser, Toast.LENGTH_SHORT).show()
                     }
                 }
             }

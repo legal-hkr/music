@@ -68,6 +68,8 @@ fun SettingsPage(
     subtitle: String? = null,
     /** False when the page is drawn inside something that already took the status bar's inset. */
     topInsets: Boolean = true,
+    /** Stays under the top bar while the content scrolls (the equalizer's response curve). */
+    pinned: (@Composable () -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val scrollBehavior = if (onBack == null) TopAppBarDefaults.exitUntilCollapsedScrollBehavior() else TopAppBarDefaults.pinnedScrollBehavior()
@@ -92,6 +94,7 @@ fun SettingsPage(
                 scrollBehavior = scrollBehavior,
             )
         }
+        pinned?.invoke()
         Column(
             modifier = Modifier
                 .fillMaxSize()

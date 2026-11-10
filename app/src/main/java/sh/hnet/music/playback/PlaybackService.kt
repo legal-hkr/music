@@ -133,6 +133,10 @@ class PlaybackService : MediaSessionService() {
         scope.launch {
             (application as MusicApplication).preferences.gain.collect { gainSink.settings = it }
         }
+        // The equalizer: heard at once, whatever changes it
+        scope.launch {
+            (application as MusicApplication).equalizer.state.collect { gainSink.equalizer = it.applied }
+        }
         // Read by the extractor when it opens a file: a new rate applies from the next one
         scope.launch {
             (application as MusicApplication).preferences.dsdPcmRate.collect { dsdPcmRate = it }
