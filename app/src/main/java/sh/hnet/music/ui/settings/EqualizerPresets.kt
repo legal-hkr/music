@@ -81,14 +81,17 @@ fun PresetActions(state: EqualizerState, onSave: () -> Unit, onSaveAsNew: () -> 
 
 /**
  * Choosing a preset (§9.2): New preset, then the user's own (most recently changed first, each with
- * Rename and Delete in its menu) and the built-in ones. One tap selects and closes. Import and the
- * Export menu items come with their stage.
+ * Rename, Export and Delete in its menu) and the built-in ones (Export). One tap selects and closes.
+ * Import from file reads Equalizer APO text (§10).
  */
 @Composable
 fun PresetSheet(
     state: EqualizerState,
     onDismiss: () -> Unit,
     onNew: () -> Unit,
+    onImport: () -> Unit,
+    onExportBuiltIn: (BuiltInPreset) -> Unit,
+    onExportOwn: (String) -> Unit,
     onSelectBuiltIn: (BuiltInPreset) -> Unit,
     onSelectOwn: (String) -> Unit,
     onRename: (String) -> Unit,
@@ -110,19 +113,30 @@ fun PresetSheet(
             ) {
                 Text(stringResource(R.string.label_new_preset))
             }
+            ListItem(
+                onClick = onImport,
+                colors = colors,
+                leadingContent = { Icon(painterResource(R.drawable.ic_file_open), contentDescription = null) },
+                supportingContent = { Text(stringResource(R.string.desc_import_preset)) },
+            ) {
+                Text(stringResource(R.string.label_import_preset))
+            }
             Column(Modifier.selectableGroup()) {
                 val own = state.presetsByChange
                 if (own.isNotEmpty()) {
                     GroupHeader(stringResource(R.string.title_your_presets))
                     own.forEach { preset ->
                         PresetRow(preset.name, preset.settings, selected = state.preset?.own == preset.name, colors, onClick = { onSelectOwn(preset.name) }) {
-                            OwnPresetMenu(preset.name, onRename = { onRename(preset.name) }, onDelete = { onDelete(preset.name) })
+                            OwnPresetMenu(preset.name, onRename = { onRename(preset.name) }, onExport = { onExportOwn(preset.name) }, onDelete = { onDelete(preset.name) })
                         }
                     }
                 }
                 GroupHeader(stringResource(R.string.title_builtin_presets))
                 BuiltInPresets.all.forEach { preset ->
-                    PresetRow(preset.name ?: stringResource(R.string.label_flat), preset.settings, selected = state.preset?.builtIn == preset.id, colors, onClick = { onSelectBuiltIn(preset) })
+                    val name = preset.name ?: stringResource(R.string.label_flat)
+                    PresetRow(name, preset.settings, selected = state.preset?.builtIn == preset.id, colors, onClick = { onSelectBuiltIn(preset) }) {
+                        BuiltInPresetMenu(name, onExport = { onExportBuiltIn(preset) })
+                    }
                 }
             }
         }
@@ -164,17 +178,31 @@ private fun PresetRow(
 }
 
 @Composable
-private fun OwnPresetMenu(name: String, onRename: () -> Unit, onDelete: () -> Unit) {
+private fun OwnPresetMenu(name: String, onRename: () -> Unit, onExport: () -> Unit, onDelete: () -> Unit) {
     var open by remember { mutableStateOf(false) }
     Box {
         TooltipIconButton(R.drawable.ic_more_vert, stringResource(R.string.content_description_more_for, name), { open = true })
         DropdownMenuPopup(expanded = open, onDismissRequest = { open = false }) {
             DropdownMenuGroup(shapes = MenuDefaults.groupShape(0, 2)) {
-                MenuItem(stringResource(R.string.menu_rename), R.drawable.ic_edit, 0, 1) { open = false; onRename() }
+                MenuItem(stringResource(R.string.menu_rename), R.drawable.ic_edit, 0, 2) { open = false; onRename() }
+                MenuItem(stringResource(R.string.menu_export), R.drawable.ic_file_export, 1, 2) { open = false; onExport() }
             }
             androidx.compose.foundation.layout.Spacer(Modifier.height(MenuDefaults.GroupSpacing))
             DropdownMenuGroup(shapes = MenuDefaults.groupShape(1, 2)) {
                 MenuItem(stringResource(R.string.menu_delete), R.drawable.ic_delete, 0, 1, error = true) { open = false; onDelete() }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BuiltInPresetMenu(name: String, onExport: () -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    Box {
+        TooltipIconButton(R.drawable.ic_more_vert, stringResource(R.string.content_description_more_for, name), { open = true })
+        DropdownMenuPopup(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuGroup(shapes = MenuDefaults.groupShape(0, 1)) {
+                MenuItem(stringResource(R.string.menu_export), R.drawable.ic_file_export, 0, 1) { open = false; onExport() }
             }
         }
     }

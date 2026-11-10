@@ -84,7 +84,15 @@ import sh.hnet.music.MusicApplication
 import sh.hnet.music.R
 import sh.hnet.music.equalizer.BuiltInPreset
 import sh.hnet.music.equalizer.BuiltInPresets
+import sh.hnet.music.equalizer.EqualizerFiles
 import sh.hnet.music.equalizer.EqualizerState
+import sh.hnet.music.equalizer.EqualizerText
+import sh.hnet.music.library.PlaylistRepository
+import sh.hnet.music.ui.library.ErrorDetails
+import sh.hnet.music.ui.library.ErrorDetailsDialog
+import sh.hnet.music.ui.library.reportFailure
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import sh.hnet.music.playback.EqFilter
 import sh.hnet.music.playback.Equalizer
 import sh.hnet.music.playback.FilterType
@@ -111,7 +119,8 @@ import kotlin.math.pow
  */
 @Composable
 fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageScope: CoroutineScope, topInsets: Boolean = true) {
-    val store = (LocalContext.current.applicationContext as MusicApplication).equalizer
+    val app = LocalContext.current.applicationContext as MusicApplication
+    val store = app.equalizer
     val state by store.state.collectAsStateWithLifecycle()
     val filters = state.current.filters
     val resources = LocalResources.current
@@ -127,6 +136,80 @@ fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageSco
     var naming by rememberSaveable { mutableStateOf<PresetNaming?>(null) }
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
     val deletedText = stringResource(R.string.msg_playlist_deleted)
+    val show = stringResource(R.string.button_show)
+    val flatName = stringResource(R.string.label_flat)
+    val newPresetName = stringResource(R.string.label_new_preset)
+    var errorShown by remember { mutableStateOf<ErrorDetails?>(null) }
+    // The preset being exported while the system picker is open: "b:{id}" built-in, "o:{name}" the user's own
+    var exporting by rememberSaveable { mutableStateOf<String?>(null) }
+
+    fun plain(template: Int, vararg names: String) = AnnotatedString.fromHtml(resources.getString(template).format(*names.map { it.htmlEncode() }.toTypedArray())).text
+
+    // Import (§10): read once; the file becomes one of the user's presets, in use at once. Undo takes it back
+    val importPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        messageScope.launch {
+            val fileName = app.transfer.displayName(uri) ?: uri.lastPathSegment.orEmpty()
+            when (val read = EqualizerFiles.read(app.contentResolver, uri)) {
+                is EqualizerFiles.Read.Unreadable -> reportFailure(snackbars, plain(R.string.error_import_unreadable, fileName), read.details, show) { errorShown = it }
+                is EqualizerFiles.Read.NotAPreset -> reportFailure(snackbars, plain(R.string.error_import_not_preset, fileName), read.details, show) { errorShown = it }
+                is EqualizerFiles.Read.Done -> {
+                    val parsed = read.parsed
+                    val before = store.state.value
+                    val builtInNames = BuiltInPresets.all.map { it.name ?: flatName }
+                    var imported = ""
+                    editing = null
+                    store.update { now ->
+                        imported = EqualizerText.uniqueName(EqualizerText.presetName(parsed, fileName, newPresetName)) { now.nameTaken(it, builtInNames, PlaylistRepository::nameKey) }
+                        now.savedAsNew(imported, System.currentTimeMillis(), parsed.settings)
+                    }
+                    val count = parsed.settings.filters.size
+                    var what = resources.getQuantityString(R.plurals.desc_filter_count, count, count)
+                    if (parsed.unsupported > 0) what = resources.getString(R.string.msg_import_left_out_type, what, parsed.unsupported)
+                    if (parsed.overLimit > 0) what = resources.getString(R.string.msg_import_left_out_limit, what, parsed.overLimit)
+                    snackbars.currentSnackbarData?.dismiss()
+                    val text = AnnotatedString.fromHtml(resources.getString(R.string.msg_preset_imported).format(imported.htmlEncode(), what.htmlEncode())).text
+                    if (snackbars.showSnackbar(text, actionLabel = undo, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed) {
+                        store.update { now ->
+                            // What was heard before comes back, unless another preset was chosen meanwhile
+                            val inUse = now.preset?.own == imported
+                            now.copy(
+                                presets = now.presets.filterNot { it.name == imported },
+                                preset = if (inUse) before.preset else now.preset,
+                                current = if (inUse) before.current else now.current,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // Export (§10): the preset's saved values, as text
+    val exportPicker = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
+        val key = exporting
+        exporting = null
+        if (uri == null || key == null) return@rememberLauncherForActivityResult
+        val now = store.state.value
+        val (name, settings) = when {
+            key.startsWith("b:") -> BuiltInPresets.byId(key.drop(2))?.let { (it.name ?: flatName) to it.settings }
+            else -> now.presets.firstOrNull { it.name == key.drop(2) }?.let { it.name to it.settings }
+        } ?: return@rememberLauncherForActivityResult
+        messageScope.launch {
+            val failed = EqualizerFiles.write(app.contentResolver, uri, EqualizerText.write(name, settings))
+            val fileName = app.transfer.displayName(uri) ?: uri.lastPathSegment.orEmpty()
+            if (failed == null) {
+                snackbars.currentSnackbarData?.dismiss()
+                snackbars.showSnackbar(plain(R.string.msg_exported, fileName), duration = SnackbarDuration.Short)
+            } else {
+                reportFailure(snackbars, plain(R.string.error_export_write, fileName), failed, show) { errorShown = it }
+            }
+        }
+    }
+    fun export(key: String, name: String) {
+        choosingPreset = false
+        exporting = key
+        exportPicker.launch(EqualizerText.fileName(name))
+    }
 
     val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
     val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
@@ -319,6 +402,9 @@ fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageSco
             state = state,
             onDismiss = { choosingPreset = false },
             onNew = { choosingPreset = false; startingNew = true },
+            onImport = { choosingPreset = false; importPicker.launch(arrayOf("text/plain", "application/octet-stream")) },
+            onExportBuiltIn = { export("b:" + it.id, it.name ?: flatName) },
+            onExportOwn = { export("o:$it", it) },
             onSelectBuiltIn = { preset -> select { it.withBuiltIn(preset) } },
             onSelectOwn = { name -> select { it.withOwn(name) } },
             onRename = { choosingPreset = false; renaming = it },
@@ -357,6 +443,7 @@ fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageSco
             if (kind == PresetNaming.NEW_EMPTY && before.modified) offerUndo(resources.getString(R.string.msg_changes_discarded), before)
         }
     }
+    errorShown?.let { ErrorDetailsDialog(it) { errorShown = null } }
     renaming?.let { name ->
         if (state.presets.none { it.name == name }) {
             renaming = null

@@ -613,4 +613,10 @@
     <string name="msg_restore_equalizer_presets">korektor, presety własne: %d</string>
     <string name="msg_restore_replaces_equalizer">Obecne ustawienia, wszystkie playlisty (%d) i presety korektora zostaną zastąpione. Foldery i biblioteka pozostaną bez zmian.</string>
     <string name="desc_backup_item_equalizer">Ustawienia i własne presety</string>
+    <string name="label_import_preset">Importuj z pliku</string>
+    <string name="desc_import_preset">Equalizer APO (AutoEq)</string>
+    <string name="msg_preset_imported"><![CDATA[Zaimportowano <b>%1$s</b> (%2$s)]]></string>
+    <string name="msg_import_left_out_type">%1$s; pominięte, nieobsługiwany typ: %2$d</string>
+    <string name="msg_import_left_out_limit">%1$s; pominięte, ponad 20: %2$d</string>
+    <string name="error_import_not_preset"><![CDATA[Plik <b>%s</b> nie jest presetem korektora w obsługiwanym formacie.]]></string>
 </resources>

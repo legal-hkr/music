@@ -560,4 +560,10 @@
     <string name="msg_restore_equalizer_presets">the equalizer, presets of your own: %d</string>
     <string name="msg_restore_replaces_equalizer">Your current settings, all your playlists (%d) and your equalizer presets will be replaced. Folders and the library will stay as they are.</string>
     <string name="desc_backup_item_equalizer">Its values and your own presets</string>
+    <string name="label_import_preset">Import from file</string>
+    <string name="desc_import_preset">Equalizer APO (AutoEq)</string>
+    <string name="msg_preset_imported"><![CDATA[Imported <b>%1$s</b> (%2$s)]]></string>
+    <string name="msg_import_left_out_type">%1$s; left out, type not supported: %2$d</string>
+    <string name="msg_import_left_out_limit">%1$s; left out, more than 20: %2$d</string>
+    <string name="error_import_not_preset"><![CDATA[<b>%s</b> isn’t an equalizer preset Music can read.]]></string>
 </resources>
