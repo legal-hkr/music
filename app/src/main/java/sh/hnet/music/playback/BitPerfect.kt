@@ -168,10 +168,11 @@ class BitPerfectController(context: Context) {
         if (now == lastUsb) return
         lastUsb = now
         if (now == null) close()
-        onOutputChanged?.invoke()
+        // With the switch off nothing of ours depends on the output: the system's own routing is enough
+        if (enabled) onOutputChanged?.invoke()
     }
 
-    private fun usbDevice(): AudioDeviceInfo? = audio.getDevices(AudioManager.GET_DEVICES_OUTPUTS).firstOrNull { it.type in USB_TYPES }
+    private fun usbDevice(): AudioDeviceInfo? = OutputDevices.usbDevice(audio)
 
     /**
      * Decides for a stream of [sourceBits]-bit integers ([sourceBits] 0: anything else) whether it goes
@@ -186,9 +187,9 @@ class BitPerfectController(context: Context) {
         if (!enabled) return null
         val device = usbDevice() ?: return null
         val offered = audio.getSupportedMixerAttributes(device).filter { it.mixerBehavior == AudioMixerAttributes.MIXER_BEHAVIOR_BIT_PERFECT }
-        val formats = offered.map { OutputFormat(it.format.sampleRate, bits(it.format.encoding), false, it.format.channelCount) }
+        val formats = offered.map { OutputDevices.format(it.format) }
         val chosen = BitPerfect.choose(formats, sampleRate, sourceBits, channels) ?: return null
-        val attributes = offered.firstOrNull { it.format.sampleRate == chosen.sampleRate && bits(it.format.encoding) == chosen.bits && it.format.channelCount == 2 } ?: return null
+        val attributes = offered.firstOrNull { OutputDevices.format(it.format) == chosen } ?: return null
         return Choice(device, attributes, chosen.bits, channels)
     }
 
@@ -235,16 +236,6 @@ class BitPerfectController(context: Context) {
         }
     }
 
-    private fun bits(encoding: Int) = when (encoding) {
-        AudioFormat.ENCODING_PCM_16BIT -> 16
-        AudioFormat.ENCODING_PCM_24BIT_PACKED -> 24
-        AudioFormat.ENCODING_PCM_32BIT -> 32
-        else -> 0
-    }
-
-    private companion object {
-        val USB_TYPES = setOf(AudioDeviceInfo.TYPE_USB_DEVICE, AudioDeviceInfo.TYPE_USB_HEADSET, AudioDeviceInfo.TYPE_USB_ACCESSORY)
-    }
 }
 
 /**

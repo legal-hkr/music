@@ -36,9 +36,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.SheetValue
@@ -68,7 +66,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -79,10 +76,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
 import sh.hnet.music.MusicApplication
 import sh.hnet.music.R
-import sh.hnet.music.equalizer.BuiltInPreset
 import sh.hnet.music.equalizer.BuiltInPresets
 import sh.hnet.music.equalizer.EqualizerFiles
 import sh.hnet.music.equalizer.EqualizerState
@@ -151,7 +149,7 @@ fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageSco
     val importPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         messageScope.launch {
-            val fileName = app.transfer.displayName(uri) ?: uri.lastPathSegment.orEmpty()
+            val fileName = withContext(Dispatchers.IO) { app.transfer.displayName(uri) } ?: uri.lastPathSegment.orEmpty()
             when (val read = EqualizerFiles.read(app.contentResolver, uri)) {
                 is EqualizerFiles.Read.Unreadable -> reportFailure(snackbars, plain(R.string.error_import_unreadable, fileName), read.details, show) { errorShown = it }
                 is EqualizerFiles.Read.NotAPreset -> reportFailure(snackbars, plain(R.string.error_import_not_preset, fileName), read.details, show) { errorShown = it }
@@ -198,7 +196,7 @@ fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageSco
         } ?: return@rememberLauncherForActivityResult
         messageScope.launch {
             val failed = EqualizerFiles.write(app.contentResolver, uri, EqualizerText.write(name, settings))
-            val fileName = app.transfer.displayName(uri) ?: uri.lastPathSegment.orEmpty()
+            val fileName = withContext(Dispatchers.IO) { app.transfer.displayName(uri) } ?: uri.lastPathSegment.orEmpty()
             if (failed == null) {
                 snackbars.currentSnackbarData?.dismiss()
                 snackbars.showSnackbar(plain(R.string.msg_exported, fileName), duration = SnackbarDuration.Short)

@@ -5,7 +5,6 @@ package sh.hnet.music.ui.player
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import sh.hnet.music.ui.components.DestructiveButton
-import sh.hnet.music.ui.components.ConfirmDestructiveDialog
 import sh.hnet.music.ui.components.PlayingIndicator
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.foundation.layout.height
@@ -54,7 +53,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState

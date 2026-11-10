@@ -39,7 +39,7 @@ object OutputDevices {
     fun usbOutput(context: Context): Flow<UsbOutput?> = callbackFlow {
         val audio = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         fun read(): UsbOutput? {
-            val device = audio.getDevices(AudioManager.GET_DEVICES_OUTPUTS).firstOrNull { it.type in USB_TYPES } ?: return null
+            val device = usbDevice(audio) ?: return null
             val attributes = audio.getSupportedMixerAttributes(device)
             fun formats(behavior: Int) = attributes.filter { it.mixerBehavior == behavior }.map { format(it.format) }.distinct()
             return UsbOutput(
@@ -58,7 +58,11 @@ object OutputDevices {
         awaitClose { audio.unregisterAudioDeviceCallback(callback) }
     }.distinctUntilChanged()
 
-    private fun format(format: AudioFormat): OutputFormat {
+    /** The first connected USB audio output. */
+    fun usbDevice(audio: AudioManager): AudioDeviceInfo? = audio.getDevices(AudioManager.GET_DEVICES_OUTPUTS).firstOrNull { it.type in USB_TYPES }
+
+    /** [format] as we compare and show it. */
+    fun format(format: AudioFormat): OutputFormat {
         val (bits, float) = when (format.encoding) {
             AudioFormat.ENCODING_PCM_8BIT -> 8 to false
             AudioFormat.ENCODING_PCM_16BIT -> 16 to false

@@ -5,7 +5,6 @@ package sh.hnet.music.ui.library
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
-import sh.hnet.music.ui.components.ConfirmDestructiveDialog
 import sh.hnet.music.ui.components.moveActions
 import sh.hnet.music.ui.components.LocalBottomOverlay
 import androidx.activity.compose.BackHandler
@@ -63,7 +62,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.heading

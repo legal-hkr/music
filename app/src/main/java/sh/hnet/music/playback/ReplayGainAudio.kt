@@ -172,11 +172,11 @@ class ReplayGainSink(sink: AudioSink, private val bitPerfect: BitPerfectControll
     override fun handleBuffer(buffer: ByteBuffer, presentationTimeUs: Long, encodedAccessUnitCount: Int): Boolean {
         if (encoding == C.ENCODING_INVALID) return super.handleBuffer(buffer, presentationTimeUs, encodedAccessUnitCount)
         eq.set(if (exact) null else equalizer)
-        val gain = if (exact) 1f else gain
+        val applied = if (exact) 1f else gain
         // Already float and nothing to do (ReplayGain off or 0 dB, equalizer off): passed on as it is, no
         // copy. A buffer the real sink has begun stays its own until it has taken all of it: the sink
         // refuses another buffer in its place, so the equalizer switched on meanwhile starts with the next
-        if (passing || (encoding == C.ENCODING_PCM_FLOAT && gain == 1f && (exact || eq.idle) && source == null)) {
+        if (passing || (encoding == C.ENCODING_PCM_FLOAT && applied == 1f && (exact || eq.idle) && source == null)) {
             val done = super.handleBuffer(buffer, presentationTimeUs, encodedAccessUnitCount)
             passing = !done
             return done
@@ -185,7 +185,7 @@ class ReplayGainSink(sink: AudioSink, private val bitPerfect: BitPerfectControll
         // The same buffer comes back until it's consumed; a new one (or the same object reused by
         // the codec for the next output) is converted once
         if (buffer !== source || presentationTimeUs != sourceTimeUs || !converted.hasRemaining()) {
-            convert(buffer, inBytes, gain)
+            convert(buffer, inBytes, applied)
             source = buffer
             sourceTimeUs = presentationTimeUs
             sourceStart = buffer.position()

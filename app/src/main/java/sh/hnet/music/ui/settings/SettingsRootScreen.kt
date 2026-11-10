@@ -2,11 +2,11 @@ package sh.hnet.music.ui.settings
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import sh.hnet.music.MusicApplication
 import sh.hnet.music.R
 import sh.hnet.music.ui.components.SettingsGroup
 import sh.hnet.music.ui.components.SettingsNavigationRow
@@ -31,14 +31,15 @@ fun SettingsRootScreen(
 ) {
     val summary by viewModel.summary.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val app = context.applicationContext as MusicApplication
     val version = sh.hnet.music.BuildConfig.VERSION_NAME.removePrefix("v")
-    val gain by (context.applicationContext as sh.hnet.music.MusicApplication).preferences.gain.collectAsStateWithLifecycle(sh.hnet.music.playback.GainSettings())
+    val gain by app.preferences.gain.collectAsStateWithLifecycle(sh.hnet.music.playback.GainSettings())
     // Read on every composition: changing it recreates the activity anyway
-    val startView by (context.applicationContext as sh.hnet.music.MusicApplication).preferences.startView.collectAsStateWithLifecycle(sh.hnet.music.ui.library.LibraryView.ALBUMS)
-    val lastBackup by (context.applicationContext as sh.hnet.music.MusicApplication).backup.lastBackup.collectAsStateWithLifecycle()
-    val equalizer by (context.applicationContext as sh.hnet.music.MusicApplication).equalizer.state.collectAsStateWithLifecycle()
-    val bitPerfectOn by (context.applicationContext as sh.hnet.music.MusicApplication).preferences.bitPerfect.collectAsStateWithLifecycle(false)
-    val bitPerfectActive by (context.applicationContext as sh.hnet.music.MusicApplication).bitPerfect.active.collectAsStateWithLifecycle()
+    val startView by app.preferences.startView.collectAsStateWithLifecycle(sh.hnet.music.ui.library.LibraryView.ALBUMS)
+    val lastBackup by app.backup.lastBackup.collectAsStateWithLifecycle()
+    val equalizer by app.equalizer.state.collectAsStateWithLifecycle()
+    val bitPerfectOn by app.preferences.bitPerfect.collectAsStateWithLifecycle(false)
+    val bitPerfectActive by app.bitPerfect.active.collectAsStateWithLifecycle()
     val language = appLanguages.firstOrNull { it.tag == currentLanguageTag(context) } ?: appLanguages.first()
     SettingsPage(title = stringResource(R.string.title_settings), onBack = null) {
         SettingsGroup(stringResource(R.string.title_settings_group_library)) {

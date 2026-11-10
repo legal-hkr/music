@@ -25,7 +25,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import sh.hnet.music.R
-import sh.hnet.music.data.Track
 import sh.hnet.music.ui.components.SettingsGroup
 import sh.hnet.music.ui.components.SettingsGroupScope
 import sh.hnet.music.ui.components.SettingsPage
