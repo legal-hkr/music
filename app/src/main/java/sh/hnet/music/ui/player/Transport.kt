@@ -2,7 +2,12 @@
 
 package sh.hnet.music.ui.player
 
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.material3.FilledIconToggleButton
+import androidx.compose.material3.ButtonGroup
 import android.content.Context
 import android.database.ContentObserver
 import android.media.AudioManager
@@ -14,27 +19,21 @@ import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -53,13 +52,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.composed
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
@@ -81,78 +77,98 @@ import sh.hnet.music.playback.PlayerConnection
 import sh.hnet.music.playback.PlayerState
 import kotlin.math.roundToInt
 
-/**
- * How much play overlaps previous and next (16 dp, the spec's, which the owner came back to after
- * trying 8), up to [MAX_OVERLAP] where the row is too narrow (360 dp), and the ring between them.
- */
-private val OVERLAP = 16.dp
-private val MAX_OVERLAP = 24.dp
 private val MODE_BUTTON = 48.dp
-private val RING = 6.dp
-private val SIDE = 72.dp
-private val PLAY = 96.dp
+
+/** The space around the group (between it and shuffle/repeat) and between its buttons. */
+private val ROW_GAP = 8.dp
+private val GROUP_GAP = 8.dp
+
+/** The largest play gets; every transport button is square at rest (owner's decision). */
+private val MAX_PLAY = 96.dp
+
+/** Previous and next against play: smaller squares, 72 to 96 (owner's decision). */
+private const val SIDE_RATIO = 0.75f
+
+/** Play's corner radius while paused; while playing it is round. */
+private val PAUSED_RADIUS = 28.dp
 
 /**
- * Shuffle – previous – play – next – repeat in one mirrored row (§2). The cluster is a Box: previous
- * and next under a play group whose surface-coloured ring and button share one animated radius, so
- * the ring follows the button at every frame. No ButtonGroup: its press animation would move
- * previous and next under play.
+ * Shuffle – previous – play – next – repeat in one mirrored row (§2). Previous, play and next form a
+ * ButtonGroup side by side (owner's decision, after the overlapping cluster), each square at rest:
+ * play as large as the row allows, up to [MAX_PLAY], previous and next [SIDE_RATIO] of it. Widths
+ * are weighted by size, so the pressed one widens and its neighbours give way (animateWidth on all
+ * three) and all come back square; each takes its own shape on press. Play is a toggle, round
+ * while playing.
  */
 @Composable
 fun Transport(state: PlayerState, player: PlayerConnection) = BoxWithConstraints(Modifier.fillMaxWidth()) {
-    // The overlap grows only as much as a narrow row needs to keep shuffle and repeat beside the cluster
-    val overlap = ((SIDE * 2 + PLAY + MODE_BUTTON * 2 - maxWidth) / 2).coerceIn(OVERLAP, MAX_OVERLAP)
+    val play = ((maxWidth - MODE_BUTTON * 2 - ROW_GAP * 2 - GROUP_GAP * 2) / (1 + SIDE_RATIO * 2)).coerceAtMost(MAX_PLAY)
+    val side = play * SIDE_RATIO
     Row(
-        modifier = Modifier.fillMaxWidth().height(PLAY),
+        modifier = Modifier.fillMaxWidth().height(play),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         val shuffleState = stringResource(if (state.shuffle) R.string.desc_on else R.string.desc_off)
         ModeToggle(state.shuffle, R.drawable.ic_shuffle, stringResource(R.string.content_description_shuffle), shuffleState) { player.setShuffle(it) }
 
-        Box(Modifier.width(SIDE * 2 + PLAY - overlap * 2).height(PLAY)) {
-            // The symbols move outward by half of how far play overlaps the side buttons – its ring is
-            // the page's colour, so it reads as space, not as covering (owner's decision)
-            val iconShift = overlap / 2
-            val previousLabel = stringResource(R.string.content_description_previous)
-            FilledTonalIconButton(onClick = player::previous, modifier = Modifier.size(SIDE).align(Alignment.CenterStart)) {
-                Icon(painterResource(R.drawable.ic_skip_previous), contentDescription = previousLabel, modifier = Modifier.offset(x = -iconShift).size(32.dp))
-            }
-            val endReason = stringResource(R.string.desc_end_of_queue)
-            FilledTonalIconButton(
-                onClick = player::next,
-                enabled = state.hasNext,
-                modifier = Modifier.size(SIDE).align(Alignment.CenterEnd).semantics { if (state.ended) stateDescription = endReason },
-            ) {
-                Icon(painterResource(R.drawable.ic_skip_next), contentDescription = stringResource(R.string.content_description_next), modifier = Modifier.offset(x = iconShift).size(32.dp))
-            }
-            // Drawn last: on top, and it takes the touches where it overlaps
-            val radius by animateDpAsState(if (state.isPlaying) PLAY / 2 else 28.dp, MaterialTheme.motionScheme.defaultSpatialSpec(), label = "playShape")
-            // Required, not just set: the cluster is only as tall as play, and a plain size would be
-            // squeezed to 108 × 96, leaving the ring no margin above and below the button
-            Box(
-                Modifier
-                    .align(Alignment.Center)
-                    .requiredSize(PLAY + RING * 2)
-                    .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(radius + RING)),
-                contentAlignment = Alignment.Center,
-            ) {
-                val (icon, label) = when {
-                    state.ended -> R.drawable.ic_replay to R.string.content_description_replay
-                    state.isPlaying -> R.drawable.ic_pause to R.string.content_description_pause
-                    else -> R.drawable.ic_play_arrow to R.string.content_description_play
-                }
-                // The component animates a change of its own shape on its own clock, which would part it
-                // from the ring: it keeps a fixed rectangle and the shape comes from a clip by the same
-                // radius as the ring (the ripple is clipped with it)
-                FilledIconButton(
-                    onClick = { if (state.ended) player.playFromStart() else player.togglePlayPause() },
-                    shape = RectangleShape,
-                    modifier = Modifier.size(PLAY).clip(RoundedCornerShape(radius)),
-                ) {
-                    Icon(painterResource(icon), contentDescription = stringResource(label), modifier = Modifier.size(40.dp))
-                }
-            }
+        val previous = remember { MutableInteractionSource() }
+        val playPause = remember { MutableInteractionSource() }
+        val next = remember { MutableInteractionSource() }
+        val endReason = stringResource(R.string.desc_end_of_queue)
+        // Weights as the sizes, in a group exactly as wide as the three squares: square at rest. The
+        // group stretches its buttons to its height, so previous and next wrap theirs, centred
+        ButtonGroup(
+            overflowIndicator = {},
+            horizontalArrangement = Arrangement.spacedBy(GROUP_GAP),
+            modifier = Modifier.width(play + side * 2 + GROUP_GAP * 2).height(play),
+        ) {
+            customItem(
+                buttonGroupContent = {
+                    SkipButton(R.drawable.ic_skip_previous, stringResource(R.string.content_description_previous), previous, Modifier.animateWidth(previous).weight(SIDE_RATIO).wrapContentHeight().height(side)) {
+                        player.previous()
+                    }
+                },
+                menuContent = {},
+            )
+            customItem(
+                buttonGroupContent = {
+                    val (icon, label) = when {
+                        state.ended -> R.drawable.ic_replay to R.string.content_description_replay
+                        state.isPlaying -> R.drawable.ic_pause to R.string.content_description_pause
+                        else -> R.drawable.ic_play_arrow to R.string.content_description_play
+                    }
+                    FilledIconToggleButton(
+                        checked = state.isPlaying,
+                        onCheckedChange = { if (state.ended) player.playFromStart() else player.togglePlayPause() },
+                        shapes = IconButtonDefaults.toggleableShapes(shape = RoundedCornerShape(PAUSED_RADIUS), checkedShape = CircleShape),
+                        // The same colours playing or paused: the shape tells them apart
+                        colors = IconButtonDefaults.filledIconToggleButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                            checkedContainerColor = MaterialTheme.colorScheme.primary,
+                            checkedContentColor = MaterialTheme.colorScheme.onPrimary,
+                        ),
+                        interactionSource = playPause,
+                        modifier = Modifier.animateWidth(playPause).weight(1f).fillMaxHeight(),
+                    ) {
+                        Icon(painterResource(icon), contentDescription = stringResource(label), modifier = Modifier.size(40.dp))
+                    }
+                },
+                menuContent = {},
+            )
+            customItem(
+                buttonGroupContent = {
+                    SkipButton(
+                        R.drawable.ic_skip_next,
+                        stringResource(R.string.content_description_next),
+                        next,
+                        Modifier.animateWidth(next).weight(SIDE_RATIO).wrapContentHeight().height(side).semantics { if (state.ended) stateDescription = endReason },
+                        enabled = state.hasNext,
+                    ) { player.next() }
+                },
+                menuContent = {},
+            )
         }
 
         val (repeatIcon, repeatState) = when (state.repeatMode) {
@@ -161,6 +177,27 @@ fun Transport(state: PlayerState, player: PlayerConnection) = BoxWithConstraints
             else -> R.drawable.ic_repeat to R.string.desc_repeat_off
         }
         ModeToggle(state.repeatMode != Player.REPEAT_MODE_OFF, repeatIcon, stringResource(R.string.content_description_repeat), stringResource(repeatState)) { player.cycleRepeat() }
+    }
+}
+
+/** Previous or next: a tonal icon button of the group, changing shape on press; [modifier] sizes it. */
+@Composable
+private fun SkipButton(
+    @DrawableRes icon: Int,
+    label: String,
+    interactionSource: MutableInteractionSource,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+) {
+    FilledTonalIconButton(
+        onClick = onClick,
+        enabled = enabled,
+        shapes = IconButtonDefaults.shapes(),
+        interactionSource = interactionSource,
+        modifier = modifier,
+    ) {
+        Icon(painterResource(icon), contentDescription = label, modifier = Modifier.size(32.dp))
     }
 }
 
