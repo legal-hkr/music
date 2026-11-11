@@ -52,6 +52,9 @@ fun MiniPlayer(
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         shape = RoundedCornerShape(24.dp),
+        // It floats over the content, as a floating toolbar does: a light shadow sets it apart where the
+        // tone alone is too close to the rows under it (Settings)
+        shadowElevation = FLOATING_ELEVATION,
         modifier = modifier
             .padding(horizontal = 8.dp, vertical = 8.dp)
             .fillMaxWidth()
@@ -92,3 +95,6 @@ fun MiniPlayer(
 
 /** Between the cover and the texts. */
 private val COVER_GAP = 12.dp
+
+/** M3 elevation level 2. */
+private val FLOATING_ELEVATION = 3.dp
