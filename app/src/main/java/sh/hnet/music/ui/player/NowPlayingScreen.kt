@@ -3,6 +3,7 @@
 package sh.hnet.music.ui.player
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -46,6 +47,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,6 +62,15 @@ import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
@@ -160,7 +171,17 @@ private fun ColumnScope.Controls(
     // Title block and the track's actions
     Row(verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
-            Text(track?.displayTitle.orEmpty(), style = MaterialTheme.typography.headlineSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            // A title too long for the line scrolls after a moment, pauses at its start and goes again; a new
+            // track starts from the beginning
+            val title = track?.displayTitle.orEmpty()
+            key(title) {
+                Text(
+                    title,
+                    style = MaterialTheme.typography.headlineSmall,
+                    maxLines = 1,
+                    modifier = Modifier.titleMarquee(),
+                )
+            }
             track?.artists?.joinToString(", ")?.ifEmpty { null }?.let {
                 Text(it, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
@@ -339,3 +360,38 @@ private fun Item(text: String, @DrawableRes icon: Int, index: Int, count: Int, o
         onClick = onClick,
     )
 }
+
+/**
+ * The title's scrolling, with both ends fading out instead of being cut. The fade at the start lies
+ * in the screen's side margin, so a title at rest stays whole and in line with the texts under it.
+ */
+private fun Modifier.titleMarquee(): Modifier = this
+    .layout { measurable, constraints ->
+        val fade = TITLE_FADE.roundToPx()
+        val placeable = measurable.measure(constraints.copy(maxWidth = constraints.maxWidth + fade))
+        layout(placeable.width - fade, placeable.height) { placeable.place(-fade, 0) }
+    }
+    .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+    .drawWithContent {
+        drawContent()
+        val fade = TITLE_FADE.toPx()
+        drawRect(
+            Brush.horizontalGradient(listOf(Color.Transparent, Color.Black), startX = 0f, endX = fade),
+            size = Size(fade, size.height),
+            blendMode = BlendMode.DstIn,
+        )
+        drawRect(
+            Brush.horizontalGradient(listOf(Color.Black, Color.Transparent), startX = size.width - fade, endX = size.width),
+            topLeft = Offset(size.width - fade, 0f),
+            size = Size(fade, size.height),
+            blendMode = BlendMode.DstIn,
+        )
+    }
+    .basicMarquee(iterations = Int.MAX_VALUE, repeatDelayMillis = TITLE_PAUSE_MS, initialDelayMillis = TITLE_PAUSE_MS)
+    .padding(start = TITLE_FADE)
+
+/** How long a scrolling title rests at its start, before the first pass and between passes: time to read it. */
+private const val TITLE_PAUSE_MS = 5000
+
+/** The width over which a scrolling title fades out at each end. */
+private val TITLE_FADE = 16.dp
