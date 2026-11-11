@@ -1,0 +1,9 @@
+v0.2.1
+
+Nowości:
+- Zliczanie odtworzeń można wyłączyć (Ustawienia › Odtwarzanie), a licznik wyzerować (Ustawienia › Resetowanie)
+
+Zmiany:
+- Długie tytuły utworów przewijają się w odtwarzaczu i miniodtwarzaczu, zamiast być ucinane
+- Miniodtwarzacz ma delikatny cień, który oddziela go od treści
+- Aplikacja buduje się identycznie na każdej maszynie, co pozwala F-Droid ją zweryfikować

@@ -1,0 +1,9 @@
+v0.2.1
+
+New:
+- Counting of plays can be switched off (Settings › Playback), and the play counts reset (Settings › Reset)
+
+Changes:
+- Long track titles scroll in the player and the mini player instead of being cut off
+- A light shadow under the mini player sets it apart from the content
+- The app now builds the same way on every machine, for verification by F-Droid
