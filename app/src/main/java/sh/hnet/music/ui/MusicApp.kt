@@ -469,7 +469,7 @@ fun MusicApp(openNowPlaying: Int = 0) {
                     }
                     entry<Screen.SettingsLicenses> { LicensesScreen(onBack = back) }
                     entry<Screen.SettingsLanguage> { LanguageScreen(onBack = back) }
-                    entry<Screen.SettingsReset> { ResetScreen(onBack = back) }
+                    entry<Screen.SettingsReset> { ResetScreen(onBack = back, snackbars = snackbars, messageScope = scope) }
                     entry<Screen.SettingsBackup> {
                         BackupScreen(onBack = back, snackbars = snackbars, messageScope = scope, onRestored = { count ->
                             // Library › Playlists, with the result (SPEC-settings-v2 §7.3 step 5)

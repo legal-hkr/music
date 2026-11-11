@@ -590,4 +590,11 @@
     <string name="label_dsd_boost">Play DSD as loud as PCM</string>
     <string name="desc_dsd_boost">Adds 6 dB when DSD is converted to PCM</string>
     <string name="msg_dsd_native">With bit-perfect output active, DSD goes to the DAC unconverted (DoP) when the device supports the required sample rate. These settings are then bypassed.</string>
+    <string name="title_play_counts">Play counts</string>
+    <string name="label_count_plays">Count plays</string>
+    <string name="desc_count_plays">A play is counted when at least half of the track has played</string>
+    <string name="msg_play_counts">The Most played sort order and each artist’s most played tracks rely on these counts. Turning counting off keeps the existing counts; they can be reset in Settings › Reset.</string>
+    <string name="desc_reset_play_counts">Every track’s play count returns to zero. The library and playlists stay as they are.</string>
+    <string name="button_reset_play_counts">Reset play counts</string>
+    <string name="msg_play_counts_reset">Play counts reset</string>
 </resources>

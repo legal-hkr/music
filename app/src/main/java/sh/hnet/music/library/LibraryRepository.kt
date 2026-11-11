@@ -13,10 +13,11 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import sh.hnet.music.data.LibraryTrack
+import sh.hnet.music.data.PlayCount
 import sh.hnet.music.data.TrackDao
 
 /** The library in memory, grouped once for every view; null until the database has answered. */
-class LibraryRepository(dao: TrackDao, scanner: LibraryScanner, skipShortSeconds: Flow<Int>, scope: CoroutineScope) {
+class LibraryRepository(private val dao: TrackDao, scanner: LibraryScanner, skipShortSeconds: Flow<Int>, scope: CoroutineScope) {
     private var first = true
 
     /**
@@ -79,6 +80,12 @@ class LibraryRepository(dao: TrackDao, scanner: LibraryScanner, skipShortSeconds
         .map { counts -> counts.associate { it.documentUri to it.count } }
         .flowOn(Dispatchers.Default)
         .stateIn(scope, SharingStarted.Eagerly, emptyMap())
+
+    /** Every play count back to zero (Settings › Reset); returns what they were, for [restorePlayCounts]. */
+    suspend fun resetPlayCounts(): List<PlayCount> = dao.resetPlayCounts()
+
+    /** Undo of [resetPlayCounts]: the counts as they were (a listen counted in between is overwritten). */
+    suspend fun restorePlayCounts(counts: List<PlayCount>) = dao.upsertPlayCounts(counts)
 
     val albumsByKey: StateFlow<Map<String, Album>> = albums
         .map { list -> list.orEmpty().associateBy { it.key } }

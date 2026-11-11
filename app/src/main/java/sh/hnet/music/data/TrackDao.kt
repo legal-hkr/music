@@ -65,6 +65,23 @@ interface TrackDao {
     @Query("SELECT * FROM play_count")
     fun observePlayCounts(): Flow<List<PlayCount>>
 
+    @Query("SELECT * FROM play_count")
+    suspend fun playCounts(): List<PlayCount>
+
+    @Query("DELETE FROM play_count")
+    suspend fun deleteAllPlayCounts()
+
+    @Upsert
+    suspend fun upsertPlayCounts(counts: List<PlayCount>)
+
+    /** Every count back to zero; returns what they were, for Undo. */
+    @Transaction
+    suspend fun resetPlayCounts(): List<PlayCount> {
+        val before = playCounts()
+        deleteAllPlayCounts()
+        return before
+    }
+
     /** Files gone from the folder; [uris] in chunks well below SQLite's variable limit. */
     @Transaction
     suspend fun removeFiles(uris: List<String>) {

@@ -67,6 +67,8 @@ data class BackupSettings(
         val bitPerfect: Boolean? = null,
         /** +6 dB for DSD converted to PCM; absent in backups from before the switch. */
         val dsdBoost: Boolean? = null,
+        /** Whether listens are counted; absent in backups from before the switch. */
+        val countPlays: Boolean? = null,
     )
 }
 

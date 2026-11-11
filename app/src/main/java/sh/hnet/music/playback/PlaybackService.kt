@@ -50,6 +50,7 @@ class PlaybackService : MediaSessionService() {
     /** The PCM rate DSD files are converted to (Settings › Playback); read on the loading thread. */
     @Volatile private var dsdPcmRate = DSD_PCM_RATES.first()
     @Volatile private var dsdBoost = true
+    @Volatile private var countPlays = true
     /** Files that failed one after another with nothing playing in between. */
     private var failedInARow = 0
     /** The last Clear queue, until its Undo or the next one. */
@@ -169,9 +170,13 @@ class PlaybackService : MediaSessionService() {
         scope.launch {
             (application as MusicApplication).preferences.dsdBoost.collect { dsdBoost = it }
         }
-        // Play counts: a listen of at least half a track (checked every second while playing)
+        scope.launch {
+            (application as MusicApplication).preferences.countPlays.collect { countPlays = it }
+        }
+        // Play counts: a listen of at least half a track (checked every second while playing), unless
+        // counting is switched off at the moment it would count
         val trackDao = (application as MusicApplication).database.trackDao()
-        val counter = PlayCounter(player) { uri -> scope.launch(Dispatchers.IO) { trackDao.countPlay(uri) } }
+        val counter = PlayCounter(player) { uri -> if (countPlays) scope.launch(Dispatchers.IO) { trackDao.countPlay(uri) } }
         player.addListener(counter)
         scope.launch { restore(player) }
         // One clock while playing: the play count checked every second, the position saved every

@@ -643,4 +643,11 @@
     <string name="label_dsd_boost">Wyrównanie głośności DSD i PCM</string>
     <string name="desc_dsd_boost">Wzmocnienie o 6 dB przy konwersji DSD na PCM</string>
     <string name="msg_dsd_native">Przy aktywnym wyjściu bit-perfect dźwięk DSD trafia do przetwornika bez konwersji (DoP), jeśli urządzenie obsługuje wymaganą częstotliwość próbkowania. Te ustawienia są wtedy pomijane.</string>
+    <string name="title_play_counts">Licznik odtworzeń</string>
+    <string name="label_count_plays">Zliczanie odtworzeń</string>
+    <string name="desc_count_plays">Odtworzenie jest zaliczane po odsłuchaniu co najmniej połowy utworu</string>
+    <string name="msg_play_counts">Z licznika korzystają sortowanie „Najczęściej odtwarzane” i lista najczęściej odtwarzanych utworów wykonawcy. Po wyłączeniu zliczania dotychczasowe wartości pozostają bez zmian; można je wyzerować w sekcji Ustawienia › Resetowanie.</string>
+    <string name="desc_reset_play_counts">Licznik odtworzeń każdego utworu wróci do zera. Biblioteka i playlisty pozostaną bez zmian.</string>
+    <string name="button_reset_play_counts">Wyzeruj licznik odtworzeń</string>
+    <string name="msg_play_counts_reset">Wyzerowano licznik odtworzeń</string>
 </resources>

@@ -68,6 +68,7 @@ fun PlaybackSettingsScreen(onBack: () -> Unit, topInsets: Boolean = true) {
     val settings by preferences.gain.collectAsStateWithLifecycle(GainSettings())
     val dsdRate by preferences.dsdPcmRate.collectAsStateWithLifecycle(DSD_PCM_RATES.first())
     val dsdBoost by preferences.dsdBoost.collectAsStateWithLifecycle(true)
+    val countPlays by preferences.countPlays.collectAsStateWithLifecycle(true)
     var choosingDsdRate by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val groupLabel = stringResource(R.string.title_replaygain)
@@ -134,6 +135,21 @@ fun PlaybackSettingsScreen(onBack: () -> Unit, topInsets: Boolean = true) {
             }
         }
         SettingsNote(stringResource(R.string.msg_dsd_native))
+        SettingsGroup(stringResource(R.string.title_play_counts)) {
+            row { shapes ->
+                SegmentedListItem(
+                    checked = countPlays,
+                    onCheckedChange = { on -> scope.launch { preferences.setCountPlays(on) } },
+                    shapes = shapes,
+                    colors = settingsRowColors(),
+                    trailingContent = { Switch(checked = countPlays, onCheckedChange = null) },
+                    supportingContent = { Text(stringResource(R.string.desc_count_plays)) },
+                ) {
+                    Text(stringResource(R.string.label_count_plays))
+                }
+            }
+        }
+        SettingsNote(stringResource(R.string.msg_play_counts))
     }
 
     if (choosingDsdRate) {

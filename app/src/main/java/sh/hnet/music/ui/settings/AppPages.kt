@@ -26,6 +26,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.CoroutineScope
+import sh.hnet.music.ui.components.SettingsGroupHeader
 import kotlinx.coroutines.launch
 import sh.hnet.music.MusicApplication
 import sh.hnet.music.R
@@ -75,17 +81,41 @@ fun LanguageScreen(onBack: () -> Unit) {
 }
 
 /**
- * Reset (as ComfyChair): what it does, then Restore defaults, confirmed. Settings go back to their
- * defaults and the language follows the system; folders, the library and playlists stay.
+ * Reset: the play counts back to zero (at once, with Undo), then Restore defaults, confirmed (as
+ * ComfyChair). Settings go back to their defaults and the language follows the system; folders, the
+ * library and playlists stay.
  */
 @Composable
-fun ResetScreen(onBack: () -> Unit) {
+fun ResetScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageScope: CoroutineScope) {
     val context = LocalContext.current
-    val preferences = (context.applicationContext as MusicApplication).preferences
+    val app = context.applicationContext as MusicApplication
+    val preferences = app.preferences
     val scope = rememberCoroutineScope()
     var confirming by rememberSaveable { mutableStateOf(false) }
     val done = stringResource(R.string.msg_defaults_restored)
+    val counts by app.library.playCounts.collectAsStateWithLifecycle()
+    val countsReset = stringResource(R.string.msg_play_counts_reset)
+    val undo = stringResource(R.string.button_undo)
     SettingsPage(title = stringResource(R.string.title_settings_reset), onBack = onBack) {
+        SettingsGroupHeader(stringResource(R.string.title_play_counts))
+        SettingsDescription(stringResource(R.string.desc_reset_play_counts))
+        DestructiveButton(
+            stringResource(R.string.button_reset_play_counts),
+            R.drawable.ic_restart_alt,
+            onClick = {
+                // In the app's scope: the snackbar and its Undo outlive this page
+                messageScope.launch {
+                    val before = app.library.resetPlayCounts()
+                    snackbars.currentSnackbarData?.dismiss()
+                    if (snackbars.showSnackbar(countsReset, actionLabel = undo, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed) {
+                        app.library.restorePlayCounts(before)
+                    }
+                }
+            },
+            modifier = Modifier.padding(top = 8.dp, bottom = 24.dp),
+            enabled = counts.isNotEmpty(),
+        )
+        SettingsGroupHeader(stringResource(R.string.title_settings))
         SettingsDescription(stringResource(R.string.desc_settings_reset))
         // A single destructive action: an outlined button in the error color, as Remove folder and
         // Clear queue (owner's decision)

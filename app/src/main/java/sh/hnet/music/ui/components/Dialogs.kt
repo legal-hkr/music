@@ -73,12 +73,14 @@ fun ConfirmDestructiveDialog(
 
 /**
  * A page's single destructive action (Remove folder, Clear queue, Restore defaults): a full-width
- * outlined button in the error color (owner's decision); it opens a [ConfirmDestructiveDialog].
+ * outlined button in the error color (owner's decision); it opens a [ConfirmDestructiveDialog] or
+ * offers Undo in a snackbar.
  */
 @Composable
-fun DestructiveButton(text: String, @DrawableRes icon: Int, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun DestructiveButton(text: String, @DrawableRes icon: Int, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
     OutlinedButton(
         onClick = onClick,
+        enabled = enabled,
         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
         modifier = modifier.fillMaxWidth(),
     ) {

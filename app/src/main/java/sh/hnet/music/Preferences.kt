@@ -95,6 +95,7 @@ class Preferences(private val context: Context) {
                 dsdPcmRate = prefs[dsdPcmRateKey],
                 bitPerfect = prefs[bitPerfectKey],
                 dsdBoost = prefs[dsdBoostKey],
+                countPlays = prefs[countPlaysKey],
             ),
             exportFormat = prefs[exportFormatKey],
             skipShorterThanSeconds = prefs[skipShortKey] ?: 0,
@@ -120,6 +121,7 @@ class Preferences(private val context: Context) {
         backup.playback.preventClipping?.let { prefs[preventClippingKey] = it }
         backup.playback.bitPerfect?.let { prefs[bitPerfectKey] = it }
         backup.playback.dsdBoost?.let { prefs[dsdBoostKey] = it }
+        backup.playback.countPlays?.let { prefs[countPlaysKey] = it }
         backup.playback.dsdPcmRate?.takeIf { it in DSD_PCM_RATES }?.let { prefs[dsdPcmRateKey] = it }
         backup.exportFormat?.let { prefs[exportFormatKey] = it }
         backup.artistsWithAlbumsOnly?.let { prefs[artistsWithAlbumsKey] = it }
@@ -206,4 +208,11 @@ class Preferences(private val context: Context) {
     val dsdBoost: Flow<Boolean> = context.settings.data.map { prefs -> prefs[dsdBoostKey] ?: true }
 
     suspend fun setDsdBoost(on: Boolean) = context.settings.edit { it[dsdBoostKey] = on }
+
+    private val countPlaysKey = booleanPreferencesKey("count_plays")
+
+    /** Whether listens are counted (on by default); off leaves the counts as they are. */
+    val countPlays: Flow<Boolean> = context.settings.data.map { prefs -> prefs[countPlaysKey] ?: true }
+
+    suspend fun setCountPlays(on: Boolean) = context.settings.edit { it[countPlaysKey] = on }
 }
