@@ -71,6 +71,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
@@ -362,36 +363,38 @@ private fun Item(text: String, @DrawableRes icon: Int, index: Int, count: Int, o
 }
 
 /**
- * The title's scrolling, with both ends fading out instead of being cut. The fade at the start lies
- * in the screen's side margin, so a title at rest stays whole and in line with the texts under it.
+ * A title's scrolling when it is too long for its line (the player and the mini player), with both
+ * ends fading out over [fade] instead of being cut. The fade at the start lies outside the text's own
+ * place, in the margin or gap before it, so a title at rest stays whole and in line with the texts
+ * under it; [fade] is at most that gap.
  */
-private fun Modifier.titleMarquee(): Modifier = this
+internal fun Modifier.titleMarquee(fade: Dp = TITLE_FADE): Modifier = this
     .layout { measurable, constraints ->
-        val fade = TITLE_FADE.roundToPx()
-        val placeable = measurable.measure(constraints.copy(maxWidth = constraints.maxWidth + fade))
-        layout(placeable.width - fade, placeable.height) { placeable.place(-fade, 0) }
+        val width = fade.roundToPx()
+        val placeable = measurable.measure(constraints.copy(maxWidth = constraints.maxWidth + width))
+        layout(placeable.width - width, placeable.height) { placeable.place(-width, 0) }
     }
     .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
     .drawWithContent {
         drawContent()
-        val fade = TITLE_FADE.toPx()
+        val width = fade.toPx()
         drawRect(
-            Brush.horizontalGradient(listOf(Color.Transparent, Color.Black), startX = 0f, endX = fade),
-            size = Size(fade, size.height),
+            Brush.horizontalGradient(listOf(Color.Transparent, Color.Black), startX = 0f, endX = width),
+            size = Size(width, size.height),
             blendMode = BlendMode.DstIn,
         )
         drawRect(
-            Brush.horizontalGradient(listOf(Color.Black, Color.Transparent), startX = size.width - fade, endX = size.width),
-            topLeft = Offset(size.width - fade, 0f),
-            size = Size(fade, size.height),
+            Brush.horizontalGradient(listOf(Color.Black, Color.Transparent), startX = size.width - width, endX = size.width),
+            topLeft = Offset(size.width - width, 0f),
+            size = Size(width, size.height),
             blendMode = BlendMode.DstIn,
         )
     }
     .basicMarquee(iterations = Int.MAX_VALUE, repeatDelayMillis = TITLE_PAUSE_MS, initialDelayMillis = TITLE_PAUSE_MS)
-    .padding(start = TITLE_FADE)
+    .padding(start = fade)
 
 /** How long a scrolling title rests at its start, before the first pass and between passes: time to read it. */
 private const val TITLE_PAUSE_MS = 5000
 
-/** The width over which a scrolling title fades out at each end. */
+/** The width over which a scrolling title fades out at each end, unless the place has less room. */
 private val TITLE_FADE = 16.dp

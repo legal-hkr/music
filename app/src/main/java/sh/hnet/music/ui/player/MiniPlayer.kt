@@ -18,6 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -63,7 +64,7 @@ fun MiniPlayer(
                 .padding(start = 8.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
         ) {
             Cover(track, RoundedCornerShape(12.dp), Modifier.size(48.dp), player = true)
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(COVER_GAP))
             Column(
                 verticalArrangement = Arrangement.Center,
                 modifier = Modifier.weight(1f).semantics(mergeDescendants = true) {
@@ -74,7 +75,11 @@ fun MiniPlayer(
                     )
                 },
             ) {
-                Text(title, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                // As in the player: a long title scrolls, a new track starts from the beginning. The fade fits the
+                // gap after the cover
+                key(title) {
+                    Text(title, style = MaterialTheme.typography.bodyLarge, maxLines = 1, modifier = Modifier.titleMarquee(fade = COVER_GAP))
+                }
                 if (artists.isNotEmpty()) {
                     Text(artists, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
@@ -84,3 +89,6 @@ fun MiniPlayer(
         }
     }
 }
+
+/** Between the cover and the texts. */
+private val COVER_GAP = 12.dp
