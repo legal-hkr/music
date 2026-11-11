@@ -11,3 +11,11 @@
 # Stack traces in error details stay readable enough to report
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
+
+# Reproducible builds (F-Droid compares its build with the released APK): R8 9.5 narrows the
+# Continuation parameter of these two methods to ContinuationImpl in some runs and not in others, a
+# race between its threads that shows more often on machines with few cores, and classes.dex changes
+# with it. Kept as written, they come out the same every time.
+-keep class kotlinx.coroutines.flow.FlowKt__LimitKt {
+    *** *emitAbort*(...);
+}
