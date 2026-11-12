@@ -5,12 +5,13 @@
      launcher's list and shows its own shape there. -->
 <!-- The outer frame is there for the launcher: a widget that names its background and clips to it is left
      alone, where otherwise the whole widget is cut to the system's rounded corners – and with it the corner of a
-     label that reaches the widget's edge. The frame has nothing to draw, so it clips to the plain rectangle. -->
+     label that reaches the widget's edge. The frame draws nothing; its shape has the labels' rounding. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@android:id/background"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/widget_floating_frame"
     android:clipToOutline="true">
 
     <RelativeLayout

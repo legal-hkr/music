@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Most played albums (SPEC-widgets §4): one picture of fanned covers straight on the wallpaper, no card.
      The whole widget opens Music. -->
-<!-- Named as the widget's background and clipping to it (to a plain rectangle, as it draws nothing): the launcher
-     then leaves the widget alone instead of cutting it – the cards' tilted corners – to the system's rounded corners. -->
+<!-- Named as the widget's background and clipping to it (it draws nothing; its shape has a small rounding): the
+     launcher then leaves the widget alone instead of cutting it – the cards' tilted corners – to the system's
+     rounded corners. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@android:id/background"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/widget_floating_frame"
     android:clipToOutline="true">
 
     <ImageView
