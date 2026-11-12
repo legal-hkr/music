@@ -1,0 +1,14 @@
+v0.3.0
+
+New:
+- Home-screen widgets: Now playing, Playlist and Most played albums
+- A separate equalizer preset for each remembered output device (Settings › Output)
+- Bit-perfect output switched on for each USB DAC separately
+- Devices and their presets in backups
+
+Changes:
+- Bit-perfect output is active only while music is actually playing through the DAC
+
+Fixes:
+- Short titles no longer fade at the edges
+- The queue list settles correctly after jumping to a track

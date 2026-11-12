@@ -1,0 +1,14 @@
+v0.3.0
+
+Nowości:
+- Widżety: „Teraz gra”, „Playlista” i „Najczęściej odtwarzane albumy”
+- Osobny preset korektora dla każdego zapamiętanego wyjścia (Ustawienia › Wyjście)
+- Bit-perfect włączany osobno dla każdego przetwornika USB
+- Urządzenia i ich presety w kopii zapasowej
+
+Zmiany:
+- Bit-perfect działa tylko wtedy, gdy muzyka gra przez przetwornik
+
+Poprawki:
+- Krótkie tytuły nie zanikają na krawędziach
+- Kolejka układa się poprawnie po przejściu do utworu
