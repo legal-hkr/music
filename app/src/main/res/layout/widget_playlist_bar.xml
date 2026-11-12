@@ -15,7 +15,7 @@
         android:layout_height="52dp"
         android:importantForAccessibility="no"
         android:scaleType="fitCenter"
-        android:src="@drawable/widget_cookie_empty" />
+        android:src="@drawable/widget_shape_empty" />
 
     <LinearLayout
         android:layout_width="0dp"

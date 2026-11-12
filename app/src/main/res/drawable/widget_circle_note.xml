@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Now playing widget's placeholder for a cover: a circle in the placeholder color with a music note. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@color/widget_placeholder" />
+        </shape>
+    </item>
+    <item>
+        <inset android:drawable="@drawable/widget_ic_music_note" android:inset="31%" />
+    </item>
+</layer-list>

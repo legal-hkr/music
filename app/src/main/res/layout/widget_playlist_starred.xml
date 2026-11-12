@@ -22,7 +22,7 @@
             android:layout_marginBottom="4dp"
             android:importantForAccessibility="no"
             android:scaleType="fitCenter"
-            android:src="@drawable/widget_cookie_empty" />
+            android:src="@drawable/widget_shape_empty" />
 
         <ImageView
             android:id="@+id/widget_play"

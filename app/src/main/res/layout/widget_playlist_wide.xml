@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Playlist, 4×2 in system colors (SPEC-widgets §5.2): the mosaic in the cookie, the name, the length, Play and Shuffle. -->
+<!-- Playlist, 4×2 on a surface card (Starred and the states of the Covers look): the mosaic in its shape, the name, the length, Play and Shuffle. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
@@ -15,7 +15,7 @@
         android:layout_height="116dp"
         android:importantForAccessibility="no"
         android:scaleType="fitCenter"
-        android:src="@drawable/widget_cookie_empty" />
+        android:src="@drawable/widget_shape_empty" />
 
     <LinearLayout
         android:layout_width="0dp"

@@ -105,7 +105,7 @@ open class PlaylistWidgetProvider : AppWidgetProvider() {
             val tracks = summary.coverTracks
             val covers = tracks.map { if (it.hasEmbeddedCover) pictures.cover(it, if (tracks.size == 4) size / 2 else size) else null }
             val floating = look == PlaylistLook.FLOATING
-            // Starred in the Covers look has a card of its own, with the cookie
+            // Starred in the Covers look has a card of its own, with the mosaic in the shape
             val system = floating || summary.starred
             val role = context.getColor(R.color.widget_secondary_container)
             val colors = CoverColors.of(covers.filterNotNull(), role)
@@ -118,10 +118,10 @@ open class PlaylistWidgetProvider : AppWidgetProvider() {
             val open = open(context, playlistId)
             val play = WidgetActionReceiver.playlist(context, playlistId, shuffle = false)
             val shuffle = WidgetActionReceiver.playlist(context, playlistId, shuffle = true)
-            val cookie = if (system) WidgetBitmaps.cookie(mosaic, size) else null
+            val shaped = if (system) WidgetBitmaps.shaped(mosaic, size) else null
             val round = WidgetBitmaps.circle(mosaic, (BAR_PICTURE_DP * density).toInt())
             fun bar(wide: Boolean) = if (floating) floatingBar(context, wide).apply {
-                setImageViewBitmap(R.id.widget_cover, cookie)
+                setImageViewBitmap(R.id.widget_cover, shaped)
                 setTextViewText(R.id.widget_title, name)
                 setTextViewText(R.id.widget_text, length)
                 setViewVisibility(R.id.widget_text, if (wide) View.VISIBLE else View.GONE)
@@ -138,15 +138,15 @@ open class PlaylistWidgetProvider : AppWidgetProvider() {
                 setOnClickPendingIntent(R.id.widget_root, play)
             }
             val square = when {
-                // No background: the cookie, Play (a star for Starred, which plays as well) over it, the name in a label
-                floating -> RemoteViews(context.packageName, R.layout.widget_floating_square).apply {
-                    setImageViewBitmap(R.id.widget_cover, cookie)
+                // No background: the shaped, Play (a star for Starred, which plays as well) over it, the name in a label
+                floating -> RemoteViews(context.packageName, R.layout.widget_playlist_floating_square).apply {
+                    setImageViewBitmap(R.id.widget_cover, shaped)
                     setTextViewText(R.id.widget_title, name)
                     setImageViewResource(R.id.widget_play, if (summary.starred) R.drawable.ic_star_filled else R.drawable.ic_play_arrow)
                     setInt(R.id.widget_play, "setBackgroundResource", R.drawable.widget_button_primary_circle)
                 }
-                cookie != null -> RemoteViews(context.packageName, R.layout.widget_playlist_starred).apply {
-                    setImageViewBitmap(R.id.widget_cover, cookie)
+                shaped != null -> RemoteViews(context.packageName, R.layout.widget_playlist_starred).apply {
+                    setImageViewBitmap(R.id.widget_cover, shaped)
                     setTextViewText(R.id.widget_title, name)
                 }
                 else -> RemoteViews(context.packageName, R.layout.widget_playlist_covers_square).apply {
@@ -167,12 +167,12 @@ open class PlaylistWidgetProvider : AppWidgetProvider() {
             }
             val wide = when {
                 floating -> RemoteViews(context.packageName, R.layout.widget_playlist_floating_wide).apply {
-                    setImageViewBitmap(R.id.widget_cover, cookie)
+                    setImageViewBitmap(R.id.widget_cover, shaped)
                     // In the app's language: what a layout says by itself is in the launcher's
                     setTextViewText(R.id.widget_play_label, context.getString(R.string.content_description_play))
                 }
-                cookie != null -> RemoteViews(context.packageName, R.layout.widget_playlist_wide).apply {
-                    setImageViewBitmap(R.id.widget_cover, cookie)
+                shaped != null -> RemoteViews(context.packageName, R.layout.widget_playlist_wide).apply {
+                    setImageViewBitmap(R.id.widget_cover, shaped)
                     // In the app's language: what a layout says by itself is in the launcher's
                     setTextViewText(R.id.widget_play_label, context.getString(R.string.content_description_play))
                 }
@@ -209,7 +209,7 @@ open class PlaylistWidgetProvider : AppWidgetProvider() {
         private fun message(context: Context, id: Int, look: PlaylistLook, summary: PlaylistSummary?): RemoteViews {
             val title = summary?.playlist?.name ?: context.getString(R.string.label_widget_playlist_deleted)
             val text = context.getString(if (summary == null) R.string.desc_widget_choose_another else R.string.label_playlist_no_tracks)
-            val picture = if (summary == null) R.drawable.widget_cookie_deleted else R.drawable.widget_cookie_empty
+            val picture = if (summary == null) R.drawable.widget_shape_deleted else R.drawable.widget_shape_empty
             val tap = summary?.let { open(context, it.playlist.id) } ?: configure(context, id)
             fun RemoteViews.common(shown: String = title) {
                 setImageViewResource(R.id.widget_cover, picture)
@@ -217,13 +217,13 @@ open class PlaylistWidgetProvider : AppWidgetProvider() {
                 setOnClickPendingIntent(R.id.widget_root, tap)
             }
             if (look == PlaylistLook.FLOATING) {
-                // No background: the placeholder cookie and a label (rev. 2 §5.5); two cells by one row have room for a word
+                // No background: the placeholder and a label (rev. 2 §5.5); two cells by one row have room for a word
                 fun bar(wide: Boolean) = floatingBar(context, wide).apply {
                     common(if (summary == null && !wide) context.getString(R.string.label_widget_deleted_short) else title)
                     setTextViewText(R.id.widget_text, text)
                     setViewVisibility(R.id.widget_text, if (wide) View.VISIBLE else View.GONE)
                 }
-                val square = RemoteViews(context.packageName, R.layout.widget_floating_square).apply {
+                val square = RemoteViews(context.packageName, R.layout.widget_playlist_floating_square).apply {
                     common()
                     setViewVisibility(R.id.widget_play, View.GONE)
                 }
@@ -254,7 +254,7 @@ open class PlaylistWidgetProvider : AppWidgetProvider() {
             return sized(bar(false), bar(true), square, wide)
         }
 
-        /** The floating bar without Play/Pause (that is Now playing's), its label as wide as the room after the cookie. */
+        /** The floating bar without Play/Pause (that is Now playing's), its label as wide as the room after the picture. */
         private fun floatingBar(context: Context, wide: Boolean) = RemoteViews(context.packageName, R.layout.widget_floating_bar).apply {
             setViewVisibility(R.id.widget_play, View.GONE)
             val room = ((if (wide) 230 else 76) * context.resources.displayMetrics.density).toInt()

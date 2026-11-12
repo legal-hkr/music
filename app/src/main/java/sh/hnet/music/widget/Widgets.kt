@@ -66,7 +66,8 @@ class Widgets(private val app: MusicApplication) {
                 }
                 val track = shown.track
                 val size = NowPlayingWidgetProvider.coverSize(app)
-                val cover = app.covers.load(track, app.covers.sizeFor(size))?.let { WidgetBitmaps.cookie(it, size) }
+                // A circle here (owner's choice, on trial); the Playlist widgets have their own shape
+                val cover = app.covers.load(track, app.covers.sizeFor(size))?.let { WidgetBitmaps.circle(it, size) }
                 NowPlayingWidgetProvider.update(app, NowPlayingWidgetProvider.Content(track.displayTitle, track.artists.joinToString(", "), cover, shown.playing))
             }
         }

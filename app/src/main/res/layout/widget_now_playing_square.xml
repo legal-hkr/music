@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- A floating widget two cells wide and two rows high (SPEC-widgets rev. 2 §3.2, §5.2), for Now playing and the
-     Playlist widget: no widget background. The cookie as large as the room above the label allows; Play/Pause
-     (or the star, or Play) over its lower right; the title alone in a label at the bottom. -->
+<!-- Now playing, 2×2, floating (SPEC-widgets rev. 2 §3.2): no widget background. The round cover as large as the
+     room above the label allows; Play/Pause over its lower right; the title alone in a label at the bottom.
+     The same arrangement as widget_playlist_floating_square; apart, as each is its widget's preview in the
+     launcher's list and shows its own shape there. -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
@@ -47,7 +48,7 @@
         android:adjustViewBounds="true"
         android:importantForAccessibility="no"
         android:scaleType="fitCenter"
-        android:src="@drawable/widget_cookie_note" />
+        android:src="@drawable/widget_circle_note" />
 
     <ImageView
         android:id="@+id/widget_play"

@@ -21,18 +21,20 @@ import kotlin.math.abs
 /** Pictures the widgets are handed ready-made: a widget can't clip a view to a shape (SPEC-widgets §2.2). */
 object WidgetBitmaps {
     /**
-     * The Material Expressive 9-sided cookie in a unit square: MaterialShapes.Cookie9Sided as the
-     * library draws it, the same path as res/drawable/widget_cookie.xml.
+     * The shape the Playlist widgets cut mosaics into, in a unit square: MaterialShapes.Slanted as the
+     * library draws it, dumped once (owner's choice after trying the handoff's 9-sided cookie and a
+     * rounded square). The same path is res/drawable/widget_shape.xml, for the placeholders. The Now
+     * playing widget's cover is a circle.
      */
-    private const val COOKIE = "M0.5000,0.0142 C0.5365,0.0142 0.5730,0.0273 0.6019,0.0535 C0.6313,0.0801 0.6700,0.0942 0.7096,0.0927 C0.7876,0.0897 0.8551,0.1463 0.8657,0.2237 C0.8711,0.2630 0.8916,0.2986 0.9230,0.3229 C0.9847,0.3708 1.0000,0.4576 0.9584,0.5236 C0.9372,0.5572 0.9301,0.5977 0.9385,0.6365 C0.9550,0.7128 0.9109,0.7891 0.8366,0.8130 C0.7988,0.8251 0.7673,0.8515 0.7488,0.8867 C0.7124,0.9557 0.6296,0.9858 0.5573,0.9563 C0.5206,0.9413 0.4794,0.9413 0.4427,0.9563 C0.3704,0.9858 0.2876,0.9557 0.2512,0.8867 C0.2327,0.8515 0.2012,0.8251 0.1634,0.8130 C0.0891,0.7891 0.0450,0.7128 0.0615,0.6365 C0.0699,0.5977 0.0628,0.5572 0.0416,0.5236 C0.0000,0.4576 0.0153,0.3708 0.0770,0.3229 C0.1084,0.2986 0.1289,0.2630 0.1343,0.2237 C0.1449,0.1463 0.2124,0.0897 0.2904,0.0927 C0.3300,0.0942 0.3687,0.0801 0.3981,0.0535 C0.4270,0.0273 0.4635,0.0142 0.5000,0.0142 Z"
+    private const val SHAPE = "M0.8755,0.9140 C0.8677,0.9211 0.8593,0.9274 0.8504,0.9331 C0.8046,0.9620 0.7410,0.9618 0.6138,0.9614 C0.4765,0.9609 0.3392,0.9605 0.2020,0.9601 C0.1924,0.9600 0.1877,0.9600 0.1850,0.9599 C0.0806,0.9566 0.0000,0.8671 0.0075,0.7629 C0.0077,0.7602 0.0082,0.7555 0.0091,0.7460 C0.0228,0.6111 0.0365,0.4762 0.0501,0.3414 C0.0630,0.2148 0.0694,0.1515 0.1029,0.1090 C0.1160,0.0924 0.1318,0.0782 0.1496,0.0669 C0.1954,0.0380 0.2590,0.0382 0.3862,0.0386 C0.5235,0.0391 0.6608,0.0395 0.7980,0.0399 C0.8076,0.0400 0.8123,0.0400 0.8150,0.0401 C0.9194,0.0434 1.0000,0.1329 0.9925,0.2371 C0.9923,0.2398 0.9918,0.2445 0.9909,0.2540 C0.9772,0.3889 0.9635,0.5238 0.9499,0.6586 C0.9370,0.7852 0.9306,0.8485 0.8971,0.8910 C0.8905,0.8993 0.8833,0.9070 0.8755,0.9140 Z"
 
-    /** The cookie [size] pixels across. */
-    fun cookiePath(size: Int): Path = PathParser.createPathFromPathData(COOKIE).apply {
+    /** The shape covers are cut into, [size] pixels across. */
+    fun shapePath(size: Int): Path = PathParser.createPathFromPathData(SHAPE).apply {
         transform(Matrix().apply { setScale(size.toFloat(), size.toFloat()) })
     }
 
-    /** [source] filling the cookie (cropped to a square around its middle), transparent outside; [size] pixels across. */
-    fun cookie(source: Bitmap, size: Int): Bitmap {
+    /** [source] filling the shape (cropped to a square around its middle), transparent outside; [size] pixels across. */
+    fun shaped(source: Bitmap, size: Int): Bitmap {
         val result = createBitmap(size, size)
         val scale = size.toFloat() / minOf(source.width, source.height)
         val shader = BitmapShader(source, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
@@ -42,16 +44,22 @@ object WidgetBitmaps {
                 postTranslate((size - source.width * scale) / 2f, (size - source.height * scale) / 2f)
             },
         )
-        Canvas(result).drawPath(cookiePath(size), Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply { this.shader = shader })
+        Canvas(result).drawPath(shapePath(size), Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply { this.shader = shader })
         return result
     }
 
-    /** [source] filling a circle [size] pixels across (the Playlist bar's round mosaic). */
+    /** [source] filling a circle [size] pixels across (the Now playing widget's cover, the Covers look's round mosaic). */
     fun circle(source: Bitmap, size: Int): Bitmap {
         val result = createBitmap(size, size)
         val shader = BitmapShader(source, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
         val scale = size.toFloat() / minOf(source.width, source.height)
-        shader.setLocalMatrix(Matrix().apply { setScale(scale, scale) })
+        shader.setLocalMatrix(
+            Matrix().apply {
+                setScale(scale, scale)
+                // The middle of a picture that isn't square
+                postTranslate((size - source.width * scale) / 2f, (size - source.height * scale) / 2f)
+            },
+        )
         Canvas(result).drawCircle(size / 2f, size / 2f, size / 2f, Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply { this.shader = shader })
         return result
     }

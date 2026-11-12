@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Now playing, 4×2, floating (SPEC-widgets rev. 2 §3.1): no widget background. The cookie cover as tall as the
+<!-- Now playing, 4×2, floating (SPEC-widgets rev. 2 §3.1): no widget background. The round cover as tall as the
      widget; the label with title and artist starting over the cover's end; Previous – Play/Pause – Next under it. -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
@@ -18,7 +18,7 @@
         android:importantForAccessibility="no"
         android:maxWidth="240dp"
         android:scaleType="fitStart"
-        android:src="@drawable/widget_cookie_note" />
+        android:src="@drawable/widget_circle_note" />
 
     <LinearLayout
         android:id="@+id/widget_label"

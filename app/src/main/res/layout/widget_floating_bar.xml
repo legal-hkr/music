@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- A floating widget one row high (SPEC-widgets rev. 2 §3.3, §5.2), for Now playing and the Playlist widget: no
-     widget background. The cookie as tall as the widget at the start, the label over its end, and – for Now
+     widget background. The cover as tall as the widget at the start, the label over its end, and – for Now
      playing – Play/Pause at the end. Which of the label and the button there is room for, and how wide the label may get before the button, is
      set from the code. -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -19,7 +19,7 @@
         android:adjustViewBounds="true"
         android:importantForAccessibility="no"
         android:scaleType="fitStart"
-        android:src="@drawable/widget_cookie_note" />
+        android:src="@drawable/widget_circle_note" />
 
     <LinearLayout
         android:id="@+id/widget_label"

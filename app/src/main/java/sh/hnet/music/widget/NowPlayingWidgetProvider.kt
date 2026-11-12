@@ -19,7 +19,7 @@ import sh.hnet.music.R
  * launcher's list, each of a fixed width (owner's decision, as for the Playlist widgets: three
  * cells by two rows look wrong): this one two cells wide – a bar (2×1) or a square (2×2) – and
  * [NowPlayingWideWidgetProvider] four cells wide. Floating (SPEC-widgets rev. 2 §2.1): no widget
- * background – the cookie cover as tall as the widget straight on the wallpaper, the text in a small
+ * background – the round cover as tall as the widget straight on the wallpaper, the text in a small
  * label, the buttons on their own, each with a shadow (elevation in the layouts). Plain RemoteViews
  * (owner's decision: no Glance, which brings WorkManager along).
  */
@@ -77,7 +77,7 @@ open class NowPlayingWidgetProvider : AppWidgetProvider() {
         }
 
         /** Two rows, two cells (§3.2): the title alone in the label. */
-        private fun square(context: Context, content: Content) = RemoteViews(context.packageName, R.layout.widget_floating_square).apply {
+        private fun square(context: Context, content: Content) = RemoteViews(context.packageName, R.layout.widget_now_playing_square).apply {
             common(context, content, artist = false)
         }
 
@@ -100,7 +100,7 @@ open class NowPlayingWidgetProvider : AppWidgetProvider() {
          */
         private fun RemoteViews.common(context: Context, content: Content, artist: Boolean) {
             val empty = content.title == null
-            if (content.cover != null) setImageViewBitmap(R.id.widget_cover, content.cover) else setImageViewResource(R.id.widget_cover, R.drawable.widget_cookie_note)
+            if (content.cover != null) setImageViewBitmap(R.id.widget_cover, content.cover) else setImageViewResource(R.id.widget_cover, R.drawable.widget_circle_note)
             val title = content.title ?: context.getString(R.string.label_widget_nothing_playing)
             val text = if (empty) context.getString(R.string.desc_widget_tap_to_open) else content.artist.orEmpty()
             setTextViewText(R.id.widget_title, title)
