@@ -104,7 +104,7 @@ private fun PlaylistWidgetConfig(app: MusicApplication, current: PlaylistWidgetS
     // Starred first and always (it is there even while empty), then the others in the Library's order
     val list = all.orEmpty().let { summaries -> summaries.filter { it.starred } + PlaylistRepository.sort(summaries.filter { !it.starred }, sort, locale) }
     var chosen by rememberSaveable { mutableStateOf(current?.playlistId) }
-    var look by rememberSaveable { mutableStateOf(current?.look ?: PlaylistLook.COVERS) }
+    var look by rememberSaveable { mutableStateOf(current?.look ?: PlaylistLook.FLOATING) }
     val selected = list.firstOrNull { it.playlist.id == chosen } ?: list.firstOrNull()
     Box(Modifier.fillMaxSize().navigationBarsPadding()) {
         SettingsPage(title = stringResource(R.string.title_playlist_widget), onBack = onCancel) {
@@ -132,7 +132,7 @@ private fun PlaylistWidgetConfig(app: MusicApplication, current: PlaylistWidgetS
                             ),
                             modifier = Modifier.weight(1f).semantics { role = Role.RadioButton },
                         ) {
-                            Text(stringResource(if (option == PlaylistLook.COVERS) R.string.label_look_covers else R.string.label_look_system), maxLines = 1)
+                            Text(stringResource(if (option == PlaylistLook.COVERS) R.string.label_look_covers else R.string.label_look_floating), maxLines = 1)
                         }
                     }
                 }

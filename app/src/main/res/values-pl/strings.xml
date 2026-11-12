@@ -715,7 +715,8 @@
     <string name="title_playlist_widget">Widżet playlisty</string>
     <string name="title_widget_look">Wygląd</string>
     <string name="label_look_covers">Okładki</string>
-    <string name="label_look_system">Kolory systemu</string>
+    <string name="label_look_floating">Bez tła</string>
+    <string name="label_widget_deleted_short">Usunięta</string>
     <string name="button_add_widget">Dodaj widżet</string>
     <string name="content_description_widget_play_playlist">Odtwórz: %s</string>
     <string name="content_description_widget_shuffle_playlist">Odtwórz losowo: %s</string>

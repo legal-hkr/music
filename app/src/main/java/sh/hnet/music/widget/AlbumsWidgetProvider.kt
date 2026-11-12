@@ -56,7 +56,7 @@ class AlbumsWidgetProvider : AppWidgetProvider() {
                 shadowOffset = (if (dark) 6 else 4) * density,
                 shadowAlpha = if (dark) 115 else 71,
             )
-            val placeholder = context.getColor(R.color.widget_secondary_container)
+            val placeholder = context.getColor(R.color.widget_placeholder)
             val note = ContextCompat.getDrawable(context, R.drawable.widget_ic_music_note)
             // Nothing played yet: three plain cards, a note on the middle one (§4.2)
             val cards = if (albums.isEmpty()) listOf<Bitmap?>(null, null, null) else covers

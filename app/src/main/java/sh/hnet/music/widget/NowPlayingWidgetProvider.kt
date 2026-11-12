@@ -8,7 +8,6 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.util.SizeF
-import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
 import sh.hnet.music.MainActivity
@@ -19,8 +18,10 @@ import sh.hnet.music.R
  * The Now playing widget (SPEC-widgets §3): the track Music would play now. Two widgets in the
  * launcher's list, each of a fixed width (owner's decision, as for the Playlist widgets: three
  * cells by two rows look wrong): this one two cells wide – a bar (2×1) or a square (2×2) – and
- * [NowPlayingWideWidgetProvider] four cells wide. Plain RemoteViews (owner's decision: no Glance,
- * which brings WorkManager along).
+ * [NowPlayingWideWidgetProvider] four cells wide. Floating (SPEC-widgets rev. 2 §2.1): no widget
+ * background – the cookie cover as tall as the widget straight on the wallpaper, the text in a small
+ * label, the buttons on their own, each with a shadow (elevation in the layouts). Plain RemoteViews
+ * (owner's decision: no Glance, which brings WorkManager along).
  */
 open class NowPlayingWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
@@ -40,7 +41,7 @@ open class NowPlayingWidgetProvider : AppWidgetProvider() {
                 manager.getAppWidgetIds(ComponentName(context, NowPlayingWideWidgetProvider::class.java))
         }
 
-        /** The largest cover a layout shows, in pixels: rendered once, at most at its displayed size (§2.4). */
+        /** The largest cover a layout shows, in pixels: the cover is as tall as the widget, two rows at most (§2.5). */
         fun coverSize(context: Context): Int = (COVER_DP * context.resources.displayMetrics.density).toInt()
 
         /** Every placed widget shows [content], in the layout its size takes. */
@@ -49,11 +50,11 @@ open class NowPlayingWidgetProvider : AppWidgetProvider() {
             if (ids.isEmpty()) return
             // Of the layouts that fit the widget's size the launcher shows the nearest one (the least distance
             // between the two sizes), so each is declared close to the sizes it is for. On the Pixel launcher
-            // one row is about 110 dp high and two about 236; two, three and four cells are about 181, 280 and 379 dp wide
+            // one row is about 110 dp high and two about 236; two and four cells are about 181 and 379 dp wide
             val views = RemoteViews(
                 mapOf(
-                    SizeF(NARROW_DP, BAR_DP) to bar(context, content, cover = false),
-                    SizeF(BAR_WIDTH_DP, BAR_DP) to bar(context, content, cover = true),
+                    SizeF(NARROW_DP, BAR_DP) to bar(context, content, wide = false),
+                    SizeF(BAR_WIDTH_DP, BAR_DP) to bar(context, content, wide = true),
                     SizeF(SQUARE_DP, TWO_ROWS_DP) to square(context, content),
                     SizeF(WIDE_DP, TWO_ROWS_DP) to wide(context, content),
                 ),
@@ -61,43 +62,56 @@ open class NowPlayingWidgetProvider : AppWidgetProvider() {
             AppWidgetManager.getInstance(context).updateAppWidget(ids, views)
         }
 
-        /** Two cells wide there is no room for the cover beside the text and the button. */
-        private fun bar(context: Context, content: Content, cover: Boolean) = RemoteViews(context.packageName, R.layout.widget_now_playing_bar).apply {
-            common(context, content, playing = R.drawable.widget_button_container_circle, paused = R.drawable.widget_button_container_rounded)
-            setViewVisibility(R.id.widget_cover, if (cover) View.VISIBLE else View.GONE)
+        /**
+         * One row (§3.3). Four cells wide: the cover, the label over its end, Play/Pause at the end. Two cells
+         * wide there is room for the cover and the button only; nothing playing, for the cover and the label.
+         */
+        private fun bar(context: Context, content: Content, wide: Boolean) = RemoteViews(context.packageName, R.layout.widget_floating_bar).apply {
+            val empty = content.title == null
+            common(context, content, artist = wide)
+            setViewVisibility(R.id.widget_label, if (wide || empty) View.VISIBLE else View.GONE)
+            // The label hugs its text, up to the room between the cover and the button
+            val room = ((if (wide) WIDE_BAR_LABEL_DP else NARROW_BAR_LABEL_DP) * context.resources.displayMetrics.density).toInt()
+            setInt(R.id.widget_title, "setMaxWidth", room)
+            setInt(R.id.widget_text, "setMaxWidth", room)
         }
 
-        private fun square(context: Context, content: Content) = RemoteViews(context.packageName, R.layout.widget_now_playing_square).apply {
-            common(context, content, playing = R.drawable.widget_button_primary_circle, paused = R.drawable.widget_button_primary_rounded)
-            // With large text the cover gives way, so title and artist still fit (§2.3)
-            val cover = if (context.resources.configuration.fontScale >= 1.3f) 104f else 112f
-            setViewLayoutWidth(R.id.widget_cover, cover, TypedValue.COMPLEX_UNIT_DIP)
-            setViewLayoutHeight(R.id.widget_cover, cover, TypedValue.COMPLEX_UNIT_DIP)
+        /** Two rows, two cells (§3.2): the title alone in the label. */
+        private fun square(context: Context, content: Content) = RemoteViews(context.packageName, R.layout.widget_floating_square).apply {
+            common(context, content, artist = false)
         }
 
+        /** Two rows, four cells (§3.1). */
         private fun wide(context: Context, content: Content) = RemoteViews(context.packageName, R.layout.widget_now_playing_wide).apply {
-            common(context, content, playing = R.drawable.widget_button_primary_pill, paused = R.drawable.widget_button_primary_rounded_wide)
+            common(context, content, artist = true)
             setViewVisibility(R.id.widget_buttons, if (content.title == null) View.GONE else View.VISIBLE)
             // In the app's language: what a layout says by itself is in the launcher's
             setContentDescription(R.id.widget_previous, context.getString(R.string.content_description_previous))
             setContentDescription(R.id.widget_next, context.getString(R.string.content_description_next))
             setOnClickPendingIntent(R.id.widget_previous, WidgetActionReceiver.intent(context, WidgetActionReceiver.ACTION_PREVIOUS))
             setOnClickPendingIntent(R.id.widget_next, WidgetActionReceiver.intent(context, WidgetActionReceiver.ACTION_NEXT))
+            // Play/Pause is wider than high here: its ends fully rounded while playing
+            if (content.playing) setInt(R.id.widget_play, "setBackgroundResource", R.drawable.widget_button_primary_pill)
         }
 
-        /** What every layout has: the cover, two lines, Play/Pause (round while playing, a rounded square while paused) and the tap that opens Music. */
-        private fun RemoteViews.common(context: Context, content: Content, playing: Int, paused: Int) {
+        /**
+         * What every layout has: the cover, the label, Play/Pause (round while playing, a rounded square while
+         * paused) and the tap that opens Music. [artist]: whether the label has a second line.
+         */
+        private fun RemoteViews.common(context: Context, content: Content, artist: Boolean) {
             val empty = content.title == null
             if (content.cover != null) setImageViewBitmap(R.id.widget_cover, content.cover) else setImageViewResource(R.id.widget_cover, R.drawable.widget_cookie_note)
             val title = content.title ?: context.getString(R.string.label_widget_nothing_playing)
             val text = if (empty) context.getString(R.string.desc_widget_tap_to_open) else content.artist.orEmpty()
             setTextViewText(R.id.widget_title, title)
-            setTextViewText(R.id.widget_text, text)
-            setViewVisibility(R.id.widget_text, if (text.isEmpty()) View.GONE else View.VISIBLE)
+            if (artist) {
+                setTextViewText(R.id.widget_text, text)
+                setViewVisibility(R.id.widget_text, if (text.isEmpty()) View.GONE else View.VISIBLE)
+            }
             // Nothing to play: no buttons, and the whole widget opens Music (§3.4)
             setViewVisibility(R.id.widget_play, if (empty) View.GONE else View.VISIBLE)
             setImageViewResource(R.id.widget_play, if (content.playing) R.drawable.ic_pause else R.drawable.ic_play_arrow)
-            setInt(R.id.widget_play, "setBackgroundResource", if (content.playing) playing else paused)
+            setInt(R.id.widget_play, "setBackgroundResource", if (content.playing) R.drawable.widget_button_primary_circle else R.drawable.widget_button_primary_rounded)
             setContentDescription(R.id.widget_play, context.getString(if (content.playing) R.string.content_description_pause else R.string.content_description_play))
             setOnClickPendingIntent(R.id.widget_play, WidgetActionReceiver.intent(context, WidgetActionReceiver.ACTION_PLAY_PAUSE))
             if (!empty) setContentDescription(R.id.widget_root, context.getString(R.string.content_description_widget_now_playing, title, text))
@@ -111,12 +125,12 @@ open class NowPlayingWidgetProvider : AppWidgetProvider() {
             return PendingIntent.getActivity(context, if (nowPlaying) 1 else 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         }
 
-        private const val COVER_DP = 116
+        private const val COVER_DP = 240
 
         /** Two cells and up: every layout's least width. */
         private const val NARROW_DP = 110f
 
-        /** The bar with its cover: three cells and up. */
+        /** The bar with its label: four cells. */
         private const val BAR_WIDTH_DP = 250f
 
         /** Any height. */
@@ -124,12 +138,14 @@ open class NowPlayingWidgetProvider : AppWidgetProvider() {
 
         /** Well over one row, under two. */
         private const val TWO_ROWS_DP = 200f
-
-        /** Two cells and three: nearer to three cells and two rows than the bar is. */
         private const val SQUARE_DP = 150f
 
-        /** Padding, cover, gap, the three buttons with their gaps, padding: four cells. */
-        private const val WIDE_DP = 14f + 116f + 14f + 156f + 14f
+        /** Four cells. */
+        private const val WIDE_DP = 300f
+
+        /** The room for the bar's label: four cells less the cover and the button; two cells less the cover. */
+        private const val WIDE_BAR_LABEL_DP = 170
+        private const val NARROW_BAR_LABEL_DP = 62
     }
 }
 
