@@ -366,32 +366,40 @@ private fun Item(text: String, @DrawableRes icon: Int, index: Int, count: Int, o
  * A title's scrolling when it is too long for its line (the player and the mini player), with both
  * ends fading out over [fade] instead of being cut. The fade at the start lies outside the text's own
  * place, in the margin or gap before it, so a title at rest stays whole and in line with the texts
- * under it; [fade] is at most that gap.
+ * under it; [fade] is at most that gap. A title that fits its line doesn't scroll and isn't faded.
  */
-internal fun Modifier.titleMarquee(fade: Dp = TITLE_FADE): Modifier = this
-    .layout { measurable, constraints ->
-        val width = fade.roundToPx()
-        val placeable = measurable.measure(constraints.copy(maxWidth = constraints.maxWidth + width))
-        layout(placeable.width - width, placeable.height) { placeable.place(-width, 0) }
-    }
-    .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-    .drawWithContent {
-        drawContent()
-        val width = fade.toPx()
-        drawRect(
-            Brush.horizontalGradient(listOf(Color.Transparent, Color.Black), startX = 0f, endX = width),
-            size = Size(width, size.height),
-            blendMode = BlendMode.DstIn,
-        )
-        drawRect(
-            Brush.horizontalGradient(listOf(Color.Black, Color.Transparent), startX = size.width - width, endX = size.width),
-            topLeft = Offset(size.width - width, 0f),
-            size = Size(width, size.height),
-            blendMode = BlendMode.DstIn,
-        )
-    }
-    .basicMarquee(iterations = Int.MAX_VALUE, repeatDelayMillis = TITLE_PAUSE_MS, initialDelayMillis = TITLE_PAUSE_MS)
-    .padding(start = fade)
+@Composable
+internal fun Modifier.titleMarquee(fade: Dp = TITLE_FADE): Modifier {
+    // A title that fits doesn't scroll, so its ends stay sharp. Written while measuring and read while drawing only.
+    var scrolls by remember { mutableStateOf(false) }
+    return this
+        .layout { measurable, constraints ->
+            val width = fade.roundToPx()
+            val placeable = measurable.measure(constraints.copy(maxWidth = constraints.maxWidth + width))
+            // The marquee is as wide as its text up to the width offered, so one that fills it has more text than room
+            scrolls = placeable.width >= constraints.maxWidth + width
+            layout(placeable.width - width, placeable.height) { placeable.place(-width, 0) }
+        }
+        .graphicsLayer { compositingStrategy = if (scrolls) CompositingStrategy.Offscreen else CompositingStrategy.Auto }
+        .drawWithContent {
+            drawContent()
+            if (!scrolls) return@drawWithContent
+            val width = fade.toPx()
+            drawRect(
+                Brush.horizontalGradient(listOf(Color.Transparent, Color.Black), startX = 0f, endX = width),
+                size = Size(width, size.height),
+                blendMode = BlendMode.DstIn,
+            )
+            drawRect(
+                Brush.horizontalGradient(listOf(Color.Black, Color.Transparent), startX = size.width - width, endX = size.width),
+                topLeft = Offset(size.width - width, 0f),
+                size = Size(width, size.height),
+                blendMode = BlendMode.DstIn,
+            )
+        }
+        .basicMarquee(iterations = Int.MAX_VALUE, repeatDelayMillis = TITLE_PAUSE_MS, initialDelayMillis = TITLE_PAUSE_MS)
+        .padding(start = fade)
+}
 
 /** How long a scrolling title rests at its start, before the first pass and between passes: time to read it. */
 private const val TITLE_PAUSE_MS = 5000
