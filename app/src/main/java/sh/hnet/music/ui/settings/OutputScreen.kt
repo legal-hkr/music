@@ -16,6 +16,7 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -224,7 +225,13 @@ fun DeviceScreen(
     val devices by app.outputs.devices.collectAsStateWithLifecycle()
     val system by app.outputs.system.collectAsStateWithLifecycle()
     // The output in use has a page before music first plays on it; a forgotten device's page is on its way out
-    val device = devices.byKey(key) ?: view.current?.takeIf { it.key == key }?.let { devices.deviceFor(it) } ?: return
+    var forgetting by remember { mutableStateOf(false) }
+    val device = devices.byKey(key) ?: view.current?.takeIf { it.key == key }?.let { devices.deviceFor(it) }
+    if (device == null) {
+        // Gone without being forgotten here: an output not played on yet that was disconnected. Nothing to show
+        if (!forgetting) LaunchedEffect(Unit) { onBack() }
+        return
+    }
     val isCurrent = key == view.current?.key
     val isConnected = key in view.connected
     val name = outputName(device.output)
@@ -317,18 +324,19 @@ fun DeviceScreen(
                 stringResource(R.string.button_forget_device),
                 R.drawable.ic_delete,
                 onClick = {
+                    forgetting = true
                     onBack()
                     // In the app's scope: the snackbar and its Undo outlive this page
                     messageScope.launch {
                         // With its preset assignment (§7); Undo gives both back
-                        val preset = app.equalizer.state.value.assigned[key]
+                        val equalizer = app.equalizer.state.value
                         app.equalizer.update { it.unassigned(key) }
                         app.outputs.update { it.without(key) }
                         snackbars.currentSnackbarData?.dismiss()
                         val text = AnnotatedString.fromHtml(forgot.format(name.htmlEncode())).text
                         if (snackbars.showSnackbar(text, actionLabel = undo, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed) {
                             app.outputs.update { it.with(device) }
-                            if (preset != null) app.equalizer.update { it.assigned(key, preset) }
+                            app.equalizer.update { it.restoredDevice(key, equalizer) }
                         }
                     }
                 },

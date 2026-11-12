@@ -150,8 +150,9 @@ class PlaybackService : MediaSessionService() {
         scope.launch {
             (application as MusicApplication).preferences.gain.collect { gainSink.settings = it }
         }
-        // Bit-perfect output: the devices' switches, and USB outputs coming and going. Either way the output is
-        // opened again for what plays, so the change is heard (and shown) at once
+        // Bit-perfect output: the devices' switches, USB outputs coming and going, music sent to another output.
+        // When that changes how what plays goes out, the output is opened again, so the change is heard (and
+        // shown) at once
         bitPerfect.start()
         bitPerfect.onOutputChanged = { reopenOutput(player) }
         val outputs = (application as MusicApplication).outputs
@@ -160,7 +161,7 @@ class PlaybackService : MediaSessionService() {
                 val keys = state.bitPerfectKeys
                 if (bitPerfect.enabledKeys != keys) {
                     bitPerfect.enabledKeys = keys
-                    reopenOutput(player)
+                    bitPerfect.refresh()
                 }
             }
         }
@@ -171,7 +172,11 @@ class PlaybackService : MediaSessionService() {
             }
         })
         scope.launch {
-            outputs.system.map { it.current }.distinctUntilChanged().collect { if (player.isPlaying) outputs.played() }
+            outputs.system.map { it.current }.distinctUntilChanged().collect {
+                if (player.isPlaying) outputs.played()
+                // Music sent elsewhere while a USB device stays connected, or back to it: bit-perfect follows
+                bitPerfect.refresh()
+            }
         }
         // The equalizer follows the device: its preset is heard as soon as the output changes (SPEC-output §2.2)
         scope.launch {

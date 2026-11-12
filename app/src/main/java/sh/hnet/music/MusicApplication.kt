@@ -1,6 +1,7 @@
 package sh.hnet.music
 
 import android.app.Application
+import android.content.res.Configuration
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -46,6 +47,12 @@ class MusicApplication : Application() {
     val widgets: Widgets by lazy { Widgets(this) }
     val playlistWidgets: PlaylistWidgetStore by lazy { PlaylistWidgetStore(getSharedPreferences("widgets", MODE_PRIVATE)) }
     val nowPlayingWidgets: NowPlayingWidgetStore by lazy { NowPlayingWidgetStore(getSharedPreferences("widgets", MODE_PRIVATE)) }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // Dark theme, wallpaper colors, language: the widgets' pictures and texts are made here, so they are made again
+        widgets.start(redraw = true)
+    }
 
     override fun onCreate() {
         super.onCreate()

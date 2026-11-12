@@ -11,6 +11,7 @@ import android.graphics.Bitmap
 import android.util.SizeF
 import android.widget.RemoteViews
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import sh.hnet.music.MainActivity
 import sh.hnet.music.MusicApplication
 import sh.hnet.music.R
@@ -64,7 +65,10 @@ class AlbumsWidgetProvider : AppWidgetProvider() {
                 if (albums.isEmpty()) context.getString(R.string.content_description_widget_no_albums)
                 else context.getString(R.string.content_description_widget_most_played, albums.take(NARROW_ALBUMS).joinToString(", ") { it.title })
             val open = PendingIntent.getActivity(
-                context, 0, Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+                context, 0,
+                // With an address of its own: without one it would be the notification's pending intent, and trade extras with it
+                Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK).setData("music-widget://open".toUri()),
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
             )
             fun views(picture: Bitmap) = RemoteViews(context.packageName, R.layout.widget_albums).apply {
                 setImageViewBitmap(R.id.widget_cover, picture)

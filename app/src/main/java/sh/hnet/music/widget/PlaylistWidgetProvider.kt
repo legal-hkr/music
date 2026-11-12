@@ -43,6 +43,14 @@ class PlaylistWidgetStore(private val preferences: SharedPreferences) {
         putString("look_$widgetId", choice.look.name)
     }
 
+    /** After playlists got new ids (a backup was restored): each of [widgetIds] goes on with the playlist its old one became, by [moved]. */
+    fun follow(widgetIds: IntArray, moved: Map<Long, Long>) = preferences.edit {
+        for (widgetId in widgetIds) {
+            val old = preferences.getLong("playlist_$widgetId", -1)
+            moved[old]?.let { putLong("playlist_$widgetId", it) }
+        }
+    }
+
     fun remove(widgetId: Int) = preferences.edit {
         remove("playlist_$widgetId")
         remove("look_$widgetId")

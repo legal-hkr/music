@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import sh.hnet.music.MusicApplication
 import sh.hnet.music.data.LibraryTrack
 import sh.hnet.music.library.MostPlayed
@@ -72,7 +73,8 @@ class Widgets(private val app: MusicApplication) {
                 val track = shown.track
                 val size = NowPlayingWidgetProvider.coverSize(app)
                 // A circle here (owner's choice, on trial); the Playlist widgets have their own shape
-                val cover = app.covers.load(track, app.covers.sizeFor(size))?.let { WidgetBitmaps.circle(it, size) }
+                // Drawn off the main thread, as every widget picture is
+                val cover = app.covers.load(track, app.covers.sizeFor(size))?.let { withContext(Dispatchers.Default) { WidgetBitmaps.circle(it, size) } }
                 show(NowPlayingWidgetProvider.Content(track.displayTitle, track.artists.joinToString(", "), cover, shown.playing))
             }
         }
@@ -94,7 +96,9 @@ class Widgets(private val app: MusicApplication) {
                     val summary = list.firstOrNull { it.playlist.id == choice.playlistId }
                     val key = PlaylistWidgetProvider.key(choice.look, summary)
                     if (drawn.containsKey(id) && drawn[id] == key) continue
-                    PlaylistWidgetProvider.update(app, id, choice.look, summary) { track, size -> app.covers.load(track, app.covers.sizeFor(size)) }
+                    withContext(Dispatchers.Default) {
+                        PlaylistWidgetProvider.update(app, id, choice.look, summary) { track, size -> app.covers.load(track, app.covers.sizeFor(size)) }
+                    }
                     drawn[id] = key
                 }
             }
@@ -115,7 +119,7 @@ class Widgets(private val app: MusicApplication) {
                     delay(PLAYLIST_SETTLE_MS)
                     val size = AlbumsWidgetProvider.coverSize(app)
                     val covers = most.map { album -> album.coverTrack?.let { app.covers.load(it, app.covers.sizeFor(size)) } }
-                    AlbumsWidgetProvider.update(app, most, covers)
+                    withContext(Dispatchers.Default) { AlbumsWidgetProvider.update(app, most, covers) }
                 }
         }
     }

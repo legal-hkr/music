@@ -25,12 +25,15 @@ class EqualizerStore(private val file: File, private val scope: CoroutineScope) 
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     private val _state = MutableStateFlow(load())
     val state: StateFlow<EqualizerState> = _state.asStateFlow()
-    private var saving: Job? = null
+    @Volatile private var saving: Job? = null
+
+    /** One write at a time: a write still running when the next begins would share the temporary file with it. */
+    private val writer = Dispatchers.IO.limitedParallelism(1)
 
     fun update(change: (EqualizerState) -> EqualizerState) {
         _state.update(change)
         saving?.cancel()
-        saving = scope.launch(Dispatchers.IO) {
+        saving = scope.launch(writer) {
             // Sliders change the state many times a second
             delay(SAVE_DELAY_MS)
             save(_state.value)

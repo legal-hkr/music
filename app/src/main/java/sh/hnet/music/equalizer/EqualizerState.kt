@@ -150,8 +150,22 @@ data class EqualizerState(
         return withRef(PresetRef(own = preset.name))
     }
 
-    /** [ref] (null: unsaved settings) in use on the device playing now, with [values] as they stand: what Undo puts back. */
-    fun withView(ref: PresetRef?, values: EqSettings) = withRef(ref ?: PresetRef.UNSAVED).withCurrent(values)
+    /**
+     * Undo on the equalizer's page: the device playing now uses what it used in [before], with the values
+     * as they stood there. A device that followed the Other devices slot follows it again, rather than
+     * getting a preset of its own; whatever else changed meanwhile (the switch, other devices) stays.
+     * Nothing is put back after a change of output: what was undone was the other device's.
+     */
+    fun undone(before: EqualizerState): EqualizerState {
+        if (device != before.device) return this
+        val own = device?.let(before.assigned::get)
+        val placed = when {
+            device == null -> copy(other = before.other)
+            own != null -> copy(assigned = assigned + (device to own))
+            else -> copy(assigned = assigned - device)
+        }
+        return placed.withCurrent(before.current).tidy()
+    }
 
     /** The preset in use, when it is the user's own. */
     val ownInUse: OwnPreset? get() = preset?.own?.let { name -> presets.firstOrNull { it.name == name } }
@@ -202,17 +216,24 @@ data class EqualizerState(
 
     /**
      * Undo of deleting [deleted]: the preset is back, and so is every use of it there was in [before],
-     * where nothing else was chosen meanwhile.
+     * where nothing else was chosen meanwhile – the devices that had it as their own, the slot, and the
+     * device left on unsaved settings by the deletion (back on the preset, or following the slot again).
      */
     fun restoredPreset(deleted: OwnPreset, before: EqualizerState): EqualizerState {
         val back = PresetRef(own = deleted.name)
-        val devices = before.assigned.filter { (key, ref) -> ref == back && assigned[key].let { it == null || it.isUnsaved } }
+        val uses = HashMap(assigned)
+        // Devices the deletion moved to the slot's preset
+        for ((key, ref) in before.assigned) if (ref == back && key !in assigned) uses[key] = back
+        // The device the deletion left on unsaved settings: as it was, with a preset of its own or without
+        for ((key, ref) in assigned) {
+            if (ref.isUnsaved && before.refFor(key) == back) before.assigned[key]?.let { uses[key] = it } ?: uses.remove(key)
+        }
         val slot = if (before.other == back && (other == PresetRef.FLAT || other.isUnsaved)) back else other
         val changes = before.edits[back.id]
         return copy(
             presets = presets.filterNot { it.name == deleted.name } + deleted,
             other = slot,
-            assigned = assigned + devices,
+            assigned = uses,
             edits = if (changes != null) edits + (back.id to changes) else edits,
         ).tidy()
     }
@@ -234,6 +255,21 @@ data class EqualizerState(
 
     /** [device] is back on the Other devices preset (unticked, or forgotten). */
     fun unassigned(device: String) = copy(assigned = assigned - device).tidy()
+
+    /**
+     * Undo of forgetting [device]: what it used in [before] – its own preset, the changes to it not
+     * saved yet, or unsaved settings – is back, unless something else was chosen for it meanwhile.
+     */
+    fun restoredDevice(device: String, before: EqualizerState): EqualizerState {
+        val ref = before.assigned[device] ?: return this
+        if (device in assigned || (!ref.isUnsaved && savedOf(ref) == null)) return this
+        val changes = before.edits[ref.id]
+        return copy(
+            assigned = assigned + (device to ref),
+            edits = if (changes != null && ref.id !in edits) edits + (ref.id to changes) else edits,
+            unsaved = if (ref.isUnsaved) unsaved ?: before.unsaved else unsaved,
+        ).tidy()
+    }
 
     /** The Other devices slot holds [preset]: new devices and devices with no preset of their own use it. */
     fun withOther(preset: PresetRef) = if (savedOf(preset) == null) this else copy(other = preset).tidy()

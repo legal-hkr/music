@@ -221,7 +221,7 @@ class EqualizerTest {
         // With no device left on the preset they go, as they always did; Undo puts the view back
         val alone = away.withDevice(dac).withBuiltIn(BuiltInPresets.FLAT)
         assertTrue(alone.edits.isEmpty())
-        val undone = alone.withView(state.preset, state.current)
+        val undone = alone.undone(state.withDevice(dac))
         assertEquals(-9f, undone.current.preampDb, 0f)
         assertTrue(undone.modified)
     }
@@ -264,5 +264,46 @@ class EqualizerTest {
         assertFalse(reset.enabled)
         assertEquals(PresetRef.FLAT, reset.preset)
         assertEquals(1, reset.presets.size)
+    }
+
+    @Test
+    fun `Undo leaves a device that follows the Other devices slot following it`() {
+        // As after an update from a version with one preset: the slot holds it, no device has its own
+        val before = EqualizerState(enabled = true).savedAsNew("Mine", 1, EqSettings(preampDb = -3f)).withDevice("speaker")
+        assertTrue(before.assigned.isEmpty())
+        // A change undone: the values are back and the device still has no preset of its own
+        val undone = before.withPreamp(-9f).undone(before)
+        assertEquals(before, undone)
+        // Another preset chosen for the device, then undone
+        val chosen = before.withBuiltIn(BuiltInPresets.AUDEZE_ISINE_10)
+        assertEquals(setOf("speaker"), chosen.assigned.keys)
+        assertEquals(before, chosen.undone(before))
+        // After a change of output there is nothing of this device's to put back
+        assertEquals(chosen.withDevice("usb:DAC"), chosen.withDevice("usb:DAC").undone(before))
+
+        // The slot's preset deleted while this device plays: unsaved settings; Undo puts everything back
+        val deleted = before.withoutPreset("Mine")
+        assertEquals(null, deleted.preset)
+        assertEquals(PresetRef.FLAT, deleted.other)
+        assertEquals(before, deleted.restoredPreset(before.presets.single(), before))
+    }
+
+    @Test
+    fun `forgetting a device and Undo give back its preset with the changes not saved yet`() {
+        val dac = "usb:DAC"
+        val isine = PresetRef(builtIn = BuiltInPresets.AUDEZE_ISINE_10.id)
+        // The device's own built-in preset with changes, which can't be saved into it
+        val before = EqualizerState().withDevice(dac).withBuiltIn(BuiltInPresets.AUDEZE_ISINE_10).withPreamp(-9f).withDevice("speaker")
+        val forgotten = before.unassigned(dac)
+        assertTrue(forgotten.edits.isEmpty())
+        val back = forgotten.restoredDevice(dac, before)
+        assertEquals(isine, back.refFor(dac))
+        assertEquals(-9f, back.valuesOf(isine).preampDb, 0f)
+        // Unsaved settings come back too
+        val unsaved = EqualizerState().withDevice(dac).savedAsNew("Mine", 1, EqSettings(preampDb = -2f)).withoutPreset("Mine").withDevice("speaker")
+        assertEquals(-2f, unsaved.unassigned(dac).restoredDevice(dac, unsaved).withDevice(dac).current.preampDb, 0f)
+        // Something else chosen for it meanwhile: left alone
+        val other = forgotten.assigned(dac, PresetRef.FLAT)
+        assertEquals(other, other.restoredDevice(dac, before))
     }
 }

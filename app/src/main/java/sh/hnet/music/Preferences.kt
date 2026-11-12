@@ -188,8 +188,13 @@ class Preferences(private val context: Context) {
 
     private val bitPerfectKey = booleanPreferencesKey("bit_perfect_output")
 
-    /** The one bit-perfect switch there was before the setting became each USB device's own (SPEC-output §10); read once, to move it. */
+    /**
+     * The one bit-perfect switch there was before the setting became each USB device's own (SPEC-output §10).
+     * Kept until a USB device is connected to hand it to (Outputs); set again by a backup from such a version.
+     */
     val legacyBitPerfect: Flow<Boolean> = context.settings.data.map { prefs -> prefs[bitPerfectKey] ?: false }
+
+    suspend fun setLegacyBitPerfect(on: Boolean) = context.settings.edit { it[bitPerfectKey] = on }
 
     suspend fun clearLegacyBitPerfect() = context.settings.edit { it.remove(bitPerfectKey) }
 

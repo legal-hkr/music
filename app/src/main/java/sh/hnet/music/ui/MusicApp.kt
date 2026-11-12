@@ -50,8 +50,10 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -78,7 +80,9 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import sh.hnet.music.MusicApplication
 import sh.hnet.music.R
 import sh.hnet.music.about.WhatsNew
@@ -169,7 +173,12 @@ fun MusicApp(openNowPlaying: Int = 0, openPlaylist: Pair<Int, Long> = 0 to -1L) 
     val hasQueue = playerState.queueSize > 0
     fun openNowPlaying() = scope.launch { nowPlaying.animateTo(true) }
     fun closeNowPlaying() = scope.launch { detailsOpen = false; equalizerOpen = false; settingsOpen = null; queueOpen = false; nowPlaying.animateTo(false) }
-    LaunchedEffect(openNowPlaying) { if (openNowPlaying > 0 && hasQueue) nowPlaying.animateTo(true) }
+    // Asked for by the notification or a widget. From a widget the process may only just have started, with
+    // the queue still being restored: the request waits a moment for it rather than being dropped
+    val hasQueueNow by rememberUpdatedState(hasQueue)
+    LaunchedEffect(openNowPlaying) {
+        if (openNowPlaying > 0 && withTimeoutOrNull(OPEN_WAIT_MS) { snapshotFlow { hasQueueNow }.first { it } } != null) nowPlaying.animateTo(true)
+    }
     LaunchedEffect(hasQueue) { if (!hasQueue) nowPlaying.snapTo(false) }
     val dragHeight = with(LocalDensity.current) { 600.dp.toPx() }
     var dragged by remember { mutableFloatStateOf(0f) }
@@ -616,6 +625,9 @@ fun MusicApp(openNowPlaying: Int = 0, openPlaylist: Pair<Int, Long> = 0 to -1L) 
     )
     }
 }
+
+/** How long a request to open now playing waits for the queue to be there. */
+private const val OPEN_WAIT_MS = 5_000L
 
 /** Before a device's key in the name of a settings page shown over now playing. */
 private const val DEVICE_PAGE = "device:"

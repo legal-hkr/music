@@ -153,16 +153,18 @@ class BitPerfectController(context: Context) {
     /** Whether what plays now goes out bit-perfect (the now-playing chip, the equalizer's note). */
     val active: StateFlow<Boolean> = _active.asStateFlow()
 
-    /** Called on the main thread when a USB output comes or goes: the output has to be opened again. */
+    /** Called on the main thread when what plays has to be opened again: it would now go out another way. */
     var onOutputChanged: (() -> Unit)? = null
     private var lastUsb: Int? = null
+    private var lastWanted = false
     private val callback = object : AudioDeviceCallback() {
-        override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>) = check()
-        override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>) = check()
+        override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>) = refresh()
+        override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>) = refresh()
     }
 
     fun start() {
         lastUsb = usbDevice()?.id
+        lastWanted = wanted()
         audio.registerAudioDeviceCallback(callback, Handler(Looper.getMainLooper()))
     }
 
@@ -174,18 +176,34 @@ class BitPerfectController(context: Context) {
         close()
     }
 
-    private fun check() {
+    /**
+     * To be called on the main thread when something a decision rests on has changed: a USB output came
+     * or went (seen here), the devices' switches, or the output music is sent to. The output is opened
+     * again only when that changes how it goes out – not, say, for the switch of a device that isn't
+     * connected, which would only interrupt the music.
+     */
+    fun refresh() {
         val now = usbDevice()?.id
-        if (now == lastUsb) return
+        val changed = now != lastUsb
         lastUsb = now
-        if (now == null) {
+        if (changed && now == null) {
             close()
             refused = null
             _stream.value = null
         }
-        // With no switch on nothing of ours depends on the output: the system's own routing is enough
-        if (enabledKeys.isNotEmpty()) onOutputChanged?.invoke()
+        val wanted = wanted()
+        if (wanted != lastWanted || (wanted && changed)) {
+            lastWanted = wanted
+            onOutputChanged?.invoke()
+        }
     }
+
+    /** Whether music goes to a USB device whose switch is on: the only case in which anything of ours depends on the output. */
+    private fun wanted(): Boolean = usbDevice()?.let(::chosen) == true
+
+    /** [device] is where music is sent now – a USB device can be connected while music plays elsewhere – and its switch is on. */
+    private fun chosen(device: AudioDeviceInfo): Boolean =
+        CurrentOutput.output(device).key in enabledKeys && audio.getAudioDevicesForAttributes(media).any { it.id == device.id }
 
     private fun usbDevice(): AudioDeviceInfo? = OutputDevices.usbDevice(audio)
 
@@ -195,7 +213,7 @@ class BitPerfectController(context: Context) {
      */
     fun prepare(sampleRate: Int, sourceBits: Int, channels: Int): Boolean {
         pending = choose(sampleRate, sourceBits, channels)
-        refused = if (pending == null && usbDevice()?.let { CurrentOutput.output(it).key in enabledKeys } == true) Stream(false, sourceBits, sampleRate) else null
+        refused = if (pending == null && wanted()) Stream(false, sourceBits, sampleRate) else null
         // Already through the mixer, where one output serves stream after stream: the reason follows the stream
         if (pending == null && _stream.value?.bitPerfect == false) _stream.value = refused
         return pending != null
@@ -203,7 +221,7 @@ class BitPerfectController(context: Context) {
 
     private fun choose(sampleRate: Int, sourceBits: Int, channels: Int): Choice? {
         val device = usbDevice() ?: return null
-        if (CurrentOutput.output(device).key !in enabledKeys) return null
+        if (!chosen(device)) return null
         val offered = audio.getSupportedMixerAttributes(device).filter { it.mixerBehavior == AudioMixerAttributes.MIXER_BEHAVIOR_BIT_PERFECT }
         val formats = offered.map { OutputDevices.format(it.format) }
         val chosen = BitPerfect.choose(formats, sampleRate, sourceBits, channels) ?: return null

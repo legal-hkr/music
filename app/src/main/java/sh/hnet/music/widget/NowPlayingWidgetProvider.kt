@@ -12,6 +12,7 @@ import android.util.SizeF
 import android.view.View
 import android.widget.RemoteViews
 import androidx.core.content.edit
+import androidx.core.net.toUri
 import sh.hnet.music.MainActivity
 import sh.hnet.music.MusicApplication
 import sh.hnet.music.R
@@ -47,8 +48,9 @@ open class NowPlayingWidgetProvider : AppWidgetProvider() {
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         // After a restart of the phone or the process there is nothing to show yet: the app's widget
-        // updater connects to the player, whose kept queue gives the last track, paused
-        (context.applicationContext as MusicApplication).widgets.start()
+        // updater connects to the player, whose kept queue gives the last track, paused. A widget placed
+        // while that runs already is drawn from what the others show
+        (context.applicationContext as MusicApplication).widgets.start(redraw = true)
     }
 
     /** What the widget shows; [title] null when nothing plays and nothing is queued. */
@@ -117,6 +119,8 @@ open class NowPlayingWidgetProvider : AppWidgetProvider() {
             common(context, content, artist = wide)
             setViewVisibility(R.id.widget_label, if (wide || empty) View.VISIBLE else View.GONE)
             // The label hugs its text, up to the room between the cover and the button
+            // Two cells wide the label, where there is one (nothing playing), has the title alone
+            if (!wide) setViewVisibility(R.id.widget_text, View.GONE)
             val room = ((if (wide) WIDE_BAR_LABEL_DP else NARROW_BAR_LABEL_DP) * context.resources.displayMetrics.density).toInt()
             setInt(R.id.widget_title, "setMaxWidth", room)
             setInt(R.id.widget_text, "setMaxWidth", room)
@@ -172,8 +176,11 @@ open class NowPlayingWidgetProvider : AppWidgetProvider() {
         /** Opens Music: on Now playing, or wherever it is (the Library, or the first run) when nothing plays. */
         private fun open(context: Context, nowPlaying: Boolean): PendingIntent {
             val intent = Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                // Told apart by its address: two pending intents that differ only in extras are one, and this
+                // one would trade extras with the notification's
+                .setData((if (nowPlaying) "music-widget://open/now-playing" else "music-widget://open").toUri())
             if (nowPlaying) intent.putExtra(MainActivity.EXTRA_OPEN_NOW_PLAYING, true)
-            return PendingIntent.getActivity(context, if (nowPlaying) 1 else 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+            return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         }
 
         private const val COVER_DP = 240

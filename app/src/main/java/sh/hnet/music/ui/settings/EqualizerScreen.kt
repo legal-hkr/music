@@ -179,8 +179,8 @@ fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageSco
                     if (snackbars.showSnackbar(text, actionLabel = undo, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed) {
                         store.update { now ->
                             // What was heard before comes back, unless another preset was chosen meanwhile
-                            val inUse = now.preset?.own == imported && now.device == before.device
-                            (if (inUse) now.withView(before.preset, before.current) else now).withoutPreset(imported)
+                            val inUse = now.preset?.own == imported
+                            (if (inUse) now.undone(before) else now).withoutPreset(imported)
                         }
                     }
                 }
@@ -235,7 +235,7 @@ fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageSco
         if (snackbars.showSnackbar(message, actionLabel = undo, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed) {
             // Only the values: whatever else changed meanwhile (the switch) stays. They were this device's:
             // after a change of output there is nothing of the new one's to put back
-            store.update { if (it.device == before.device) it.withView(before.preset, before.current) else it }
+            store.update { it.undone(before) }
         }
     }
 

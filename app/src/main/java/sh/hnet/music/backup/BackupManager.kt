@@ -16,6 +16,8 @@ import sh.hnet.music.data.Documents
 import sh.hnet.music.data.Playlist
 import sh.hnet.music.data.PlaylistEntry
 import sh.hnet.music.library.PlaylistRepository
+import sh.hnet.music.playback.OutputKind
+import sh.hnet.music.widget.PlaylistWidgetProvider
 
 /**
  * Backup and restore (SPEC-settings-v2 §7): writes the settings, all playlists and the equalizer
@@ -101,8 +103,22 @@ class BackupManager(private val app: MusicApplication, private val stamps: Share
         val devices = backup.settings.output
         val everywhere = backup.settings.playback.bitPerfect
         if (devices != null) app.outputs.update { EqualizerBackup.restoreDevices(devices) }
-        else if (everywhere != null) app.outputs.update { it.withBitPerfectEverywhere(everywhere) }
-        app.database.playlistDao().replaceAll(playlists)
+        else if (everywhere != null) {
+            app.outputs.update { it.withBitPerfectEverywhere(everywhere) }
+            // With no USB device remembered here the switch waits for the first one to be connected
+            if (everywhere && app.outputs.devices.value.devices.none { it.kind == OutputKind.USB }) app.preferences.setLegacyBitPerfect(true)
+        }
+        val dao = app.database.playlistDao()
+        val before = dao.allPlaylists()
+        dao.replaceAll(playlists)
+        // Every playlist has a new id now. A Playlist widget keeps its playlist by id: it follows the one that
+        // has the same name (or is Starred as well); a playlist the backup doesn't have is gone for it too
+        val after = dao.allPlaylists()
+        fun same(old: Playlist, new: Playlist) =
+            if (old.builtin != null || new.builtin != null) old.builtin == new.builtin else PlaylistRepository.nameKey(old.name) == PlaylistRepository.nameKey(new.name)
+        val moved = before.mapNotNull { old -> after.firstOrNull { same(old, it) }?.let { old.id to it.id } }.toMap()
+        app.playlistWidgets.follow(PlaylistWidgetProvider.ids(app), moved)
+        withContext(Dispatchers.Main) { app.widgets.start(redraw = true) }
         app.playlists.requestResolve()
         playlists.count { (playlist, entries) -> playlist.builtin == null || entries.isNotEmpty() }
     }
