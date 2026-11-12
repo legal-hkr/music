@@ -185,12 +185,18 @@ class PlayerConnection(private val context: Context) {
         }
     }
 
-    fun togglePlayPause() = withController { c ->
-        if (c.isPlaying) c.pause() else {
-            if (c.playbackState == Player.STATE_IDLE) c.prepare()
-            if (c.playbackState == Player.STATE_ENDED) c.seekToDefaultPosition()
-            c.play()
-        }
+    fun togglePlayPause() = withController { c -> if (c.isPlaying) c.pause() else resume(c) }
+
+    /** Plays, whatever the state (a widget's Play: what it shows may be older than the player's state). */
+    fun play() = withController(::resume)
+
+    /** Pauses, whatever the state (a widget's Pause). */
+    fun pause() = withController { it.pause() }
+
+    private fun resume(c: MediaController) {
+        if (c.playbackState == Player.STATE_IDLE) c.prepare()
+        if (c.playbackState == Player.STATE_ENDED) c.seekToDefaultPosition()
+        c.play()
     }
 
     /** Repeat one: the current track again (the queue is just this track then). */

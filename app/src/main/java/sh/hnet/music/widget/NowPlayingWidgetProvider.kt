@@ -164,7 +164,7 @@ open class NowPlayingWidgetProvider : AppWidgetProvider() {
             setImageViewResource(R.id.widget_play, if (content.playing) R.drawable.ic_pause else R.drawable.ic_play_arrow)
             setInt(R.id.widget_play, "setBackgroundResource", if (content.playing) R.drawable.widget_button_primary_circle else R.drawable.widget_button_primary_rounded)
             setContentDescription(R.id.widget_play, context.getString(if (content.playing) R.string.content_description_pause else R.string.content_description_play))
-            setOnClickPendingIntent(R.id.widget_play, WidgetActionReceiver.intent(context, WidgetActionReceiver.ACTION_PLAY_PAUSE))
+            setOnClickPendingIntent(R.id.widget_play, WidgetActionReceiver.intent(context, if (content.playing) WidgetActionReceiver.ACTION_PAUSE else WidgetActionReceiver.ACTION_PLAY))
             if (!empty) setContentDescription(R.id.widget_root, context.getString(R.string.content_description_widget_now_playing, title, text))
             setOnClickPendingIntent(R.id.widget_root, open(context, nowPlaying = !empty))
         }

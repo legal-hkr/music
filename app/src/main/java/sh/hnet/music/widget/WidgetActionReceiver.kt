@@ -15,7 +15,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import sh.hnet.music.MusicApplication
 
 /**
- * A widget's buttons (SPEC-widgets §3.4, §5.5): play/pause, previous and next, and playing a playlist,
+ * A widget's buttons (SPEC-widgets §3.4, §5.5): play, pause, previous and next, and playing a playlist,
  * go to the player through the app's own controller, without opening the app. Not exported: only our pending intents reach it.
  */
 class WidgetActionReceiver : BroadcastReceiver() {
@@ -27,8 +27,11 @@ class WidgetActionReceiver : BroadcastReceiver() {
         val finish = { if (!finished) { finished = true; result.finish() } }
         app.widgets.start()
         when (intent.action) {
-            // With nothing queued yet (the service is just restoring its kept queue), Play stands and starts it
-            ACTION_PLAY_PAUSE -> app.player.togglePlayPause()
+            // Play and Pause apart, not a toggle: after the process was killed a widget may still show Pause,
+            // and a tap on it must not start anything. With nothing queued yet (the service is just
+            // restoring its kept queue), Play stands and starts it
+            ACTION_PLAY -> app.player.play()
+            ACTION_PAUSE -> app.player.pause()
             ACTION_PREVIOUS -> app.player.previous()
             ACTION_NEXT -> app.player.next()
             ACTION_PLAYLIST -> {
@@ -53,7 +56,8 @@ class WidgetActionReceiver : BroadcastReceiver() {
     }
 
     companion object {
-        const val ACTION_PLAY_PAUSE = "sh.hnet.music.widget.PLAY_PAUSE"
+        const val ACTION_PLAY = "sh.hnet.music.widget.PLAY"
+        const val ACTION_PAUSE = "sh.hnet.music.widget.PAUSE"
         const val ACTION_PREVIOUS = "sh.hnet.music.widget.PREVIOUS"
         const val ACTION_NEXT = "sh.hnet.music.widget.NEXT"
         const val ACTION_PLAYLIST = "sh.hnet.music.widget.PLAYLIST"
