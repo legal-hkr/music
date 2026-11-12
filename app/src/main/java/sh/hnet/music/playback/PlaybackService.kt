@@ -172,6 +172,12 @@ class PlaybackService : MediaSessionService() {
         scope.launch {
             outputs.system.map { it.current }.distinctUntilChanged().collect { if (player.isPlaying) outputs.played() }
         }
+        // The equalizer follows the device: its preset is heard as soon as the output changes (SPEC-output §2.2)
+        scope.launch {
+            outputs.system.map { it.current?.key }.distinctUntilChanged().collect { key ->
+                if (key != null) (application as MusicApplication).equalizer.update { it.withDevice(key) }
+            }
+        }
         // The equalizer: heard at once, whatever changes it
         scope.launch {
             (application as MusicApplication).equalizer.state.collect { gainSink.equalizer = it.applied }

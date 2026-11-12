@@ -543,7 +543,6 @@
     <string name="desc_builtin">Wbudowany</string>
     <string name="desc_own_preset">Własny</string>
     <string name="desc_modified">Zmieniony</string>
-    <string name="label_all_outputs">Dla wszystkich wyjść</string>
     <string name="label_eq_preamp">Przedwzmacniacz</string>
     <string name="title_filters">Filtry (%d)</string>
     <string name="label_filter_type_peak">Dzwonowy</string>
@@ -584,7 +583,6 @@
         <item quantity="many">%d filtrów</item>
         <item quantity="other">%d filtra</item>
     </plurals>
-    <string name="desc_no_filters">Bez filtrów</string>
     <string name="label_flat">Płaski</string>
     <string name="msg_changes_discarded">Odrzucono zmiany</string>
     <string name="title_preset_sources">Presety korektora</string>
@@ -664,6 +662,21 @@
     <string name="msg_bit_perfect_needs_usb">Wyjście bit-perfect wymaga urządzenia audio USB.</string>
     <string name="button_forget_device">Zapomnij urządzenie</string>
     <string name="msg_forgot_device"><![CDATA[Zapomniano: <b>%s</b>]]></string>
+    <string name="label_applies_to">Dotyczy</string>
+    <string name="msg_applies_to">Urządzenia korzystające z presetu %s. Wybranie urządzenia zastępuje jego dotychczasowy preset.</string>
+    <plurals name="desc_applies_more">
+        <item quantity="one">%1$s i %2$d inne</item>
+        <item quantity="few">%1$s i %2$d inne</item>
+        <item quantity="many">%1$s i %2$d innych</item>
+        <item quantity="other">%1$s i %2$d innego</item>
+    </plurals>
+    <string name="label_other_devices">Pozostałe urządzenia</string>
+    <string name="label_other_devices_lower">pozostałe urządzenia</string>
+    <string name="desc_other_devices">Nowe i niezaznaczone urządzenia. Teraz: %s</string>
+    <string name="desc_now_preset">Teraz: %s</string>
+    <string name="desc_bit_perfect_not_heard">Bit-perfect włączony: preset pomijany</string>
+    <string name="desc_not_used">Nieużywany</string>
+    <string name="desc_for_device">Dla: %s</string>
     <plurals name="label_bit_count">
         <item quantity="one">%d bit</item>
         <item quantity="few">%d bity</item>

@@ -496,7 +496,6 @@
     <string name="desc_builtin">Built-in</string>
     <string name="desc_own_preset">Your own</string>
     <string name="desc_modified">Modified</string>
-    <string name="label_all_outputs">Applies to all outputs</string>
     <string name="label_eq_preamp">Pre-amp</string>
     <string name="title_filters">Filters (%d)</string>
     <string name="label_filter_type_peak">Peak</string>
@@ -533,7 +532,6 @@
         <item quantity="one">%d filter</item>
         <item quantity="other">%d filters</item>
     </plurals>
-    <string name="desc_no_filters">No filters</string>
     <string name="label_flat">Flat</string>
     <string name="msg_changes_discarded">Changes discarded</string>
     <string name="title_preset_sources">Equalizer presets</string>
@@ -611,6 +609,19 @@
     <string name="msg_bit_perfect_needs_usb">Bit-perfect output needs a USB audio device.</string>
     <string name="button_forget_device">Forget device</string>
     <string name="msg_forgot_device"><![CDATA[Forgot <b>%s</b>]]></string>
+    <string name="label_applies_to">Applies to</string>
+    <string name="msg_applies_to">Devices that use %s. Selecting a device replaces its current preset.</string>
+    <plurals name="desc_applies_more">
+        <item quantity="one">%1$s and %2$d more</item>
+        <item quantity="other">%1$s and %2$d more</item>
+    </plurals>
+    <string name="label_other_devices">Other devices</string>
+    <string name="label_other_devices_lower">other devices</string>
+    <string name="desc_other_devices">New and unticked devices. Now: %s</string>
+    <string name="desc_now_preset">Now: %s</string>
+    <string name="desc_bit_perfect_not_heard">Bit-perfect on: not heard</string>
+    <string name="desc_not_used">Not used</string>
+    <string name="desc_for_device">For %s</string>
     <plurals name="label_bit_count">
         <item quantity="one">%d bit</item>
         <item quantity="other">%d bit</item>

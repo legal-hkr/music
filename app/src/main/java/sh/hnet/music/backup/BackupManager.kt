@@ -94,7 +94,8 @@ class BackupManager(private val app: MusicApplication, private val stamps: Share
         // A backup from before the equalizer says nothing about it: it stays as it is
         backup.settings.equalizer?.let { stored ->
             val restored = EqualizerBackup.restore(stored, backup.equalizerPresets.orEmpty(), now, PlaylistRepository::nameKey)
-            app.equalizer.update { restored }
+            // Every device is on the restored preset; which device plays now is no part of a backup
+            app.equalizer.update { restored.withDevice(it.device) }
         }
         app.database.playlistDao().replaceAll(playlists)
         app.playlists.requestResolve()

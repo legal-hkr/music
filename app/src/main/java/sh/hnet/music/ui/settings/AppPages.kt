@@ -2,7 +2,6 @@
 
 package sh.hnet.music.ui.settings
 
-import sh.hnet.music.equalizer.BuiltInPresets
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.text.AnnotatedString
@@ -131,8 +130,8 @@ fun ResetScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageScope: 
                 confirming = false
                 scope.launch {
                     preferences.restoreDefaults()
-                    // The equalizer: off, on Flat; the user's presets are data and stay (SPEC-equalizer §13.2)
-                    (context.applicationContext as MusicApplication).equalizer.update { it.copy(enabled = false).withBuiltIn(BuiltInPresets.FLAT) }
+                    // The equalizer: off, Flat on every device; the user's presets are data and stay (SPEC-equalizer §13.2, SPEC-output §11)
+                    (context.applicationContext as MusicApplication).equalizer.update { it.restoredDefaults() }
                     Toast.makeText(context, done, Toast.LENGTH_SHORT).show()
                     // Last: a language change recreates the activity
                     if (currentLanguageTag(context).isNotEmpty()) setLanguage(context, "")

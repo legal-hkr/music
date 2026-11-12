@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
 import java.io.File
 import java.io.IOException
 
@@ -20,7 +21,8 @@ import java.io.IOException
  * Read once at start (a small file); every change is heard at once and written a moment later.
  */
 class EqualizerStore(private val file: File, private val scope: CoroutineScope) {
-    private val json = Json { ignoreUnknownKeys = true }
+    // Every field is written: a file without the devices' part is one of an earlier version
+    private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     private val _state = MutableStateFlow(load())
     val state: StateFlow<EqualizerState> = _state.asStateFlow()
     private var saving: Job? = null
@@ -36,7 +38,13 @@ class EqualizerStore(private val file: File, private val scope: CoroutineScope) 
     }
 
     private fun load(): EqualizerState = try {
-        if (file.exists()) json.decodeFromString(EqualizerState.serializer(), file.readText()) else EqualizerState()
+        if (file.exists()) {
+            val text = file.readText()
+            if ("assigned" in json.parseToJsonElement(text).jsonObject) json.decodeFromString(EqualizerState.serializer(), text)
+            else json.decodeFromString(LegacyEqualizerState.serializer(), text).migrated()
+        } else {
+            EqualizerState()
+        }
     } catch (_: IOException) {
         EqualizerState()
     } catch (_: SerializationException) {

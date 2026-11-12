@@ -4,6 +4,7 @@ package sh.hnet.music.ui.settings
 
 import sh.hnet.music.playback.EqSettings
 import sh.hnet.music.equalizer.PresetRef
+import sh.hnet.music.output.Device
 import androidx.core.text.htmlEncode
 import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.AnnotatedString
@@ -99,6 +100,7 @@ import sh.hnet.music.ui.components.LocalBottomOverlay
 import sh.hnet.music.ui.components.RowIcon
 import sh.hnet.music.ui.components.SettingsDescription
 import sh.hnet.music.ui.components.SettingsGroup
+import sh.hnet.music.ui.components.SettingsNavigationRow
 import sh.hnet.music.ui.components.SettingsNote
 import sh.hnet.music.ui.components.SettingsPage
 import sh.hnet.music.ui.components.StepperField
@@ -123,6 +125,9 @@ fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageSco
     val state by store.state.collectAsStateWithLifecycle()
     val bypassed by app.bitPerfect.active.collectAsStateWithLifecycle()
     val filters = state.current.filters
+    val (devices, playingOn) = rememberEqualizerDevices()
+    val allDevices by app.outputs.devices.collectAsStateWithLifecycle()
+    var choosingDevices by rememberSaveable { mutableStateOf(false) }
     val resources = LocalResources.current
     val locale = LocalConfiguration.current.locales[0]
     val undo = stringResource(R.string.button_undo)
@@ -172,12 +177,8 @@ fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageSco
                     if (snackbars.showSnackbar(text, actionLabel = undo, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed) {
                         store.update { now ->
                             // What was heard before comes back, unless another preset was chosen meanwhile
-                            val inUse = now.preset?.own == imported
-                            now.copy(
-                                presets = now.presets.filterNot { it.name == imported },
-                                preset = if (inUse) before.preset else now.preset,
-                                current = if (inUse) before.current else now.current,
-                            )
+                            val inUse = now.preset?.own == imported && now.device == before.device
+                            (if (inUse) now.withView(before.preset, before.current) else now).withoutPreset(imported)
                         }
                     }
                 }
@@ -230,8 +231,9 @@ fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageSco
     fun offerUndo(message: String, before: EqualizerState) = messageScope.launch {
         snackbars.currentSnackbarData?.dismiss()
         if (snackbars.showSnackbar(message, actionLabel = undo, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed) {
-            // Only the values: whatever else changed meanwhile (the switch) stays
-            store.update { it.copy(preset = before.preset, current = before.current) }
+            // Only the values: whatever else changed meanwhile (the switch) stays. They were this device's:
+            // after a change of output there is nothing of the new one's to put back
+            store.update { if (it.device == before.device) it.withView(before.preset, before.current) else it }
         }
     }
 
@@ -265,6 +267,8 @@ fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageSco
         ) {
             SettingsPage(
                 title = stringResource(R.string.title_equalizer),
+                // The page shows and edits the preset of the device playing now (SPEC-output §8.1)
+                subtitle = devices.firstOrNull { it.key == playingOn }?.let { outputName(it.output) },
                 onBack = onBack,
                 topInsets = topInsets,
                 pinned = {
@@ -317,10 +321,12 @@ fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageSco
                             Text(presetName(state))
                         }
                     }
-                    // The place device profiles take later (§12): for now it only says so
-                    row { shapes ->
-                        SegmentedListItem(onClick = {}, shapes = shapes, colors = settingsRowColors(), leadingContent = { RowIcon(R.drawable.ic_devices) }) {
-                            Text(stringResource(R.string.label_all_outputs))
+                    // Which devices use this preset (SPEC-output §8.2); unsaved settings are no preset to give to one
+                    state.preset?.let { preset ->
+                        row { shapes ->
+                            SettingsNavigationRow(shapes, R.drawable.ic_devices, stringResource(R.string.label_applies_to), presetUse(state, preset, devices) ?: usedHere(devices, playingOn)) {
+                                choosingDevices = true
+                            }
                         }
                     }
                 }
@@ -402,10 +408,14 @@ fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageSco
             val before = state
             editing = null
             store.update(change)
-            if (before.modified) offerUndo(resources.getString(R.string.msg_changes_discarded), before)
+            // Changes to a preset another device still uses stay with it; otherwise they went with this choice
+            val kept = before.preset?.id in store.state.value.edits
+            if (before.modified && !kept) offerUndo(resources.getString(R.string.msg_changes_discarded), before)
         }
         PresetSheet(
             state = state,
+            devices = devices,
+            playingOn = playingOn,
             onDismiss = { choosingPreset = false },
             onNew = { choosingPreset = false; startingNew = true },
             onImport = { choosingPreset = false; importPicker.launch(arrayOf("text/plain", "application/octet-stream")) },
@@ -418,22 +428,30 @@ fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageSco
             onDelete = { name ->
                 choosingPreset = false
                 val deleted = state.presets.firstOrNull { it.name == name } ?: return@PresetSheet
-                val wasInUse = state.preset?.own == name
+                val before = state
                 store.update { it.withoutPreset(name) }
                 messageScope.launch {
                     snackbars.currentSnackbarData?.dismiss()
                     val text = AnnotatedString.fromHtml(deletedText.format(name.htmlEncode())).text
                     if (snackbars.showSnackbar(text, actionLabel = undo, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed) {
-                        store.update { now ->
-                            now.copy(
-                                presets = now.presets.filterNot { it.name == name } + deleted,
-                                // In use again, unless another preset was chosen meanwhile
-                                preset = if (wasInUse && now.preset == null) PresetRef(own = name) else now.preset,
-                            )
-                        }
+                        // In use again wherever it was, unless another preset was chosen there meanwhile
+                        store.update { it.restoredPreset(deleted, before) }
                     }
                 }
             },
+        )
+    }
+    val shownPreset = state.preset
+    if (choosingDevices && shownPreset != null) {
+        AppliesToSheet(
+            state = state,
+            preset = shownPreset,
+            devices = devices,
+            current = playingOn,
+            bitPerfect = allDevices.bitPerfectKeys,
+            onDismiss = { choosingDevices = false },
+            onDevice = { key, uses -> store.update { if (uses) it.assigned(key, shownPreset) else it.unassigned(key) } },
+            onOther = { store.update { it.withOther(shownPreset) } },
         )
     }
     if (startingNew) {
@@ -616,17 +634,21 @@ fun FilterType.label(): Int = when (this) {
     FilterType.HIGH_SHELF -> R.string.label_filter_type_high_shelf
 }
 
-/** The preset in use by name: "Flat" from the resources, "Unsaved settings" when its preset is gone. */
+/** [ref] (by default the preset in use) by name: "Flat" from the resources, "Unsaved settings" when its preset is gone. */
 @Composable
-fun presetName(state: EqualizerState): String {
-    val ref = state.preset
+fun presetName(state: EqualizerState, ref: PresetRef? = state.preset): String {
     val builtIn = BuiltInPresets.byId(ref?.builtIn)
     return when {
         builtIn != null -> builtIn.name ?: stringResource(R.string.label_flat)
-        ref?.own != null && state.saved != null -> ref.own
+        ref?.own != null && state.savedOf(ref) != null -> ref.own
         else -> stringResource(R.string.label_eq_unsaved)
     }
 }
+
+/** The Applies to line while only the device playing now is known to use the preset. */
+@Composable
+private fun usedHere(devices: List<Device>, playingOn: String?): String =
+    devices.firstOrNull { it.key == playingOn }?.let { outputName(it.output) } ?: stringResource(R.string.label_other_devices)
 
 @Composable
 private fun presetKind(state: EqualizerState): String? = when {

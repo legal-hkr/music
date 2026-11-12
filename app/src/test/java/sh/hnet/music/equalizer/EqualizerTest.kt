@@ -176,4 +176,93 @@ class EqualizerTest {
         // Deleting another one changes nothing in use
         assertEquals(PresetRef(builtIn = "flat"), other.withoutPreset("Evening").preset)
     }
+
+    @Test
+    fun `each device uses its own preset or the Other devices one, and the one playing now is heard`() {
+        val buds = "bluetooth:Buds"
+        val dac = "usb:DAC"
+        val isine = PresetRef(builtIn = BuiltInPresets.AUDEZE_ISINE_10.id)
+        // Before a device is known the slot stands for it: what an earlier version's one preset becomes
+        var state = EqualizerState(enabled = true).withBuiltIn(BuiltInPresets.AUDEZE_ISINE_10)
+        assertEquals(isine, state.other)
+        state = state.withDevice(buds)
+        assertEquals(isine, state.preset)
+        // A choice is the device's playing now; the slot and other devices keep theirs
+        state = state.withBuiltIn(BuiltInPresets.FLAT)
+        assertEquals(PresetRef.FLAT, state.refFor(buds))
+        assertEquals(isine, state.refFor(dac))
+        assertEquals(EqSettings(), state.applied)
+        state = state.withDevice(dac)
+        assertEquals(BuiltInPresets.AUDEZE_ISINE_10.settings, state.applied)
+
+        // Ticked in Applies to: moved from its previous preset; unticked: back on the slot's
+        state = state.assigned(buds, isine)
+        assertEquals(setOf(buds), state.usedBy(isine))
+        assertEquals(emptySet<String>(), state.usedBy(PresetRef.FLAT))
+        state = state.unassigned(buds).withOther(PresetRef.FLAT)
+        assertEquals(PresetRef.FLAT, state.refFor(buds))
+        assertEquals(PresetRef.FLAT, state.refFor(dac))
+        // No such preset: nothing changes
+        assertEquals(state, state.assigned(buds, PresetRef(own = "Gone")))
+    }
+
+    @Test
+    fun `changes not saved yet stay with their preset for every device using it`() {
+        val buds = "bluetooth:Buds"
+        val dac = "usb:DAC"
+        var state = EqualizerState().withDevice(buds).withBuiltIn(BuiltInPresets.AUDEZE_ISINE_10).assigned(dac, PresetRef(builtIn = BuiltInPresets.AUDEZE_ISINE_10.id))
+        state = state.withPreamp(-9f)
+        assertTrue(state.modified)
+        // The other device hears them too, and they outlive this device's choice of another preset
+        assertEquals(-9f, state.withDevice(dac).current.preampDb, 0f)
+        val away = state.withBuiltIn(BuiltInPresets.FLAT)
+        assertFalse(away.modified)
+        assertEquals(-9f, away.withDevice(dac).current.preampDb, 0f)
+        // With no device left on the preset they go, as they always did; Undo puts the view back
+        val alone = away.withDevice(dac).withBuiltIn(BuiltInPresets.FLAT)
+        assertTrue(alone.edits.isEmpty())
+        val undone = alone.withView(state.preset, state.current)
+        assertEquals(-9f, undone.current.preampDb, 0f)
+        assertTrue(undone.modified)
+    }
+
+    @Test
+    fun `deleting a preset moves its devices to the Other devices preset and Undo moves them back`() {
+        val buds = "bluetooth:Buds"
+        val dac = "usb:DAC"
+        val mine = PresetRef(own = "Mine")
+        var state = EqualizerState().withDevice(buds).savedAsNew("Mine", 1, EqSettings(preampDb = -3f)).assigned(dac, mine).withOther(mine)
+        val before = state
+        state = state.withoutPreset("Mine")
+        // The slot is on Flat, the other device follows it, and what was heard stays heard
+        assertEquals(PresetRef.FLAT, state.other)
+        assertEquals(PresetRef.FLAT, state.refFor(dac))
+        assertEquals(null, state.preset)
+        assertEquals(-3f, state.current.preampDb, 0f)
+        val undone = state.restoredPreset(before.presets.single(), before)
+        assertEquals(before, undone)
+        // Unsaved settings go once another preset is chosen
+        assertEquals(null, state.withBuiltIn(BuiltInPresets.FLAT).unsaved)
+        // A rename is followed everywhere
+        val renamed = before.withPreamp(-5f).renamed("Mine", "Evening", 2)
+        assertEquals(PresetRef(own = "Evening"), renamed.other)
+        assertEquals(PresetRef(own = "Evening"), renamed.refFor(dac))
+        assertEquals(-5f, renamed.current.preampDb, 0f)
+    }
+
+    @Test
+    fun `an earlier version's equalizer becomes the Other devices preset and Restore defaults clears every device`() {
+        val old = LegacyEqualizerState(enabled = true, preset = PresetRef(builtIn = BuiltInPresets.AUDEZE_ISINE_10.id), current = BuiltInPresets.AUDEZE_ISINE_10.settings.copy(preampDb = -7f)).migrated()
+        assertTrue(old.assigned.isEmpty())
+        assertTrue(old.modified)
+        assertEquals(-7f, old.withDevice("speaker").applied!!.preampDb, 0f)
+        // Unsaved settings stay unsaved settings
+        val unsaved = LegacyEqualizerState(preset = null, current = EqSettings(preampDb = -2f)).migrated()
+        assertEquals(null, unsaved.preset)
+        assertEquals(-2f, unsaved.current.preampDb, 0f)
+        val reset = old.withDevice("speaker").withBuiltIn(BuiltInPresets.AUDEZE_ISINE_10).savedAsNew("Mine", 1).restoredDefaults()
+        assertFalse(reset.enabled)
+        assertEquals(PresetRef.FLAT, reset.preset)
+        assertEquals(1, reset.presets.size)
+    }
 }

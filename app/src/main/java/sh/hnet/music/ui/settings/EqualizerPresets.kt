@@ -48,6 +48,8 @@ import sh.hnet.music.R
 import sh.hnet.music.equalizer.BuiltInPreset
 import sh.hnet.music.equalizer.BuiltInPresets
 import sh.hnet.music.equalizer.EqualizerState
+import sh.hnet.music.equalizer.PresetRef
+import sh.hnet.music.output.Device
 import sh.hnet.music.library.PlaylistRepository
 import sh.hnet.music.playback.EqSettings
 import sh.hnet.music.ui.components.MenuItem
@@ -87,6 +89,8 @@ fun PresetActions(state: EqualizerState, onSave: () -> Unit, onSaveAsNew: () -> 
 @Composable
 fun PresetSheet(
     state: EqualizerState,
+    devices: List<Device>,
+    playingOn: String?,
     onDismiss: () -> Unit,
     onNew: () -> Unit,
     onImport: () -> Unit,
@@ -104,7 +108,14 @@ fun PresetSheet(
             Text(
                 stringResource(R.string.title_presets),
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp).semantics { heading() },
+                modifier = Modifier.padding(horizontal = 16.dp).semantics { heading() },
+            )
+            // A choice here is the device's playing now; other devices keep theirs (SPEC-output §8.4)
+            Text(
+                devices.firstOrNull { it.key == playingOn }?.let { stringResource(R.string.desc_for_device, outputName(it.output)) }.orEmpty(),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp),
             )
             ListItem(
                 onClick = onNew,
@@ -126,7 +137,7 @@ fun PresetSheet(
                 if (own.isNotEmpty()) {
                     GroupHeader(stringResource(R.string.title_your_presets))
                     own.forEach { preset ->
-                        PresetRow(preset.name, preset.settings, selected = state.preset?.own == preset.name, colors, onClick = { onSelectOwn(preset.name) }) {
+                        PresetRow(preset.name, presetUse(state, PresetRef(own = preset.name), devices), selected = state.preset?.own == preset.name, colors, onClick = { onSelectOwn(preset.name) }) {
                             OwnPresetMenu(preset.name, onRename = { onRename(preset.name) }, onExport = { onExportOwn(preset.name) }, onDelete = { onDelete(preset.name) })
                         }
                     }
@@ -134,7 +145,7 @@ fun PresetSheet(
                 GroupHeader(stringResource(R.string.title_builtin_presets))
                 BuiltInPresets.all.forEach { preset ->
                     val name = preset.name ?: stringResource(R.string.label_flat)
-                    PresetRow(name, preset.settings, selected = state.preset?.builtIn == preset.id, colors, onClick = { onSelectBuiltIn(preset) }) {
+                    PresetRow(name, presetUse(state, PresetRef(builtIn = preset.id), devices), selected = state.preset?.builtIn == preset.id, colors, onClick = { onSelectBuiltIn(preset) }) {
                         BuiltInPresetMenu(name, onExport = { onExportBuiltIn(preset) })
                     }
                 }
@@ -156,13 +167,13 @@ private fun GroupHeader(text: String) {
 @Composable
 private fun PresetRow(
     name: String,
-    settings: EqSettings,
+    /** Where the preset is used; null when nowhere. */
+    use: String?,
     selected: Boolean,
     colors: androidx.compose.material3.ListItemColors,
     onClick: () -> Unit,
     menu: (@Composable () -> Unit)? = null,
 ) {
-    val count = settings.filters.size
     ListItem(
         selected = selected,
         onClick = onClick,
@@ -170,7 +181,7 @@ private fun PresetRow(
         leadingContent = { RadioButton(selected = selected, onClick = null) },
         trailingContent = menu,
         supportingContent = {
-            Text(if (count == 0) stringResource(R.string.desc_no_filters) else pluralStringResource(R.plurals.desc_filter_count, count, count))
+            Text(use ?: stringResource(R.string.desc_not_used))
         },
     ) {
         Text(name, maxLines = 1, overflow = TextOverflow.Ellipsis)

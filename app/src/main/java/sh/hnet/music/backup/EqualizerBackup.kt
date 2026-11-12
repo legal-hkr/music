@@ -78,7 +78,7 @@ object EqualizerBackup {
             ref?.own != null -> renamed[ref.own]?.let { PresetRef(own = it) }
             else -> null
         }
-        return EqualizerState(enabled = settings.enabled, preset = preset, current = values(settings.current.preamp, settings.current.filters), presets = own)
+        return EqualizerState.single(settings.enabled, preset, values(settings.current.preamp, settings.current.filters), own)
     }
 
     private fun filter(filter: EqFilter) = BackupEqFilter(filter.enabled, filter.type.name, filter.frequencyHz, filter.gainDb, filter.q)

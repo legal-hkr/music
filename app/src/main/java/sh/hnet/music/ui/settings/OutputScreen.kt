@@ -138,7 +138,7 @@ private fun deviceLines(device: Device, view: OutputsView): Pair<String, String?
         }
         bitPerfect -> stringResource(R.string.desc_bit_perfect_on)
         !view.equalizer.enabled -> stringResource(R.string.desc_equalizer_off)
-        else -> stringResource(R.string.desc_equalizer_preset, presetName(view.equalizer))
+        else -> stringResource(R.string.desc_equalizer_preset, presetName(view.equalizer, view.equalizer.refFor(device.key)))
     }
     return first to second
 }
@@ -274,7 +274,7 @@ fun DeviceScreen(
         }
         SettingsGroup(stringResource(R.string.title_equalizer)) {
             row { shapes ->
-                val preset = presetName(view.equalizer)
+                val preset = presetName(view.equalizer, view.equalizer.refFor(key))
                 val supporting = when {
                     usb && device.bitPerfect -> stringResource(R.string.desc_eq_not_applied_bit_perfect)
                     !isCurrent -> stringResource(R.string.desc_eq_set_on_page)
@@ -319,11 +319,15 @@ fun DeviceScreen(
                     onBack()
                     // In the app's scope: the snackbar and its Undo outlive this page
                     messageScope.launch {
+                        // With its preset assignment (§7); Undo gives both back
+                        val preset = app.equalizer.state.value.assigned[key]
+                        app.equalizer.update { it.unassigned(key) }
                         app.outputs.update { it.without(key) }
                         snackbars.currentSnackbarData?.dismiss()
                         val text = AnnotatedString.fromHtml(forgot.format(name.htmlEncode())).text
                         if (snackbars.showSnackbar(text, actionLabel = undo, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed) {
                             app.outputs.update { it.with(device) }
+                            if (preset != null) app.equalizer.update { it.assigned(key, preset) }
                         }
                     }
                 },
