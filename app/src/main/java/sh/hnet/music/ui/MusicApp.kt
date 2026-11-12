@@ -154,6 +154,8 @@ fun MusicApp(openNowPlaying: Int = 0) {
     var detailsOpen by rememberSaveable { mutableStateOf(false) }
     // The equalizer over now playing, from the volume bar (SPEC-equalizer §2.2)
     var equalizerOpen by rememberSaveable { mutableStateOf(false) }
+    // Opened from a device's page rather than the volume bar
+    var equalizerForDevice by rememberSaveable { mutableStateOf(false) }
     // A settings page opened from a chip on now playing: "output" or "playback"
     var settingsOpen by rememberSaveable { mutableStateOf<String?>(null) }
     var queueOpen by rememberSaveable { mutableStateOf(false) }
@@ -459,9 +461,10 @@ fun MusicApp(openNowPlaying: Int = 0) {
                     entry<Screen.SettingsPlayback> { PlaybackSettingsScreen(onBack = back) }
                     entry<Screen.SettingsOutput> { sh.hnet.music.ui.settings.OutputScreen(onBack = back, onOpenDevice = { currentStack.add(Screen.SettingsDevice(it)) }) }
                     entry<Screen.SettingsDevice> { key ->
-                        sh.hnet.music.ui.settings.DeviceScreen(key.key, onBack = back, onOpenEqualizer = { currentStack.add(Screen.SettingsEqualizer) }, snackbars = snackbars, messageScope = scope)
+                        sh.hnet.music.ui.settings.DeviceScreen(key.key, onBack = back, onOpenEqualizer = { currentStack.add(Screen.SettingsDeviceEqualizer) }, snackbars = snackbars, messageScope = scope)
                     }
                     entry<Screen.SettingsEqualizer> { EqualizerScreen(onBack = back, snackbars = snackbars, messageScope = scope) }
+                    entry<Screen.SettingsDeviceEqualizer> { EqualizerScreen(onBack = back, snackbars = snackbars, messageScope = scope, appliesTo = false) }
                     entry<Screen.SettingsAbout> {
                         AboutScreen(
                             onBack = back,
@@ -525,7 +528,7 @@ fun MusicApp(openNowPlaying: Int = 0) {
                 onGoToAlbum = goToAlbum,
                 onDetails = { detailsOpen = true },
                 onQueue = { queueOpen = true },
-                onEqualizer = { equalizerOpen = true },
+                onEqualizer = { equalizerForDevice = false; equalizerOpen = true },
                 onOutputSettings = { settingsOpen = "output" },
                 onPlaybackSettings = { settingsOpen = "playback" },
             )
@@ -553,7 +556,7 @@ fun MusicApp(openNowPlaying: Int = 0) {
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
                     Box(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
                         CompositionLocalProvider(LocalBottomOverlay provides 0.dp) {
-                            EqualizerScreen(onBack = { equalizerOpen = false }, snackbars = snackbars, messageScope = scope, topInsets = false)
+                            EqualizerScreen(onBack = { equalizerOpen = false }, snackbars = snackbars, messageScope = scope, topInsets = false, appliesTo = !equalizerForDevice)
                         }
                     }
                 }
@@ -575,7 +578,7 @@ fun MusicApp(openNowPlaying: Int = 0) {
                                 shown.removePrefix(DEVICE_PAGE),
                                 onBack = { settingsOpen = "output" },
                                 // The equalizer's page lies under this one
-                                onOpenEqualizer = { settingsOpen = null; equalizerOpen = true },
+                                onOpenEqualizer = { settingsOpen = null; equalizerForDevice = true; equalizerOpen = true },
                                 snackbars = snackbars,
                                 messageScope = scope,
                                 topInsets = false,

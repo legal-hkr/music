@@ -117,9 +117,10 @@ import kotlin.math.pow
  * A filter is edited in a standard (non-modal) bottom sheet, so the curve stays in sight and live.
  *
  * @param topInsets false over now playing, which has taken the status bar's inset already
+ * @param appliesTo false when opened from a device's page, where the preset is that device's matter alone
  */
 @Composable
-fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageScope: CoroutineScope, topInsets: Boolean = true) {
+fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageScope: CoroutineScope, topInsets: Boolean = true, appliesTo: Boolean = true) {
     val app = LocalContext.current.applicationContext as MusicApplication
     val store = app.equalizer
     val state by store.state.collectAsStateWithLifecycle()
@@ -322,7 +323,7 @@ fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageSco
                         }
                     }
                     // Which devices use this preset (SPEC-output §8.2); unsaved settings are no preset to give to one
-                    state.preset?.let { preset ->
+                    state.preset?.takeIf { appliesTo }?.let { preset ->
                         row { shapes ->
                             SettingsNavigationRow(shapes, R.drawable.ic_devices, stringResource(R.string.label_applies_to), presetUse(state, preset, devices) ?: usedHere(devices, playingOn)) {
                                 choosingDevices = true
