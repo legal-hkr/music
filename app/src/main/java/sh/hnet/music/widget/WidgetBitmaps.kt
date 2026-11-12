@@ -10,10 +10,12 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.Rect
 import android.graphics.Shader
+import android.graphics.drawable.Drawable
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.PathParser
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.scale
+import androidx.core.graphics.withRotation
 import kotlin.math.abs
 
 /** Pictures the widgets are handed ready-made: a widget can't clip a view to a shape (SPEC-widgets §2.2). */
@@ -79,6 +81,57 @@ object WidgetBitmaps {
         }
         return result
     }
+
+    /** How a fan is drawn (SPEC-widgets §4.1), in pixels. */
+    class Fan(val width: Int, val height: Int, val card: Float, val step: Float, val radius: Float, val drop: Float, val shadowBlur: Float, val shadowOffset: Float, val shadowAlpha: Int)
+
+    /**
+     * Covers fanned out, transparent around them: the first of [cards] in the middle and on top, the
+     * next ones alternately to its right and left, each a step further out, 9° more tilted outwards,
+     * a little lower and under the one before; the whole fan in the middle of the picture. A card
+     * without a cover is plain [placeholder], and [note], if given, is drawn on the first of them.
+     */
+    fun fan(cards: List<Bitmap?>, fan: Fan, placeholder: Int, note: Drawable?): Bitmap {
+        val result = createBitmap(fan.width, fan.height)
+        val canvas = Canvas(result)
+        // Places counted from the middle: 0, +1, −1, +2, −2
+        val places = cards.indices.map { i -> if (i == 0) 0 else if (i % 2 == 1) (i + 1) / 2 else -(i / 2) }
+        // With an even number of cards the fan leans to one side: brought back to the middle
+        val shift = -(places.minOrNull() ?: 0).plus(places.maxOrNull() ?: 0) / 2f * fan.step
+        val top = (fan.height - fan.card - fan.drop * (places.maxOfOrNull { abs(it) } ?: 0)) / 2f
+        for (i in cards.indices.reversed()) {
+            val place = places[i]
+            val left = fan.width / 2f - fan.card / 2f + place * fan.step + shift
+            val y = top + abs(place) * fan.drop
+            canvas.withRotation(place * FAN_TILT, left + fan.card / 2f, y + fan.card / 2f) {
+                val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+                paint.setShadowLayer(fan.shadowBlur, 0f, fan.shadowOffset, Color.argb(fan.shadowAlpha, 0, 0, 0))
+                val cover = cards[i]
+                if (cover != null) {
+                    val scale = fan.card / minOf(cover.width, cover.height)
+                    paint.shader = BitmapShader(cover, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP).apply {
+                        setLocalMatrix(
+                            Matrix().apply {
+                                setScale(scale, scale)
+                                postTranslate(left + (fan.card - cover.width * scale) / 2f, y + (fan.card - cover.height * scale) / 2f)
+                            },
+                        )
+                    }
+                } else {
+                    paint.color = placeholder
+                }
+                drawRoundRect(left, y, left + fan.card, y + fan.card, fan.radius, fan.radius, paint)
+                if (cover == null && note != null && i == 0) {
+                    val inset = (fan.card * 0.32f).toInt()
+                    note.setBounds(left.toInt() + inset, y.toInt() + inset, (left + fan.card).toInt() - inset, (y + fan.card).toInt() - inset)
+                    note.draw(this)
+                }
+            }
+        }
+        return result
+    }
+
+    private const val FAN_TILT = 9f
 
     /**
      * A strip rising from nothing into [color] at 85 %, stretched over the bottom of the Covers look's

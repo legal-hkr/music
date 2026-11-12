@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The fan before any album has been played, and in the launcher's list of widgets: three plain cards
+     (SPEC-widgets §4.2) in the system's secondaryContainer. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="180dp"
+    android:height="150dp"
+    android:viewportWidth="180"
+    android:viewportHeight="150">
+    <group
+        android:pivotX="60"
+        android:pivotY="81"
+        android:rotation="-9">
+        <path
+            android:fillColor="@color/widget_secondary_container"
+            android:strokeColor="@color/widget_surface"
+            android:strokeWidth="1"
+            android:pathData="M28,35h64a14,14 0 0 1 14,14v64a14,14 0 0 1 -14,14h-64a14,14 0 0 1 -14,-14v-64a14,14 0 0 1 14,-14z" />
+    </group>
+    <group
+        android:pivotX="120"
+        android:pivotY="81"
+        android:rotation="9">
+        <path
+            android:fillColor="@color/widget_secondary_container"
+            android:strokeColor="@color/widget_surface"
+            android:strokeWidth="1"
+            android:pathData="M88,35h64a14,14 0 0 1 14,14v64a14,14 0 0 1 -14,14h-64a14,14 0 0 1 -14,-14v-64a14,14 0 0 1 14,-14z" />
+    </group>
+    <path
+        android:fillColor="@color/widget_secondary_container"
+        android:strokeColor="@color/widget_surface"
+        android:strokeWidth="1"
+        android:pathData="M58,29h64a14,14 0 0 1 14,14v64a14,14 0 0 1 -14,14h-64a14,14 0 0 1 -14,-14v-64a14,14 0 0 1 14,-14z" />
+</vector>

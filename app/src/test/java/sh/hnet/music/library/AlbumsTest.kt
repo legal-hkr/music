@@ -81,4 +81,19 @@ class AlbumsTest {
         ))
         assertEquals(listOf("New", "Old", "None"), Albums.sort(albums, AlbumSort.YEAR, Locale.ENGLISH).map { it.title })
     }
+
+    @Test
+    fun `the most played albums are those whose tracks were listened to most, never listened ones left out`() {
+        val albums = Albums.group(listOf(
+            track("A/One/01.flac", "One"), track("A/One/02.flac", "One"),
+            track("B/Two/01.flac", "Two"),
+            track("C/Three/01.flac", "Three"),
+            track("D/Four/01.flac", "Four"),
+        ))
+        val counts = mapOf("doc:A/One/01.flac" to 2, "doc:A/One/02.flac" to 3, "doc:B/Two/01.flac" to 9, "doc:D/Four/01.flac" to 5, "doc:gone.flac" to 50)
+        // An album's listens are its tracks' together; equal ones go by title
+        assertEquals(listOf("Two", "Four", "One"), MostPlayed.albums(albums, counts, 5).map { it.title })
+        assertEquals(listOf("Two", "Four"), MostPlayed.albums(albums, counts, 2).map { it.title })
+        assertEquals(emptyList<Album>(), MostPlayed.albums(albums, emptyMap(), 5))
+    }
 }

@@ -645,6 +645,7 @@
     <string name="msg_play_counts_reset">Play counts reset</string>
     <!-- Widgets (SPEC-widgets) -->
     <string name="label_widget_now_playing">Now playing</string>
+    <string name="label_widget_now_playing_wide">Now playing, wide</string>
     <string name="desc_widget_now_playing">The current track with play controls</string>
     <string name="label_widget_nothing_playing">Nothing playing</string>
     <string name="desc_widget_tap_to_open">Tap to open Music</string>
@@ -662,4 +663,8 @@
     <string name="content_description_widget_play_playlist">Play %s</string>
     <string name="content_description_widget_shuffle_playlist">Shuffle %s</string>
     <string name="content_description_widget_playlist">%1$s, %2$s. Opens the playlist</string>
+    <string name="label_widget_most_played">Most played albums</string>
+    <string name="desc_widget_most_played">Covers of the albums played most</string>
+    <string name="content_description_widget_most_played">Most played albums: %s</string>
+    <string name="content_description_widget_no_albums">Most played albums. Opens Music</string>
 </resources>

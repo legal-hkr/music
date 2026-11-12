@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import sh.hnet.music.MusicApplication
 import sh.hnet.music.data.LibraryTrack
+import sh.hnet.music.library.MostPlayed
 
 /**
  * Keeps the placed widgets up to date (SPEC-widgets §2.4): on events only – the track, play or
@@ -19,6 +20,7 @@ import sh.hnet.music.data.LibraryTrack
 class Widgets(private val app: MusicApplication) {
     private var nowPlaying = false
     private var playlists = false
+    private var albums = false
 
     /** What each Playlist widget was last drawn from; in memory, so a new process draws them once more. */
     private val drawn = HashMap<Int, Any?>()
@@ -36,6 +38,10 @@ class Widgets(private val app: MusicApplication) {
         if (!playlists && PlaylistWidgetProvider.ids(app).isNotEmpty()) {
             playlists = true
             followPlaylists()
+        }
+        if (!albums && AlbumsWidgetProvider.ids(app).isNotEmpty()) {
+            albums = true
+            followAlbums()
         }
         if (redraw) {
             drawn.clear()
@@ -81,6 +87,25 @@ class Widgets(private val app: MusicApplication) {
                     drawn[id] = key
                 }
             }
+        }
+    }
+
+    /**
+     * The fan is drawn again only when the albums in it change – another album among the most played, or
+     * their order – not with each listen (SPEC-widgets §4.3).
+     */
+    private fun followAlbums() {
+        app.appScope.launch(Dispatchers.Main) {
+            combine(app.library.albums.filterNotNull(), app.library.playCounts, redraws) { albums, counts, redraw ->
+                MostPlayed.albums(albums, counts, AlbumsWidgetProvider.ALBUMS) to redraw
+            }.distinctUntilChanged { old, new -> old.second == new.second && old.first.map { it.key to it.coverTrack?.documentUri } == new.first.map { it.key to it.coverTrack?.documentUri } }
+                .collectLatest { (most, _) ->
+                    // The library's first reading comes before the counts'
+                    delay(PLAYLIST_SETTLE_MS)
+                    val size = AlbumsWidgetProvider.coverSize(app)
+                    val covers = most.map { album -> album.coverTrack?.let { app.covers.load(it, app.covers.sizeFor(size)) } }
+                    AlbumsWidgetProvider.update(app, most, covers)
+                }
         }
     }
 

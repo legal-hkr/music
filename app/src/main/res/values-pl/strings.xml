@@ -702,6 +702,7 @@
     <string name="msg_play_counts_reset">Wyzerowano licznik odtworzeń</string>
     <!-- Widgets (SPEC-widgets) -->
     <string name="label_widget_now_playing">Teraz gra</string>
+    <string name="label_widget_now_playing_wide">Teraz gra, szeroki</string>
     <string name="desc_widget_now_playing">Bieżący utwór z przyciskami odtwarzania</string>
     <string name="label_widget_nothing_playing">Nic nie gra</string>
     <string name="desc_widget_tap_to_open">Dotknij, aby otworzyć Muzykę</string>
@@ -719,4 +720,8 @@
     <string name="content_description_widget_play_playlist">Odtwórz: %s</string>
     <string name="content_description_widget_shuffle_playlist">Odtwórz losowo: %s</string>
     <string name="content_description_widget_playlist">%1$s, %2$s. Otwiera playlistę</string>
+    <string name="label_widget_most_played">Najczęściej słuchane albumy</string>
+    <string name="desc_widget_most_played">Okładki najczęściej słuchanych albumów</string>
+    <string name="content_description_widget_most_played">Najczęściej słuchane albumy: %s</string>
+    <string name="content_description_widget_no_albums">Najczęściej słuchane albumy. Otwiera Muzykę</string>
 </resources>

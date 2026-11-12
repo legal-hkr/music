@@ -64,6 +64,17 @@
                 android:resource="@xml/widget_now_playing" />
         </receiver>
         <receiver
+            android:name=".widget.NowPlayingWideWidgetProvider"
+            android:exported="false"
+            android:label="@string/label_widget_now_playing_wide">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_now_playing_wide" />
+        </receiver>
+        <receiver
             android:name=".widget.PlaylistWidgetProvider"
             android:exported="false"
             android:label="@string/label_widget_playlist">
@@ -95,6 +106,17 @@
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
         </activity>
+        <receiver
+            android:name=".widget.AlbumsWidgetProvider"
+            android:exported="false"
+            android:label="@string/label_widget_most_played">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_albums" />
+        </receiver>
         <receiver
             android:name=".widget.WidgetActionReceiver"
             android:exported="false" />

@@ -16,11 +16,13 @@ import sh.hnet.music.MusicApplication
 import sh.hnet.music.R
 
 /**
- * The Now playing widget (SPEC-widgets §3): the track Music would play now, as a bar (4×1), a
- * square (2×2) or wide (4×2), whichever the launcher's size takes. Plain RemoteViews (owner's
- * decision: no Glance, which brings WorkManager along).
+ * The Now playing widget (SPEC-widgets §3): the track Music would play now. Two widgets in the
+ * launcher's list, each of a fixed width (owner's decision, as for the Playlist widgets: three
+ * cells by two rows look wrong): this one two cells wide – a bar (2×1) or a square (2×2) – and
+ * [NowPlayingWideWidgetProvider] four cells wide. Plain RemoteViews (owner's decision: no Glance,
+ * which brings WorkManager along).
  */
-class NowPlayingWidgetProvider : AppWidgetProvider() {
+open class NowPlayingWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         // After a restart of the phone or the process there is nothing to show yet: the app's widget
         // updater connects to the player, whose kept queue gives the last track, paused
@@ -31,8 +33,12 @@ class NowPlayingWidgetProvider : AppWidgetProvider() {
     class Content(val title: String?, val artist: String?, val cover: Bitmap?, val playing: Boolean)
 
     companion object {
-        fun ids(context: Context): IntArray =
-            AppWidgetManager.getInstance(context).getAppWidgetIds(ComponentName(context, NowPlayingWidgetProvider::class.java))
+        /** The placed widgets of both widths. */
+        fun ids(context: Context): IntArray {
+            val manager = AppWidgetManager.getInstance(context)
+            return manager.getAppWidgetIds(ComponentName(context, NowPlayingWidgetProvider::class.java)) +
+                manager.getAppWidgetIds(ComponentName(context, NowPlayingWideWidgetProvider::class.java))
+        }
 
         /** The largest cover a layout shows, in pixels: rendered once, at most at its displayed size (§2.4). */
         fun coverSize(context: Context): Int = (COVER_DP * context.resources.displayMetrics.density).toInt()
@@ -122,7 +128,10 @@ class NowPlayingWidgetProvider : AppWidgetProvider() {
         /** Two cells and three: nearer to three cells and two rows than the bar is. */
         private const val SQUARE_DP = 150f
 
-        /** Padding, cover, gap, the three buttons with their gaps, padding: four cells, not three (those get the square). */
+        /** Padding, cover, gap, the three buttons with their gaps, padding: four cells. */
         private const val WIDE_DP = 14f + 116f + 14f + 156f + 14f
     }
 }
+
+/** The Now playing widget four cells wide: a bar with the cover (4×1) or the wide form with all three buttons (4×2). */
+class NowPlayingWideWidgetProvider : NowPlayingWidgetProvider()

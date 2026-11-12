@@ -128,3 +128,17 @@ object Albums {
     fun withoutArticle(text: String): String =
         if (text.length > 4 && text.startsWith("The ", ignoreCase = true)) text.substring(4) else text
 }
+
+/** The albums listened to most, for the widget (SPEC-widgets §4, as the owner changed it): no history is kept, only the play counts. */
+object MostPlayed {
+    /**
+     * The [limit] albums with the most listens, most played first: an album's listens are its tracks'
+     * [counts] together (by document URI). Albums never listened to aren't among them; equal ones go by title.
+     */
+    fun albums(albums: List<Album>, counts: Map<String, Int>, limit: Int): List<Album> =
+        albums.map { album -> album to album.tracks.sumOf { counts[it.documentUri] ?: 0 } }
+            .filter { it.second > 0 }
+            .sortedWith(compareByDescending<Pair<Album, Int>> { it.second }.thenBy { it.first.title })
+            .take(limit)
+            .map { it.first }
+}

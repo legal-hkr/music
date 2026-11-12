@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Most played albums (SPEC-widgets §4; the owner's change from "Recent albums": the play counts are there,
+     a history isn't kept): 4×2 by default, down to 2×2; always two rows high. -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/desc_widget_most_played"
+    android:initialLayout="@layout/widget_albums"
+    android:minWidth="300dp"
+    android:minHeight="150dp"
+    android:minResizeWidth="110dp"
+    android:previewLayout="@layout/widget_albums"
+    android:resizeMode="horizontal"
+    android:targetCellWidth="4"
+    android:targetCellHeight="2"
+    android:updatePeriodMillis="0"
+    android:widgetCategory="home_screen" />
