@@ -653,6 +653,8 @@
     <string name="label_widget_playlist">Playlist</string>
     <string name="label_widget_playlist_wide">Playlist, wide</string>
     <string name="desc_widget_playlist">Play a playlist from the home screen</string>
+    <!-- In the launcher's list of widgets only: a sample second line for the wide Playlist widget's preview -->
+    <string name="label_widget_preview_playlist_length">12 tracks (48 min)</string>
     <string name="label_widget_playlist_deleted">Playlist deleted</string>
     <string name="desc_widget_choose_another">Tap to choose another</string>
     <string name="title_playlist_widget">Playlist widget</string>
@@ -660,14 +662,14 @@
     <string name="label_look_covers">Covers</string>
     <string name="title_now_playing_widget">Now playing widget</string>
     <string name="label_look_card">With background</string>
-    <string name="label_look_floating">Floating</string>
+    <string name="label_look_floating">No background</string>
     <string name="label_widget_deleted_short">Deleted</string>
     <string name="button_add_widget">Add widget</string>
     <string name="content_description_widget_play_playlist">Play %s</string>
     <string name="content_description_widget_shuffle_playlist">Shuffle %s</string>
     <string name="content_description_widget_playlist">%1$s, %2$s. Opens the playlist</string>
     <string name="label_widget_most_played">Most played albums</string>
-    <string name="desc_widget_most_played">Covers of the albums played most</string>
+    <string name="desc_widget_most_played">Covers of your most played albums</string>
     <string name="content_description_widget_most_played">Most played albums: %s</string>
     <string name="content_description_widget_no_albums">Most played albums. Opens Music</string>
 </resources>

@@ -702,20 +702,22 @@
     <string name="msg_play_counts_reset">Wyzerowano licznik odtworzeń</string>
     <!-- Widgets (SPEC-widgets) -->
     <string name="label_widget_now_playing">Teraz gra</string>
-    <string name="label_widget_now_playing_wide">Teraz gra, szeroki</string>
+    <string name="label_widget_now_playing_wide">Teraz gra, szeroki widżet</string>
     <string name="desc_widget_now_playing">Bieżący utwór z przyciskami odtwarzania</string>
     <string name="label_widget_nothing_playing">Nic nie gra</string>
-    <string name="desc_widget_tap_to_open">Dotknij, aby otworzyć Muzykę</string>
+    <string name="desc_widget_tap_to_open">Dotknij, aby otworzyć aplikację</string>
     <string name="content_description_widget_now_playing">%1$s, %2$s. Otwiera odtwarzacz</string>
     <string name="label_widget_playlist">Playlista</string>
-    <string name="label_widget_playlist_wide">Playlista, szeroki</string>
+    <string name="label_widget_playlist_wide">Playlista, szeroki widżet</string>
     <string name="desc_widget_playlist">Odtwarzanie playlisty z ekranu głównego</string>
+    <!-- In the launcher's list of widgets only: a sample second line for the wide Playlist widget's preview -->
+    <string name="label_widget_preview_playlist_length">12 utworów (48 min)</string>
     <string name="label_widget_playlist_deleted">Playlista usunięta</string>
     <string name="desc_widget_choose_another">Dotknij, aby wybrać inną</string>
     <string name="title_playlist_widget">Widżet playlisty</string>
     <string name="title_widget_look">Wygląd</string>
     <string name="label_look_covers">Okładki</string>
-    <string name="title_now_playing_widget">Widżet Teraz gra</string>
+    <string name="title_now_playing_widget">Widżet „Teraz gra”</string>
     <string name="label_look_card">Z tłem</string>
     <string name="label_look_floating">Bez tła</string>
     <string name="label_widget_deleted_short">Usunięta</string>
@@ -723,8 +725,8 @@
     <string name="content_description_widget_play_playlist">Odtwórz: %s</string>
     <string name="content_description_widget_shuffle_playlist">Odtwórz losowo: %s</string>
     <string name="content_description_widget_playlist">%1$s, %2$s. Otwiera playlistę</string>
-    <string name="label_widget_most_played">Najczęściej słuchane albumy</string>
-    <string name="desc_widget_most_played">Okładki najczęściej słuchanych albumów</string>
-    <string name="content_description_widget_most_played">Najczęściej słuchane albumy: %s</string>
-    <string name="content_description_widget_no_albums">Najczęściej słuchane albumy. Otwiera Muzykę</string>
+    <string name="label_widget_most_played">Najczęściej odtwarzane albumy</string>
+    <string name="desc_widget_most_played">Okładki najczęściej odtwarzanych albumów</string>
+    <string name="content_description_widget_most_played">Najczęściej odtwarzane albumy: %s</string>
+    <string name="content_description_widget_no_albums">Najczęściej odtwarzane albumy. Otwiera aplikację</string>
 </resources>
