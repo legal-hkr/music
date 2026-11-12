@@ -1,4 +1,4 @@
-Music plays the audio files in the folders you choose and nothing else. It has no Internet permission, doesn’t ask for access to your storage or media, and keeps nothing about you: the library, playlists and settings stay on your phone.
+Music plays the audio files in the folders you choose and nothing else. It has no internet permission, doesn’t ask for access to your storage or media, and keeps nothing about you: the library, playlists and settings stay on your phone.
 
 Your library:
 - Albums, artists, tracks and playlists, in the order you like
@@ -11,7 +11,8 @@ Playback:
 - FLAC, ALAC, AAC, MP3, Ogg Vorbis, Opus and DSD (DSF, DSDIFF), with gapless playback
 - ReplayGain by track, by album or automatic, with clipping prevention
 - A parametric equalizer with your own presets and import of AutoEq (Equalizer APO) files
-- Bit-perfect output to USB DACs: audio sent unchanged, at each file’s own sample rate, and DSD unconverted (DoP) where the DAC supports it
+- An equalizer preset for each output device – speaker, headphones, Bluetooth, USB DAC – applied when playback switches to it
+- Bit-perfect output to USB DACs, switched on per DAC: audio sent unchanged, at each file’s own sample rate, and DSD unconverted (DoP) where the DAC supports it
 - A queue you can reorder, which shows shuffle and repeat as they play and is kept across restarts
 - The file’s technical details and tags on the now-playing screen
 
@@ -20,6 +21,7 @@ Playlists:
 - Import and export of M3U, M3U8, PLS and XSPF; unavailable tracks keep their place and come back when found
 
 And also:
-- Backup and restore of settings, playlists and equalizer presets to a file you choose
+- Home-screen widgets: Now playing, Playlist and Most played albums
+- Backup and restore of settings, playlists, equalizer presets and remembered devices to a file you choose
 - English and Polish, independent of the system language
 - Material 3 Expressive design with your phone’s colors

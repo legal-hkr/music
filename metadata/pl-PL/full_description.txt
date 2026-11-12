@@ -1,4 +1,4 @@
-Muzyka odtwarza pliki z wybranych folderów i nic więcej. Nie ma uprawnienia dostępu do Internetu, nie prosi o dostęp do pamięci ani multimediów i nie zbiera żadnych danych: biblioteka, playlisty i ustawienia pozostają w telefonie.
+Muzyka odtwarza pliki z wybranych folderów i nic więcej. Nie ma uprawnienia dostępu do internetu, nie prosi o dostęp do pamięci ani multimediów i nie zbiera żadnych danych: biblioteka, playlisty i ustawienia pozostają w telefonie.
 
 Biblioteka:
 - Albumy, wykonawcy, utwory i playlisty, w wybranej kolejności
@@ -11,7 +11,8 @@ Odtwarzanie:
 - FLAC, ALAC, AAC, MP3, Ogg Vorbis, Opus i DSD (DSF, DSDIFF), bez przerw między utworami
 - ReplayGain w trybie utworu, albumu lub automatycznym, z ochroną przed przesterowaniem
 - Korektor parametryczny z własnymi presetami i importem plików AutoEq (Equalizer APO)
-- Wyjście bit-perfect dla przetworników USB: dźwięk bez zmian, z częstotliwością próbkowania pliku, a DSD bez konwersji (DoP), jeśli przetwornik to obsługuje
+- Osobny preset korektora dla każdego wyjścia – głośnika, słuchawek, urządzenia Bluetooth, przetwornika USB – stosowany automatycznie po przełączeniu na to wyjście
+- Wyjście bit-perfect dla przetworników USB, włączane osobno dla każdego z nich: dźwięk bez zmian, z częstotliwością próbkowania pliku, a DSD bez konwersji (DoP), jeśli przetwornik to obsługuje
 - Kolejka z możliwością przestawiania utworów, pokazująca na bieżąco odtwarzanie losowe i powtarzanie, zachowywana między uruchomieniami
 - Szczegóły techniczne pliku i jego tagi na ekranie odtwarzania
 
@@ -20,6 +21,7 @@ Playlisty:
 - Import i eksport M3U, M3U8, PLS i XSPF; niedostępne utwory zachowują swoje miejsce i wracają, gdy pliki się odnajdą
 
 A także:
-- Kopia zapasowa ustawień, playlist i presetów korektora w wybranym pliku
+- Widżety na ekran główny: „Teraz gra”, „Playlista” i „Najczęściej odtwarzane albumy”
+- Kopia zapasowa ustawień, playlist, presetów korektora i zapamiętanych urządzeń w wybranym pliku
 - Język polski lub angielski, niezależnie od języka systemu
 - Wygląd Material 3 Expressive w kolorach systemu

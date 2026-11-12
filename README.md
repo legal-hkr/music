@@ -2,7 +2,7 @@
 
 A private, offline music player for Android with DSD, bit-perfect USB output and a parametric equalizer.
 
-**Current version**: v0.2.1
+**Current version**: v0.3.0
 
 Source code and releases: [git.hnet.sh/hkr/music](https://git.hnet.sh/hkr/music)
 
@@ -29,7 +29,8 @@ Music plays the audio files in the folders you choose and nothing else. It has n
 - **Formats**: FLAC, ALAC, AAC, MP3, Ogg Vorbis and Opus, with gapless playback; DSD (DSF and DSDIFF) converted to PCM, or sent unconverted as DoP over bit-perfect output
 - **ReplayGain**: Track, album or automatic, with a pre-amp for files without tags and clipping prevention
 - **Equalizer**: Parametric, up to 20 peak and shelf filters with a pre-amp and a response curve; your own presets, built-in ones, and import and export of Equalizer APO text (the format AutoEq publishes)
-- **Bit-perfect output**: With a USB DAC, the audio goes out unchanged at each file’s own sample rate, bypassing the system mixer; the Output page shows what the connected device accepts
+- **Output devices**: Music remembers the outputs it has played on – the speaker, wired and Bluetooth headphones, USB DACs – and each can have its own equalizer preset, applied when playback switches to it. Bluetooth devices are told apart by name, so no extra permission is needed
+- **Bit-perfect output**: With a USB DAC, the audio goes out unchanged at each file’s own sample rate, bypassing the system mixer; switched on for each DAC separately, and the Output page shows what the connected device accepts
 - **Queue**: Reorder, remove with Undo, save as a playlist; the queue shows shuffle and repeat as they play and is kept across restarts
 - **Now playing**: Cover, technical details of the file, the ReplayGain applied or bit-perfect output, seek bar, volume, the equalizer and the track’s tags
 
@@ -41,10 +42,11 @@ Music plays the audio files in the folders you choose and nothing else. It has n
 ### Interface
 
 - **Material 3 Expressive** design with your phone’s colors
+- **Home-screen widgets**: Now playing with play controls, a playlist of your choice to play or shuffle, and the covers of your most played albums; with or without a background
 
 ### Settings
 
-- **Backup and restore** of settings, playlists and equalizer presets to a file you choose, also offered on the first start
+- **Backup and restore** of settings, playlists, equalizer presets and remembered devices to a file you choose, also offered on the first start
 - **Language**: English or Polish, independent of the system language
 - **What’s new**, the **license** and the open-source licenses, readable offline
 
@@ -71,6 +73,7 @@ Set the Android SDK path in `local.properties` (`sdk.dir=…`) first. Unit tests
 - **Playback**: Media3 ExoPlayer with a media session service
 - **Data**: Room, DataStore; files through the Storage Access Framework
 - **Tags**: Its own parser for FLAC, Ogg, MP3, MP4 and DSD tags
+- **Widgets**: Classic app widgets (RemoteViews), no extra libraries
 - **Audio**: Its own ReplayGain, equalizer and DSD stages in the player’s audio path; bit-perfect output through Android’s preferred mixer attributes
 
 ## License
