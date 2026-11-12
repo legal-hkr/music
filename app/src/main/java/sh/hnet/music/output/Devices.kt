@@ -34,6 +34,12 @@ data class DevicesState(val devices: List<Device> = emptyList()) {
     /** Only USB devices have the setting; setting it remembers the device. */
     fun withBitPerfect(output: AudioOutput, on: Boolean) = if (output.kind != OutputKind.USB) this else changed(output) { it.copy(bitPerfect = on) }
 
+    /** Restore defaults (§11): the devices stay remembered, bit-perfect is off on every one. */
+    fun withoutBitPerfect() = copy(devices = devices.map { it.copy(bitPerfect = false) })
+
+    /** A backup from when bit-perfect was one switch: that switch for every USB device remembered. */
+    fun withBitPerfectEverywhere(on: Boolean) = copy(devices = devices.map { if (it.kind == OutputKind.USB) it.copy(bitPerfect = on) else it })
+
     /** Forgotten (§7): next time it is a new device. */
     fun without(key: String) = copy(devices = devices.filterNot { it.key == key })
 

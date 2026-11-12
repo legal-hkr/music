@@ -379,7 +379,7 @@
     <string name="desc_settings_reset">Every setting returns to its default and the app follows the system language. Your folders, the library, playlists and equalizer presets stay.</string>
     <string name="button_restore_defaults">Restore defaults</string>
     <string name="title_confirm_restore_defaults">Restore defaults?</string>
-    <string name="msg_confirm_restore_defaults">Sorting, the Library views, the playback settings, the equalizer (switched off, Flat), the export format and Skip short files will return to their defaults, and the app will follow the system language. Folders, the library, playlists and equalizer presets will stay as they are.</string>
+    <string name="msg_confirm_restore_defaults">Sorting, the Library views, the playback settings, the equalizer (switched off, Flat on every device), bit-perfect output (off on every device), the export format and Skip short files will return to their defaults, and the app will follow the system language. Folders, the library, playlists and equalizer presets will stay as they are.</string>
     <string name="button_restore">Restore</string>
     <string name="msg_defaults_restored">Default settings restored</string>
     <string name="title_about_license">License</string>

@@ -9,6 +9,10 @@ import sh.hnet.music.equalizer.BuiltInPresets
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import sh.hnet.music.playback.OutputKind
+import sh.hnet.music.playback.AudioOutput
+import sh.hnet.music.output.DevicesState
+import sh.hnet.music.equalizer.PresetRef
 
 class BackupTest {
     private val sample = BackupFile(
@@ -103,5 +107,44 @@ class BackupTest {
         val read = Backup.check("""{"format":"sh.hnet.music.backup","formatVersion":1,"appVersion":"0.1.0","appVersionCode":1,"createdAt":"2026-01-01T00:00:00Z","settings":{},"playlists":[]}""") as BackupCheck.Valid
         assertFalse(read.hasEqualizer)
         assertEquals(0, read.presets)
+    }
+
+    @Test
+    fun `devices travel in a backup with their bit-perfect switch and their own preset`() {
+        val key = { name: String -> name.trim().lowercase() }
+        val dac = AudioOutput(OutputKind.USB, "HiBy R4")
+        val buds = AudioOutput(OutputKind.BLUETOOTH, "Beoplay EX")
+        val speaker = AudioOutput(OutputKind.SPEAKER, "")
+        val devices = DevicesState().played(speaker, 1_000).played(buds, 2_000).played(dac, 3_000).withBitPerfect(dac, true)
+        val isine = PresetRef(builtIn = BuiltInPresets.AUDEZE_ISINE_10.id)
+        val state = EqualizerState(enabled = true)
+            .withDevice(buds.key).savedAsNew("Mine", 1_000, EqSettings(preampDb = -3f)).withPreamp(-4f)
+            .assigned(dac.key, isine).withOther(isine)
+        val file = BackupFile(
+            appVersion = "0.3.0", appVersionCode = 4, createdAt = "2026-11-12T10:00:00Z",
+            settings = BackupSettings(equalizer = EqualizerBackup.settings(state), output = EqualizerBackup.devices(devices, state)),
+            playlists = emptyList(), equalizerPresets = EqualizerBackup.presets(state),
+        )
+        val read = (Backup.check(Backup.encode(file)) as BackupCheck.Valid).backup
+        assertEquals(devices, EqualizerBackup.restoreDevices(read.settings.output!!))
+        val restored = EqualizerBackup.restore(read.settings.equalizer!!, read.equalizerPresets!!, 5, key, read.settings.output)
+        // Which device plays now is no part of a backup
+        assertEquals(state.withDevice(null), restored)
+        assertEquals(-4f, restored.withDevice(buds.key).applied!!.preampDb, 0f)
+        assertEquals(isine, restored.refFor(speaker.key))
+
+        // A preset that isn't there leaves the device on the slot's preset and the slot on Flat; an unknown kind is left out
+        val odd = BackupOutput(listOf(BackupDevice("USB", "DAC", bitPerfect = true, presetRef = BackupPresetRef(own = "Gone")), BackupDevice("HOLOGRAM", "X"), BackupDevice("BLUETOOTH", "Buds", bitPerfect = true)))
+        val oddState = EqualizerBackup.restore(BackupEqualizer(otherDevicesPresetRef = BackupPresetRef(builtIn = "from_the_future"), presetRef = BackupPresetRef(builtIn = "flat")), emptyList(), 5, key, odd)
+        assertEquals(PresetRef.FLAT, oddState.refFor("usb:DAC"))
+        assertTrue(oddState.assigned.isEmpty())
+        val oddDevices = EqualizerBackup.restoreDevices(odd)
+        assertEquals(listOf("usb:DAC", "bluetooth:Buds"), oddDevices.devices.map { it.key })
+        assertEquals(setOf("usb:DAC"), oddDevices.bitPerfectKeys)
+
+        // Restore defaults keeps the devices, bit-perfect off; an older backup's one switch is every USB device's
+        assertEquals(emptySet<String>(), devices.withoutBitPerfect().bitPerfectKeys)
+        assertEquals(3, devices.withoutBitPerfect().devices.size)
+        assertEquals(setOf(dac.key), devices.withoutBitPerfect().withBitPerfectEverywhere(true).bitPerfectKeys)
     }
 }

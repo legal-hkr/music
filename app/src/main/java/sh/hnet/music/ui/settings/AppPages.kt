@@ -132,6 +132,8 @@ fun ResetScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageScope: 
                     preferences.restoreDefaults()
                     // The equalizer: off, Flat on every device; the user's presets are data and stay (SPEC-equalizer §13.2, SPEC-output §11)
                     (context.applicationContext as MusicApplication).equalizer.update { it.restoredDefaults() }
+                    // The devices stay remembered; bit-perfect is off on every one
+                    (context.applicationContext as MusicApplication).outputs.update { it.withoutBitPerfect() }
                     Toast.makeText(context, done, Toast.LENGTH_SHORT).show()
                     // Last: a language change recreates the activity
                     if (currentLanguageTag(context).isNotEmpty()) setLanguage(context, "")

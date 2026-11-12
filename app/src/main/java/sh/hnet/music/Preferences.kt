@@ -93,7 +93,6 @@ class Preferences(private val context: Context) {
                 preampDb = prefs[preampKey],
                 preventClipping = prefs[preventClippingKey],
                 dsdPcmRate = prefs[dsdPcmRateKey],
-                bitPerfect = prefs[bitPerfectKey],
                 dsdBoost = prefs[dsdBoostKey],
                 countPlays = prefs[countPlaysKey],
             ),
@@ -119,7 +118,6 @@ class Preferences(private val context: Context) {
         backup.playback.replayGain?.let { prefs[gainModeKey] = it }
         backup.playback.preampDb?.let { prefs[preampKey] = it }
         backup.playback.preventClipping?.let { prefs[preventClippingKey] = it }
-        backup.playback.bitPerfect?.let { prefs[bitPerfectKey] = it }
         backup.playback.dsdBoost?.let { prefs[dsdBoostKey] = it }
         backup.playback.countPlays?.let { prefs[countPlaysKey] = it }
         backup.playback.dsdPcmRate?.takeIf { it in DSD_PCM_RATES }?.let { prefs[dsdPcmRateKey] = it }

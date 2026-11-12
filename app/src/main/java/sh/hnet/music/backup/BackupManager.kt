@@ -93,10 +93,16 @@ class BackupManager(private val app: MusicApplication, private val stamps: Share
         app.preferences.restoreSettings(backup.settings)
         // A backup from before the equalizer says nothing about it: it stays as it is
         backup.settings.equalizer?.let { stored ->
-            val restored = EqualizerBackup.restore(stored, backup.equalizerPresets.orEmpty(), now, PlaylistRepository::nameKey)
-            // Every device is on the restored preset; which device plays now is no part of a backup
+            val restored = EqualizerBackup.restore(stored, backup.equalizerPresets.orEmpty(), now, PlaylistRepository::nameKey, backup.settings.output)
+            // Which device plays now is no part of a backup
             app.equalizer.update { restored.withDevice(it.device) }
         }
+        // The devices: the backup's list replaces this one. A backup from before devices keeps the list, with
+        // its one bit-perfect switch, if it had it, for every USB device
+        val devices = backup.settings.output
+        val everywhere = backup.settings.playback.bitPerfect
+        if (devices != null) app.outputs.update { EqualizerBackup.restoreDevices(devices) }
+        else if (everywhere != null) app.outputs.update { it.withBitPerfectEverywhere(everywhere) }
         app.database.playlistDao().replaceAll(playlists)
         app.playlists.requestResolve()
         playlists.count { (playlist, entries) -> playlist.builtin == null || entries.isNotEmpty() }
@@ -129,7 +135,10 @@ class BackupManager(private val app: MusicApplication, private val stamps: Share
             appVersion = BuildConfig.VERSION_NAME.removePrefix("v"),
             appVersionCode = BuildConfig.VERSION_CODE.toLong(),
             createdAt = Instant.now().toString(),
-            settings = app.preferences.backupSettings().copy(equalizer = EqualizerBackup.settings(equalizer)),
+            settings = app.preferences.backupSettings().copy(
+                equalizer = EqualizerBackup.settings(equalizer),
+                output = EqualizerBackup.devices(app.outputs.devices.value, equalizer),
+            ),
             playlists = playlists,
             equalizerPresets = EqualizerBackup.presets(equalizer),
         )

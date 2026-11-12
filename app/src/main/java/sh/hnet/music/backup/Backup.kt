@@ -12,8 +12,8 @@ import kotlinx.serialization.json.contentOrNull
 
 /**
  * Music's backup file (SPEC-settings-v2 §7.2): the settings and every playlist, Starred included,
- * each entry with the snapshot that finds its track again on another phone, and the equalizer with
- * the user's presets (EqualizerBackup.kt). Not in it: the library
+ * each entry with the snapshot that finds its track again on another phone, the equalizer with
+ * the user's presets and the remembered devices with their settings (EqualizerBackup.kt). Not in it: the library
  * index, covers, the queue, folder access, the app language and the last used view. Pure Kotlin, so
  * the format is unit-tested.
  */
@@ -48,6 +48,8 @@ data class BackupSettings(
     val artistsWithAlbumsOnly: Boolean? = null,
     /** Absent in backups from before the equalizer: a restore then leaves it as it is. */
     val equalizer: BackupEqualizer? = null,
+    /** The remembered devices (SPEC-output §11); absent in backups from before them: a restore then keeps the devices there are. */
+    val output: BackupOutput? = null,
 ) {
     @Serializable
     data class Sorts(val albums: String? = null, val tracks: String? = null, val playlists: String? = null)
@@ -63,7 +65,7 @@ data class BackupSettings(
         val preventClipping: Boolean? = null,
         /** The PCM rate DSD is converted to; absent in backups from before DSD was played. */
         val dsdPcmRate: Int? = null,
-        /** Bit-perfect output; absent in backups from before it. */
+        /** Bit-perfect output while it was one switch for every USB device; absent before that and since each device has its own. */
         val bitPerfect: Boolean? = null,
         /** +6 dB for DSD converted to PCM; absent in backups from before the switch. */
         val dsdBoost: Boolean? = null,

@@ -425,7 +425,7 @@
     <string name="desc_settings_reset">Wszystkie ustawienia wrócą do domyślnych, a język będzie zgodny z systemem. Foldery, biblioteka, playlisty i presety korektora pozostaną bez zmian.</string>
     <string name="button_restore_defaults">Przywróć ustawienia domyślne</string>
     <string name="title_confirm_restore_defaults">Przywrócić ustawienia domyślne?</string>
-    <string name="msg_confirm_restore_defaults">Sortowanie, karty biblioteki, ustawienia odtwarzania, korektor (wyłączony, preset Płaski), format eksportu i pomijanie krótkich plików wrócą do domyślnych, a język będzie zgodny z systemem. Foldery, biblioteka, playlisty i presety korektora pozostaną bez zmian.</string>
+    <string name="msg_confirm_restore_defaults">Sortowanie, karty biblioteki, ustawienia odtwarzania, korektor (wyłączony, preset Płaski na każdym urządzeniu), wyjście bit-perfect (wyłączone na każdym urządzeniu), format eksportu i pomijanie krótkich plików wrócą do domyślnych, a język będzie zgodny z systemem. Foldery, biblioteka, playlisty i presety korektora pozostaną bez zmian.</string>
     <string name="button_restore">Przywróć</string>
     <string name="msg_defaults_restored">Przywrócono ustawienia domyślne</string>
     <string name="title_about_license">Licencja</string>

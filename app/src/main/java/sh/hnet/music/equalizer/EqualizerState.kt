@@ -220,6 +220,12 @@ data class EqualizerState(
     /** Discard changes: back to the values of the preset in use. */
     fun discarded() = if (saved == null) this else copy(edits = edits - ref.id)
 
+    /** [values] as [preset]'s changes not saved yet, where a device or the slot uses it and they differ from the saved ones. */
+    fun withChanges(preset: PresetRef, values: EqSettings): EqualizerState {
+        val saved = savedOf(preset) ?: return this
+        return (if (values == saved) copy(edits = edits - preset.id) else copy(edits = edits + (preset.id to values))).tidy()
+    }
+
     /** The device playing now. */
     fun withDevice(key: String?) = if (key == device) this else copy(device = key)
 
