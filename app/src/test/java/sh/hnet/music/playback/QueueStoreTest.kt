@@ -32,4 +32,12 @@ class QueueStoreTest {
         assertEquals(listOf("content://a", "content://b"), loaded.uris)
         assertEquals(listOf<Long?>(null, null), loaded.entryIds)
     }
+
+    @Test
+    fun `the saved place names the track the player stopped on`() {
+        val queue = SavedQueue(listOf("content://a", "content://b"), current = 1, positionMs = 0, shuffle = false, repeatMode = 0, shuffleOrder = emptyList())
+        assertEquals("content://b", queue.currentUri)
+        assertEquals(null, queue.copy(current = 2).currentUri)
+        assertEquals(null, queue.copy(current = -1).currentUri)
+    }
 }

@@ -56,7 +56,8 @@ class MusicApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        // Placed widgets follow the player from the start of the process, whatever started it
+        // Placed widgets are kept up to date from the start of the process, whatever started it; the player
+        // itself isn't started for them
         widgets.start()
     }
 }

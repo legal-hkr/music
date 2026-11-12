@@ -4,6 +4,7 @@ package sh.hnet.music.ui.player
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -168,7 +170,7 @@ fun QueueSheet(
                 // After the next frame, when the room at the list's end is laid out too. On opening
                 // the sheet is placed there at once; a later change of track glides there
                 withFrameNanos { }
-                if (currentBefore == null) listState.scrollToItem(playedCount) else listState.animateScrollToItem(playedCount)
+                if (currentBefore == null) listState.scrollToItem(playedCount) else listState.glideToItem(playedCount)
             }
         }
     }
@@ -287,6 +289,17 @@ fun QueueSheet(
         }
     }
 
+}
+
+/**
+ * Glides the row to the list's top. Not animateScrollToItem: while that runs the list leaves its
+ * item animator out of every layout (Compose 1.12), so the rows' remembered places go stale, and the
+ * next scroll "corrects" them with placement animations – rows trailing behind and covering others.
+ * A plain animated scroll keeps the animator informed.
+ */
+private suspend fun LazyListState.glideToItem(index: Int) {
+    val item = layoutInfo.visibleItemsInfo.firstOrNull { it.index == index }
+    if (item == null) scrollToItem(index) else animateScrollBy(item.offset.toFloat())
 }
 
 /** Removes at once and offers Undo, which puts the track back where it was. */

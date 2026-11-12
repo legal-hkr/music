@@ -204,6 +204,8 @@ class PlaybackService : MediaSessionService() {
         val counter = PlayCounter(player) { uri -> if (countPlays) scope.launch(Dispatchers.IO) { trackDao.countPlay(uri) } }
         player.addListener(counter)
         scope.launch { restore(player) }
+        // Whatever started the service, placed Now playing widgets show the player from here on
+        (application as MusicApplication).widgets.playerStarted()
         // One clock while playing: the play count checked every second, the position saved every
         // SAVE_EVERY_MS so a killed process loses little
         scope.launch {

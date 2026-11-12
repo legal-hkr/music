@@ -12,6 +12,7 @@ import kotlinx.coroutines.withContext
 import sh.hnet.music.MusicApplication
 import sh.hnet.music.data.LibraryTrack
 import sh.hnet.music.library.MostPlayed
+import sh.hnet.music.playback.QueueStore
 
 /**
  * Keeps the placed widgets up to date (SPEC-widgets §2.4): on events only – the track, play or
@@ -22,6 +23,9 @@ class Widgets(private val app: MusicApplication) {
     private var nowPlaying = false
     private var playlists = false
     private var albums = false
+
+    /** The playback service is up in this process. */
+    private var playerUp = false
 
     /** What each Playlist widget was last drawn from; in memory, so a new process draws them once more. */
     private val drawn = HashMap<Int, Any?>()
@@ -55,14 +59,28 @@ class Widgets(private val app: MusicApplication) {
         }
     }
 
+    /**
+     * The playback service started – the app was opened, a widget's button used, a headset's key pressed.
+     * From here the Now playing widgets show the player itself. Main thread only.
+     */
+    fun playerStarted() {
+        playerUp = true
+        if (nowPlaying) app.player.connect()
+    }
+
+    /**
+     * A process started only to draw the widgets doesn't start the player to ask what it holds: until
+     * the player runs for a reason of its own, the widgets show the track it stopped on, read from the
+     * saved queue, paused. Their buttons start it, as does opening the app.
+     */
     private fun followPlayer() {
-        app.player.connect()
+        if (playerUp) app.player.connect()
         app.appScope.launch(Dispatchers.Main) {
+            val saved = withContext(Dispatchers.IO) { QueueStore(app).load() }?.currentUri
             combine(app.player.connected, app.player.currentId, app.player.isPlaying, app.library.playableByUri) { connected, id, playing, tracks ->
-                Shown(connected, id, id?.let(tracks::get), playing)
+                val shown = if (connected) id else saved
+                Shown(shown, shown?.let(tracks::get), connected && playing)
             }.distinctUntilChanged().collectLatest { shown ->
-                // Not connected yet: what the widget shows from before stays
-                if (!shown.connected) return@collectLatest
                 if (shown.track == null) {
                     // Nothing queued, or a track the library hasn't listed yet. Either may be a moment's state –
                     // the service restoring its queue, the library loading – so the empty widget waits
@@ -124,7 +142,7 @@ class Widgets(private val app: MusicApplication) {
         }
     }
 
-    private data class Shown(val connected: Boolean, val id: String?, val track: LibraryTrack?, val playing: Boolean)
+    private data class Shown(val id: String?, val track: LibraryTrack?, val playing: Boolean)
 
     private companion object {
         const val SETTLE_MS = 3_000L

@@ -19,7 +19,10 @@ data class SavedQueue(
     val shuffleOrder: List<Int>,
     /** Each item's playlist entry id, null for one not played from a playlist; as long as [uris]. */
     val entryIds: List<Long?> = uris.map { null },
-)
+) {
+    /** The track the player stopped on; null when the saved place is no item of the queue. */
+    val currentUri: String? get() = uris.getOrNull(current)
+}
 
 class QueueStore(private val file: File) {
     constructor(context: Context) : this(File(context.noBackupFilesDir, "queue"))
