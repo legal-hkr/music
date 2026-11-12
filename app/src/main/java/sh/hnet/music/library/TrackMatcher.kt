@@ -1,8 +1,9 @@
 package sh.hnet.music.library
 
-import sh.hnet.music.data.LibraryTrack
+import java.io.ByteArrayOutputStream
 import java.text.Normalizer
 import kotlin.math.abs
+import sh.hnet.music.data.LibraryTrack
 
 /** What a playlist line knows about its track (a stored entry's snapshot, or an imported line). */
 data class TrackHint(
@@ -91,7 +92,7 @@ class TrackMatcher(tracks: List<LibraryTrack>) {
         }
 
         private fun percentDecode(text: String): String {
-            val bytes = java.io.ByteArrayOutputStream()
+            val bytes = ByteArrayOutputStream()
             var i = 0
             while (i < text.length) {
                 val c = text[i]

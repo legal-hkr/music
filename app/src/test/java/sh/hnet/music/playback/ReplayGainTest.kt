@@ -1,10 +1,10 @@
 package sh.hnet.music.playback
 
+import kotlin.math.abs
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import kotlin.math.abs
 
 class ReplayGainTest {
     private val tagged = GainTags(trackGainDb = -8f, trackPeak = 0.9f, albumGainDb = -6f, albumPeak = 0.95f)

@@ -4,6 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import sh.hnet.music.data.LibraryTrack
+import sh.hnet.music.data.Playlist
 
 class SearchTest {
     private fun track(title: String, artist: String = "A", album: String? = null) = LibraryTrack(
@@ -46,7 +47,7 @@ class SearchTest {
 
     @Test
     fun playlistsMatchByNameWithoutDiacritics() {
-        fun playlist(id: Long, name: String) = PlaylistSummary(sh.hnet.music.data.Playlist(id, name, 0, 0), emptyList(), emptyList(), 0)
+        fun playlist(id: Long, name: String) = PlaylistSummary(Playlist(id, name, 0, 0), emptyList(), emptyList(), 0)
         val playlists = listOf(playlist(1, "Na wieczór"), playlist(2, "Wieczorem"), playlist(3, "Bieganie"))
         // Both start a word with "wiecz": the input order stays (the app passes them in name order)
         assertEquals(listOf("Na wieczór", "Wieczorem"), index.searchPlaylists(playlists, "wiecz").map { it.playlist.name })

@@ -1,5 +1,6 @@
 package sh.hnet.music.about
 
+import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -7,7 +8,6 @@ import org.junit.Test
 import sh.hnet.music.BuildConfig
 import sh.hnet.music.about.Changelog.Block.Item
 import sh.hnet.music.about.Changelog.Block.Paragraph
-import java.io.File
 
 class ChangelogTest {
 

@@ -2,9 +2,6 @@
 
 package sh.hnet.music.ui.settings
 
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
-import sh.hnet.music.ui.components.ConfirmDestructiveDialog
 import android.content.Context
 import android.net.Uri
 import android.text.format.DateUtils
@@ -23,8 +20,10 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -37,6 +36,10 @@ import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.unit.dp
 import androidx.core.text.htmlEncode
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import java.text.SimpleDateFormat
+import java.time.Instant
+import java.util.Date
+import java.util.Locale
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -44,6 +47,7 @@ import sh.hnet.music.MusicApplication
 import sh.hnet.music.R
 import sh.hnet.music.backup.BackupCheck
 import sh.hnet.music.backup.BackupManager
+import sh.hnet.music.ui.components.ConfirmDestructiveDialog
 import sh.hnet.music.ui.components.RowIcon
 import sh.hnet.music.ui.components.SettingsDescription
 import sh.hnet.music.ui.components.SettingsGroup
@@ -54,9 +58,6 @@ import sh.hnet.music.ui.components.settingsRowColors
 import sh.hnet.music.ui.library.ErrorDetails
 import sh.hnet.music.ui.library.ErrorDetailsDialog
 import sh.hnet.music.ui.library.reportFailure
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /** The picker's types for a backup: JSON plus what files often arrive as. */
 val BACKUP_MIME_TYPES = arrayOf("application/json", "application/octet-stream", "text/plain")
@@ -73,7 +74,7 @@ fun backupDate(context: Context, millis: Long): String = DateUtils.formatDateTim
 
 /** A backup's ISO date as [backupDate], or as written when it can't be read. */
 fun backupDate(context: Context, iso: String): String =
-    runCatching { backupDate(context, java.time.Instant.parse(iso).toEpochMilli()) }.getOrDefault(iso)
+    runCatching { backupDate(context, Instant.parse(iso).toEpochMilli()) }.getOrDefault(iso)
 
 /**
  * Settings › Backup and restore (SPEC-settings-v2 §7.1, as ComfyChair's page): what a backup holds,

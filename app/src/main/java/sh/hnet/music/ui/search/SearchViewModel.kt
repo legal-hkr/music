@@ -5,6 +5,7 @@ import androidx.compose.foundation.text.input.clearText
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,13 +20,12 @@ import sh.hnet.music.MusicApplication
 import sh.hnet.music.library.AlbumSort
 import sh.hnet.music.library.Albums
 import sh.hnet.music.library.Artists
-import sh.hnet.music.library.SearchIndex
 import sh.hnet.music.library.PlaylistRepository
 import sh.hnet.music.library.PlaylistSort
+import sh.hnet.music.library.SearchIndex
 import sh.hnet.music.library.SearchResults
 import sh.hnet.music.library.TrackSort
 import sh.hnet.music.library.Tracks
-import java.util.Locale
 
 /**
  * The Search destination's state. The query lives only here, in memory: nothing typed is stored

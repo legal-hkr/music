@@ -1,5 +1,7 @@
 package sh.hnet.music.equalizer
 
+import java.io.File
+import java.io.IOException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -12,8 +14,6 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
-import java.io.File
-import java.io.IOException
 
 /**
  * The equalizer's state, kept in its own file in the app's files: not in the settings store, as

@@ -2,9 +2,9 @@ package sh.hnet.music.playback
 
 import androidx.media3.common.C
 import androidx.media3.exoplayer.source.ShuffleOrder
+import kotlin.random.Random
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import kotlin.random.Random
 
 class QueueShuffleOrderTest {
     /** The order as the player walks it. */

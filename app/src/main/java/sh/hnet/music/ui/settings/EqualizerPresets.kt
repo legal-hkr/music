@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -21,6 +22,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemColors
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
@@ -49,9 +51,8 @@ import sh.hnet.music.equalizer.BuiltInPreset
 import sh.hnet.music.equalizer.BuiltInPresets
 import sh.hnet.music.equalizer.EqualizerState
 import sh.hnet.music.equalizer.PresetRef
-import sh.hnet.music.output.Device
 import sh.hnet.music.library.PlaylistRepository
-import sh.hnet.music.playback.EqSettings
+import sh.hnet.music.output.Device
 import sh.hnet.music.ui.components.MenuItem
 import sh.hnet.music.ui.components.NameDialog
 import sh.hnet.music.ui.components.SingleChoiceDialog
@@ -170,7 +171,7 @@ private fun PresetRow(
     /** Where the preset is used; null when nowhere. */
     use: String?,
     selected: Boolean,
-    colors: androidx.compose.material3.ListItemColors,
+    colors: ListItemColors,
     onClick: () -> Unit,
     menu: (@Composable () -> Unit)? = null,
 ) {
@@ -198,7 +199,7 @@ private fun OwnPresetMenu(name: String, onRename: () -> Unit, onExport: () -> Un
                 MenuItem(stringResource(R.string.menu_rename), R.drawable.ic_edit, 0, 2) { open = false; onRename() }
                 MenuItem(stringResource(R.string.menu_export), R.drawable.ic_file_export, 1, 2) { open = false; onExport() }
             }
-            androidx.compose.foundation.layout.Spacer(Modifier.height(MenuDefaults.GroupSpacing))
+            Spacer(Modifier.height(MenuDefaults.GroupSpacing))
             DropdownMenuGroup(shapes = MenuDefaults.groupShape(1, 2)) {
                 MenuItem(stringResource(R.string.menu_delete), R.drawable.ic_delete, 0, 1, error = true) { open = false; onDelete() }
             }

@@ -1,12 +1,13 @@
 package sh.hnet.music.library
 
+import java.nio.charset.Charset
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class PlaylistFilesTest {
-    private fun parse(text: String, name: String = "list.m3u", charset: java.nio.charset.Charset = Charsets.UTF_8) =
+    private fun parse(text: String, name: String = "list.m3u", charset: Charset = Charsets.UTF_8) =
         PlaylistFiles.parse(text.toByteArray(charset), name)
 
     @Test

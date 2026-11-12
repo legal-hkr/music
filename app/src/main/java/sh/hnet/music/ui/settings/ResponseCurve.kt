@@ -33,13 +33,13 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
+import kotlin.math.abs
+import kotlin.math.log10
 import sh.hnet.music.R
 import sh.hnet.music.playback.EqFilter
 import sh.hnet.music.playback.EqSettings
 import sh.hnet.music.playback.Equalizer
 import sh.hnet.music.ui.player.decibels
-import kotlin.math.abs
-import kotlin.math.log10
 
 /**
  * The equalizer's response curve (SPEC-equalizer §4): the combined response of the enabled filters

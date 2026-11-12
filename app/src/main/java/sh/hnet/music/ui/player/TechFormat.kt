@@ -4,10 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import java.text.NumberFormat
 import sh.hnet.music.R
 import sh.hnet.music.data.Track
 import sh.hnet.music.tags.AudioCodec
-import java.text.NumberFormat
 
 fun codecName(codec: AudioCodec): String = when (codec) {
     AudioCodec.DSD -> "DSD"

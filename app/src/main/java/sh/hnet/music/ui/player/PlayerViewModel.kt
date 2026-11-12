@@ -9,20 +9,21 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import sh.hnet.music.MusicApplication
 import sh.hnet.music.data.LibraryTrack
 import sh.hnet.music.data.Track
-import sh.hnet.music.playback.PlayerState
+import sh.hnet.music.library.Albums
 import sh.hnet.music.playback.AppliedGain
+import sh.hnet.music.playback.PlayerState
+import sh.hnet.music.playback.QueueSnapshot
 import sh.hnet.music.playback.ReplayGain
 import sh.hnet.music.playback.albumInOrder
 import sh.hnet.music.playback.gainTags
-import sh.hnet.music.library.Albums
 
 /** The mini player's and now playing's view of the player; one instance for the activity. */
 class PlayerViewModel(app: MusicApplication) : ViewModel() {
@@ -32,7 +33,7 @@ class PlayerViewModel(app: MusicApplication) : ViewModel() {
 
     val state: StateFlow<PlayerState> = player.state
 
-    val queue: StateFlow<sh.hnet.music.playback.QueueSnapshot> = player.queue
+    val queue: StateFlow<QueueSnapshot> = player.queue
 
     val tracks: StateFlow<Map<String, LibraryTrack>> = app.library.playableByUri
 

@@ -24,14 +24,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import java.text.DateFormat
+import java.text.NumberFormat
+import java.util.Date
 import sh.hnet.music.R
 import sh.hnet.music.ui.components.SettingsGroup
 import sh.hnet.music.ui.components.SettingsGroupScope
 import sh.hnet.music.ui.components.SettingsPage
 import sh.hnet.music.ui.components.formatDuration
-import java.text.DateFormat
-import java.text.NumberFormat
-import java.util.Date
 
 /** Everything known about the current file (SPEC §9.5); read-only, values selectable. */
 @Composable

@@ -1,5 +1,10 @@
 package sh.hnet.music.equalizer
 
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.log10
+import kotlin.math.sin
+import kotlin.math.sqrt
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -9,11 +14,6 @@ import sh.hnet.music.playback.EqProcessor
 import sh.hnet.music.playback.EqSettings
 import sh.hnet.music.playback.Equalizer
 import sh.hnet.music.playback.FilterType
-import kotlin.math.PI
-import kotlin.math.abs
-import kotlin.math.log10
-import kotlin.math.sin
-import kotlin.math.sqrt
 
 class EqualizerTest {
     private fun gain(filter: EqFilter, frequency: Double, rate: Int = 48_000) =

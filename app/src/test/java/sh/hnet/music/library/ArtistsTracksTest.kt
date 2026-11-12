@@ -1,10 +1,10 @@
 package sh.hnet.music.library
 
+import java.util.Locale
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Test
 import sh.hnet.music.data.LibraryTrack
-import java.util.Locale
 
 class ArtistsTracksTest {
     private val pl = Locale.forLanguageTag("pl")

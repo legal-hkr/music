@@ -2,24 +2,31 @@
 
 package sh.hnet.music.ui
 
-import androidx.compose.material3.Surface
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.core.FiniteAnimationSpec
+import androidx.compose.animation.core.SeekableTransitionState
+import androidx.compose.animation.core.rememberTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -29,31 +36,29 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShortNavigationBar
 import androidx.compose.material3.ShortNavigationBarItem
 import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.foundation.layout.navigationBarsPadding
-import sh.hnet.music.ui.library.PlaylistActionsHost
-import sh.hnet.music.ui.library.LocalAddToPlaylist
-import sh.hnet.music.ui.library.LocalStarring
-import sh.hnet.music.ui.library.Starring
-import sh.hnet.music.ui.library.AddRequest
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalResources
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
-import sh.hnet.music.ui.components.LocalBottomOverlay
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -72,56 +77,53 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.launch
 import sh.hnet.music.MusicApplication
 import sh.hnet.music.R
+import sh.hnet.music.about.WhatsNew
+import sh.hnet.music.data.LibraryTrack
+import sh.hnet.music.library.Albums
+import sh.hnet.music.ui.components.LocalBottomOverlay
+import sh.hnet.music.ui.components.TrackNavigation
 import sh.hnet.music.ui.components.formatCount
+import sh.hnet.music.ui.library.AddRequest
+import sh.hnet.music.ui.library.AlbumScreen
+import sh.hnet.music.ui.library.ArtistScreen
+import sh.hnet.music.ui.library.ArtistTracksScreen
+import sh.hnet.music.ui.library.BrowseViewModel
+import sh.hnet.music.ui.library.LibraryScreen
+import sh.hnet.music.ui.library.LibraryView
+import sh.hnet.music.ui.library.LocalAddToPlaylist
+import sh.hnet.music.ui.library.LocalStarring
+import sh.hnet.music.ui.library.PlaylistActionsHost
+import sh.hnet.music.ui.library.PlaylistScreen
+import sh.hnet.music.ui.library.Starring
 import sh.hnet.music.ui.player.MiniPlayer
 import sh.hnet.music.ui.player.NowPlayingScreen
 import sh.hnet.music.ui.player.PlayerViewModel
 import sh.hnet.music.ui.player.QueueSheet
 import sh.hnet.music.ui.player.TrackDetailsScreen
-import sh.hnet.music.data.LibraryTrack
-import androidx.activity.compose.PredictiveBackHandler
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.animation.core.SeekableTransitionState
-import androidx.compose.animation.core.rememberTransition
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
-import androidx.compose.foundation.layout.Box
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.input.pointer.pointerInput
-import kotlinx.coroutines.launch
-import kotlin.coroutines.cancellation.CancellationException
-import sh.hnet.music.ui.library.AlbumScreen
-import sh.hnet.music.ui.library.ArtistScreen
-import sh.hnet.music.ui.library.ArtistTracksScreen
-import sh.hnet.music.library.Albums
-import sh.hnet.music.ui.components.TrackNavigation
-import sh.hnet.music.ui.library.BrowseViewModel
-import sh.hnet.music.ui.library.LibraryView
-import sh.hnet.music.ui.library.LibraryScreen
-import sh.hnet.music.ui.library.PlaylistScreen
 import sh.hnet.music.ui.search.SearchScreen
 import sh.hnet.music.ui.search.SearchViewModel
-import sh.hnet.music.about.WhatsNew
 import sh.hnet.music.ui.settings.AboutScreen
-import sh.hnet.music.ui.settings.BackupScreen
-import sh.hnet.music.ui.settings.EqualizerScreen
 import sh.hnet.music.ui.settings.AppLicenseScreen
-import sh.hnet.music.ui.settings.LanguageScreen
-import sh.hnet.music.ui.settings.LibraryViewsScreen
-import sh.hnet.music.ui.settings.ResetScreen
-import sh.hnet.music.ui.settings.WhatsNewScreen
+import sh.hnet.music.ui.settings.BackupScreen
+import sh.hnet.music.ui.settings.DeviceScreen
+import sh.hnet.music.ui.settings.EqualizerScreen
 import sh.hnet.music.ui.settings.FolderScreen
+import sh.hnet.music.ui.settings.LanguageScreen
 import sh.hnet.music.ui.settings.LibraryMessage
 import sh.hnet.music.ui.settings.LibraryMessages
 import sh.hnet.music.ui.settings.LibrarySettingsScreen
 import sh.hnet.music.ui.settings.LibraryViewModel
-import sh.hnet.music.ui.settings.SettingsRootScreen
-import sh.hnet.music.ui.settings.PlaybackSettingsScreen
+import sh.hnet.music.ui.settings.LibraryViewsScreen
 import sh.hnet.music.ui.settings.LicensesScreen
+import sh.hnet.music.ui.settings.OutputScreen
+import sh.hnet.music.ui.settings.PlaybackSettingsScreen
+import sh.hnet.music.ui.settings.ResetScreen
+import sh.hnet.music.ui.settings.SettingsRootScreen
+import sh.hnet.music.ui.settings.WhatsNewScreen
 
 /** The app's shell: one back stack per navigation bar destination, the bottom block, snackbars. */
 @Composable
@@ -465,9 +467,9 @@ fun MusicApp(openNowPlaying: Int = 0, openPlaylist: Pair<Int, Long> = 0 to -1L) 
                         })
                     }
                     entry<Screen.SettingsPlayback> { PlaybackSettingsScreen(onBack = back) }
-                    entry<Screen.SettingsOutput> { sh.hnet.music.ui.settings.OutputScreen(onBack = back, onOpenDevice = { currentStack.add(Screen.SettingsDevice(it)) }) }
+                    entry<Screen.SettingsOutput> { OutputScreen(onBack = back, onOpenDevice = { currentStack.add(Screen.SettingsDevice(it)) }) }
                     entry<Screen.SettingsDevice> { key ->
-                        sh.hnet.music.ui.settings.DeviceScreen(key.key, onBack = back, onOpenEqualizer = { currentStack.add(Screen.SettingsDeviceEqualizer) }, snackbars = snackbars, messageScope = scope)
+                        DeviceScreen(key.key, onBack = back, onOpenEqualizer = { currentStack.add(Screen.SettingsDeviceEqualizer) }, snackbars = snackbars, messageScope = scope)
                     }
                     entry<Screen.SettingsEqualizer> { EqualizerScreen(onBack = back, snackbars = snackbars, messageScope = scope) }
                     entry<Screen.SettingsDeviceEqualizer> { EqualizerScreen(onBack = back, snackbars = snackbars, messageScope = scope, appliesTo = false) }
@@ -546,14 +548,14 @@ fun MusicApp(openNowPlaying: Int = 0, openPlaylist: Pair<Int, Long> = 0 to -1L) 
                     onSaveAsPlaylist = { queueOpen = false; queueToSave = it },
                 )
             }
-            androidx.compose.animation.AnimatedVisibility(
+            AnimatedVisibility(
                 visible = detailsOpen,
                 enter = slideInHorizontally(spatial) { shift } + fadeIn(effects),
                 exit = slideOutHorizontally(spatial) { shift } + fadeOut(fastEffects),
             ) {
                 TrackDetailsScreen(playerModel, onBack = { detailsOpen = false })
             }
-            androidx.compose.animation.AnimatedVisibility(
+            AnimatedVisibility(
                 visible = equalizerOpen,
                 enter = slideInHorizontally(spatial) { shift } + fadeIn(effects),
                 exit = slideOutHorizontally(spatial) { shift } + fadeOut(fastEffects),
@@ -567,7 +569,7 @@ fun MusicApp(openNowPlaying: Int = 0, openPlaylist: Pair<Int, Long> = 0 to -1L) 
                     }
                 }
             }
-            androidx.compose.animation.AnimatedVisibility(
+            AnimatedVisibility(
                 visible = settingsOpen != null,
                 enter = slideInHorizontally(spatial) { shift } + fadeIn(effects),
                 exit = slideOutHorizontally(spatial) { shift } + fadeOut(fastEffects),
@@ -579,8 +581,8 @@ fun MusicApp(openNowPlaying: Int = 0, openPlaylist: Pair<Int, Long> = 0 to -1L) 
                     Box(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
                         CompositionLocalProvider(LocalBottomOverlay provides 0.dp) {
                             val shown = page
-                            if (shown == "output") sh.hnet.music.ui.settings.OutputScreen(onBack = { settingsOpen = null }, onOpenDevice = { settingsOpen = DEVICE_PAGE + it }, topInsets = false)
-                            else if (shown != null && shown.startsWith(DEVICE_PAGE)) sh.hnet.music.ui.settings.DeviceScreen(
+                            if (shown == "output") OutputScreen(onBack = { settingsOpen = null }, onOpenDevice = { settingsOpen = DEVICE_PAGE + it }, topInsets = false)
+                            else if (shown != null && shown.startsWith(DEVICE_PAGE)) DeviceScreen(
                                 shown.removePrefix(DEVICE_PAGE),
                                 onBack = { settingsOpen = "output" },
                                 // The equalizer's page lies under this one

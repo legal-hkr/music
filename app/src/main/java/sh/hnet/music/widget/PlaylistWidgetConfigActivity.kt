@@ -21,6 +21,7 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ListItemShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SegmentedListItem
@@ -34,6 +35,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.pluralStringResource
@@ -135,7 +137,7 @@ private fun PlaylistWidgetConfig(app: MusicApplication, current: PlaylistWidgetS
                     }
                 }
             }
-            Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp, androidx.compose.ui.Alignment.End)) {
+            Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
                 TextButton(onClick = onCancel) { Text(stringResource(R.string.button_cancel)) }
                 Button(onClick = { selected?.let { onDone(PlaylistWidgetStore.Choice(it.playlist.id, look)) } }, enabled = selected != null) {
                     // Changing a placed widget: Save
@@ -147,7 +149,7 @@ private fun PlaylistWidgetConfig(app: MusicApplication, current: PlaylistWidgetS
 }
 
 @Composable
-private fun PlaylistChoice(summary: PlaylistSummary, count: String, selected: Boolean, shapes: androidx.compose.material3.ListItemShapes, onSelect: () -> Unit) {
+private fun PlaylistChoice(summary: PlaylistSummary, count: String, selected: Boolean, shapes: ListItemShapes, onSelect: () -> Unit) {
     SegmentedListItem(
         selected = selected,
         onClick = onSelect,

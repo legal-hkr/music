@@ -1,10 +1,10 @@
 package sh.hnet.music.playback
 
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 
 class BitPerfectTest {
     private val device = listOf(16, 24, 32).flatMap { bits -> listOf(44_100, 48_000, 96_000, 192_000).map { OutputFormat(it, bits, false, 2) } }

@@ -2,9 +2,10 @@ package sh.hnet.music.library
 
 import android.content.ContentResolver
 import android.content.SharedPreferences
-import androidx.core.content.edit
 import android.os.ParcelFileDescriptor
+import androidx.core.content.edit
 import androidx.core.net.toUri
+import java.io.IOException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -32,7 +33,6 @@ import sh.hnet.music.data.TrackDao
 import sh.hnet.music.tags.AudioCodec
 import sh.hnet.music.tags.FileChannelSource
 import sh.hnet.music.tags.TagParser
-import java.io.IOException
 
 /** A folder in a running scan: [total] is known once its files have been listed. */
 data class FolderScan(val listing: Boolean = true, val done: Int = 0, val total: Int = 0)

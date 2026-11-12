@@ -1,8 +1,8 @@
 package sh.hnet.music.library
 
-import sh.hnet.music.data.LibraryTrack
 import java.text.Collator
 import java.util.Locale
+import sh.hnet.music.data.LibraryTrack
 
 /**
  * Everyone who is an album artist or a track artist (SPEC §6.1). "Various artists" is a UI string,

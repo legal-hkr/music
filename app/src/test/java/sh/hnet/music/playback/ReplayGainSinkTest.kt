@@ -5,13 +5,13 @@ import androidx.media3.common.Format
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.audio.AudioSink
+import java.lang.reflect.Proxy
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.lang.reflect.Proxy
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 
 @UnstableApi
 class ReplayGainSinkTest {

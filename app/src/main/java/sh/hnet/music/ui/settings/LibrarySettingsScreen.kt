@@ -2,10 +2,6 @@
 
 package sh.hnet.music.ui.settings
 
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.text.AnnotatedString
-import sh.hnet.music.ui.components.SingleChoiceDialog
 import android.net.Uri
 import android.text.format.DateUtils
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -28,8 +24,10 @@ import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -41,17 +39,20 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import sh.hnet.music.R
 import sh.hnet.music.SKIP_SHORT_CHOICES
 import sh.hnet.music.data.LibraryFolders
+import sh.hnet.music.library.FolderScan
 import sh.hnet.music.ui.components.RowIcon
 import sh.hnet.music.ui.components.SettingsGroup
 import sh.hnet.music.ui.components.SettingsNavigationRow
 import sh.hnet.music.ui.components.SettingsNote
 import sh.hnet.music.ui.components.SettingsPage
+import sh.hnet.music.ui.components.SingleChoiceDialog
 import sh.hnet.music.ui.components.formatCount
 import sh.hnet.music.ui.components.settingsRowColors
 
@@ -226,7 +227,7 @@ private fun FolderRowItem(shapes: ListItemShapes, row: FolderRow, onClick: () ->
 }
 
 @Composable
-private fun ScanProgress(scan: sh.hnet.music.library.FolderScan) {
+private fun ScanProgress(scan: FolderScan) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 4.dp)) {
         if (scan.listing || scan.total == 0) {
             Text(stringResource(R.string.msg_scan_listing))

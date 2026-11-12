@@ -1,5 +1,6 @@
 package sh.hnet.music.tags
 
+import java.util.Base64
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -36,7 +37,7 @@ class CoverExtractorTest {
 
     @Test
     fun vorbisCommentPicture() {
-        val base64 = java.util.Base64.getEncoder().encodeToString(flacPictureBody(3, front))
+        val base64 = Base64.getEncoder().encodeToString(flacPictureBody(3, front))
         val file = flac(4 to vorbisComments("TITLE=x", "METADATA_BLOCK_PICTURE=$base64"))
         assertArrayEquals(front, extract(file))
     }

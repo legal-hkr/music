@@ -2,12 +2,6 @@
 
 package sh.hnet.music.ui.player
 
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.material3.FilledIconToggleButton
-import androidx.compose.material3.ButtonGroup
 import android.content.Context
 import android.database.ContentObserver
 import android.media.AudioManager
@@ -24,16 +18,22 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledIconToggleButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -54,8 +54,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.composed
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
@@ -71,11 +71,11 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
+import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
 import sh.hnet.music.R
 import sh.hnet.music.playback.PlayerConnection
 import sh.hnet.music.playback.PlayerState
-import kotlin.math.roundToInt
 
 private val MODE_BUTTON = 48.dp
 
@@ -356,7 +356,7 @@ private fun VolumeBar(volume: MediaVolume, onTouch: () -> Unit, onEqualizer: () 
             val percent = stringResource(R.string.desc_volume_percent, volume.percent)
             val fixedReason = stringResource(R.string.desc_volume_fixed)
             val label = stringResource(R.string.content_description_volume)
-            val interaction = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+            val interaction = remember { MutableInteractionSource() }
             Slider(
                 state = slider,
                 onValueChange = { slider.value = it; volume.set(it.roundToInt()); onTouch() },

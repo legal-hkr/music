@@ -1,13 +1,14 @@
 package sh.hnet.music.playback
 
-import androidx.media3.session.SessionCommand
-import android.os.Bundle
 import android.content.ComponentName
 import android.content.Context
+import android.os.Bundle
 import androidx.core.content.ContextCompat
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
+import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionToken
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -83,7 +84,7 @@ class PlayerConnection(private val context: Context) {
         val shuffle = player.shuffleModeEnabled
         val order = ArrayList<Int>(timeline.windowCount)
         var index = timeline.getFirstWindowIndex(shuffle)
-        while (index != androidx.media3.common.C.INDEX_UNSET && order.size < timeline.windowCount) {
+        while (index != C.INDEX_UNSET && order.size < timeline.windowCount) {
             order += index
             index = timeline.getNextWindowIndex(index, Player.REPEAT_MODE_OFF, shuffle)
         }

@@ -24,9 +24,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import sh.hnet.music.R
 import java.util.Locale
 import kotlin.math.pow
+import sh.hnet.music.R
 
 /**
  * A number typed exactly or stepped with − and +, as ComfyChair's numeric stepper field: an outlined

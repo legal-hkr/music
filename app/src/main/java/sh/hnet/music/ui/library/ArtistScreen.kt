@@ -2,7 +2,6 @@
 
 package sh.hnet.music.ui.library
 
-import sh.hnet.music.ui.components.LocalBottomOverlay
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -36,9 +35,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -49,16 +48,18 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import java.util.Locale
 import sh.hnet.music.R
 import sh.hnet.music.library.Album
 import sh.hnet.music.library.Artist
+import sh.hnet.music.library.TrackSort
 import sh.hnet.music.library.Tracks
 import sh.hnet.music.ui.components.Cover
+import sh.hnet.music.ui.components.LocalBottomOverlay
 import sh.hnet.music.ui.components.TooltipIconButton
 import sh.hnet.music.ui.components.TrackNavigation
 import sh.hnet.music.ui.components.TrackRow
 import sh.hnet.music.ui.components.formatCount
-import java.util.Locale
 
 private const val TRACKS_SHOWN = 5
 
@@ -90,7 +91,7 @@ fun ArtistScreen(
         if (shown == null) return@Column
         // Most played first, then by title (owner's decision); unplayed artists read as before
         val counts by viewModel.playCounts.collectAsStateWithLifecycle()
-        val byPlays = remember(shown, counts) { Tracks.sort(shown.tracks, sh.hnet.music.library.TrackSort.MOST_PLAYED, Locale.getDefault(), counts).items }
+        val byPlays = remember(shown, counts) { Tracks.sort(shown.tracks, TrackSort.MOST_PLAYED, Locale.getDefault(), counts).items }
         LazyColumn(state = list, contentPadding = PaddingValues(bottom = 24.dp + LocalBottomOverlay.current), modifier = Modifier.fillMaxSize()) {
             item(key = "header") { Header(shown) }
             item(key = "actions") {

@@ -8,10 +8,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import sh.hnet.music.MusicApplication
 import sh.hnet.music.R
+import sh.hnet.music.playback.AudioOutput
+import sh.hnet.music.playback.GainSettings
+import sh.hnet.music.playback.OutputKind
 import sh.hnet.music.ui.components.SettingsGroup
 import sh.hnet.music.ui.components.SettingsNavigationRow
 import sh.hnet.music.ui.components.SettingsPage
 import sh.hnet.music.ui.components.formatCount
+import sh.hnet.music.ui.library.LibraryView
 
 /**
  * The Settings root, grouped as ComfyChair's: Library (music folders, views), Sound, App (language), Data (backup, reset), then About on its own.
@@ -33,9 +37,9 @@ fun SettingsRootScreen(
     val context = LocalContext.current
     val app = context.applicationContext as MusicApplication
     val version = sh.hnet.music.BuildConfig.VERSION_NAME.removePrefix("v")
-    val gain by app.preferences.gain.collectAsStateWithLifecycle(sh.hnet.music.playback.GainSettings())
+    val gain by app.preferences.gain.collectAsStateWithLifecycle(GainSettings())
     // Read on every composition: changing it recreates the activity anyway
-    val startView by app.preferences.startView.collectAsStateWithLifecycle(sh.hnet.music.ui.library.LibraryView.ALBUMS)
+    val startView by app.preferences.startView.collectAsStateWithLifecycle(LibraryView.ALBUMS)
     val lastBackup by app.backup.lastBackup.collectAsStateWithLifecycle()
     val equalizer by app.equalizer.state.collectAsStateWithLifecycle()
     val outputs by app.outputs.system.collectAsStateWithLifecycle()
@@ -67,7 +71,7 @@ fun SettingsRootScreen(
             }
             row { shapes ->
                 // The device playing now (SPEC-output §3)
-                val current = outputs.current ?: sh.hnet.music.playback.AudioOutput(sh.hnet.music.playback.OutputKind.SPEAKER, "")
+                val current = outputs.current ?: AudioOutput(OutputKind.SPEAKER, "")
                 val name = outputName(current)
                 val summary = if (devices.deviceFor(current).bitPerfect) stringResource(R.string.label_output_bit_perfect, name) else name
                 SettingsNavigationRow(shapes, R.drawable.ic_speaker_group, stringResource(R.string.title_output), summary, onClick = onOpenOutput)

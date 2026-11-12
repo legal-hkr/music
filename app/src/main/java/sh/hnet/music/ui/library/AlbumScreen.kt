@@ -2,7 +2,6 @@
 
 package sh.hnet.music.ui.library
 
-import sh.hnet.music.ui.components.LocalBottomOverlay
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -38,6 +37,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import sh.hnet.music.R
 import sh.hnet.music.library.Album
 import sh.hnet.music.ui.components.Cover
+import sh.hnet.music.ui.components.LocalBottomOverlay
 import sh.hnet.music.ui.components.TooltipIconButton
 import sh.hnet.music.ui.components.TrackNavigation
 import sh.hnet.music.ui.components.TrackRow

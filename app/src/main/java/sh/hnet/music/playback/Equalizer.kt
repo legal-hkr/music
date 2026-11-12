@@ -1,6 +1,5 @@
 package sh.hnet.music.playback
 
-import kotlinx.serialization.Serializable
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.log10
@@ -8,6 +7,7 @@ import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.math.sqrt
+import kotlinx.serialization.Serializable
 
 /** A parametric filter's kind (SPEC-equalizer §5): the names are stored, in settings and backups. */
 enum class FilterType { PEAK, LOW_SHELF, HIGH_SHELF }

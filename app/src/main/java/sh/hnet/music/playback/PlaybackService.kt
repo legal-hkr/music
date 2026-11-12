@@ -1,7 +1,5 @@
 package sh.hnet.music.playback
 
-import sh.hnet.music.DSD_PCM_RATES
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Bundle
@@ -9,18 +7,10 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.Timeline
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import sh.hnet.music.MusicApplication
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
@@ -29,7 +19,18 @@ import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import sh.hnet.music.DSD_PCM_RATES
 import sh.hnet.music.MainActivity
+import sh.hnet.music.MusicApplication
 import sh.hnet.music.R
 
 /** Playback in the background: one ExoPlayer and its media session. */
@@ -113,7 +114,7 @@ class PlaybackService : MediaSessionService() {
 
             // A new queue while shuffle is on (Shuffle on an album, or anything played shuffled):
             // shuffled from its first track the moment it is the player's
-            override fun onTimelineChanged(timeline: androidx.media3.common.Timeline, reason: Int) {
+            override fun onTimelineChanged(timeline: Timeline, reason: Int) {
                 if (reason == Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED && player.shuffleModeEnabled && player.mediaItemCount > 0 &&
                     (player.shuffleOrder as? QueueShuffleOrder)?.fresh == true
                 ) shuffleFromCurrent(player)

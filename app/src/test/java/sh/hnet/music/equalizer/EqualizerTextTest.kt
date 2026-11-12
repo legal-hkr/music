@@ -1,14 +1,15 @@
 package sh.hnet.music.equalizer
 
+import java.util.GregorianCalendar
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import sh.hnet.music.library.PlaylistRepository
 import sh.hnet.music.playback.EqFilter
 import sh.hnet.music.playback.EqSettings
 import sh.hnet.music.playback.FilterType
-import java.util.GregorianCalendar
 
 class EqualizerTextTest {
     @Test
@@ -88,7 +89,7 @@ class EqualizerTextTest {
         assertEquals("Sennheiser HD 650 ParametricEQ", EqualizerText.presetName(plain, "Sennheiser HD 650 ParametricEQ.txt", "New preset"))
         assertEquals("New preset", EqualizerText.presetName(plain, ".txt", "New preset"))
         assertEquals("Mine", EqualizerText.presetName(EqualizerText.parse("# Preset: Mine\nPreamp: 0 dB")!!, "music_eq_mine_20261110_143005.txt", "New preset"))
-        assertEquals("A (3)", EqualizerText.uniqueName("A") { it in setOf("A", "A (2)") })
+        assertEquals("A (3)", PlaylistRepository.uniqueName("A") { it in setOf("A", "A (2)") })
         assertTrue(EqualizerText.decode(byteArrayOf(0xFF.toByte(), 0xFE.toByte(), 'P'.code.toByte(), 0)) == "P")
     }
 }

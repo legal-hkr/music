@@ -1,7 +1,7 @@
 package sh.hnet.music.library
 
-import sh.hnet.music.data.LibraryTrack
 import java.text.Normalizer
+import sh.hnet.music.data.LibraryTrack
 
 /** Search results by kind, each in its rank order (SPEC §8). */
 data class SearchResults(

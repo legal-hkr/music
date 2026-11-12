@@ -2,12 +2,10 @@
 
 package sh.hnet.music.ui.library
 
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
-import sh.hnet.music.ui.components.SingleChoiceDialog
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
+import android.content.res.Resources
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -27,10 +25,12 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
@@ -49,6 +49,7 @@ import sh.hnet.music.R
 import sh.hnet.music.library.PlaylistFiles
 import sh.hnet.music.library.PlaylistFormat
 import sh.hnet.music.library.PlaylistTransfer
+import sh.hnet.music.ui.components.SingleChoiceDialog
 
 /** The picker's types for Import (§9.1): the playlist types plus the generic ones files often arrive with. */
 val IMPORT_MIME_TYPES = arrayOf(
@@ -70,7 +71,7 @@ private class CreateDocumentOfType : ActivityResultContract<Pair<String, String>
 class ErrorDetails(val message: String, val details: String)
 
 /** The sentence of a failed import or export, names in bold (escaped), as plain text. */
-fun failureMessage(resources: android.content.res.Resources, failed: PlaylistTransfer.Result.Failed): String {
+fun failureMessage(resources: Resources, failed: PlaylistTransfer.Result.Failed): String {
     val template = resources.getString(
         when (failed.failure) {
             PlaylistTransfer.Failure.NOT_A_PLAYLIST -> R.string.error_import_not_playlist

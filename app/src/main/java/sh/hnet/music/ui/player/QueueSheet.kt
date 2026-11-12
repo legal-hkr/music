@@ -2,60 +2,57 @@
 
 package sh.hnet.music.ui.player
 
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
-import sh.hnet.music.ui.components.DestructiveButton
-import sh.hnet.music.ui.components.PlayingIndicator
-import androidx.compose.runtime.withFrameNanos
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.lazy.LazyItemScope
-import androidx.media3.common.Player
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -71,6 +68,8 @@ import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.text.htmlEncode
+import androidx.media3.common.Player
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import sh.hnet.music.R
 import sh.hnet.music.data.LibraryTrack
@@ -78,10 +77,12 @@ import sh.hnet.music.playback.PlayerConnection
 import sh.hnet.music.playback.QueueItem
 import sh.hnet.music.playback.QueueSnapshot
 import sh.hnet.music.ui.components.Cover
+import sh.hnet.music.ui.components.DestructiveButton
+import sh.hnet.music.ui.components.PlayingIndicator
 import sh.hnet.music.ui.components.dragHandle
 import sh.hnet.music.ui.components.durationText
-import sh.hnet.music.ui.components.reorderableItem
 import sh.hnet.music.ui.components.rememberReorderState
+import sh.hnet.music.ui.components.reorderableItem
 
 /** A row of the sheet: a queue item with a key that stays with it while rows move. */
 private data class Row(val key: String, val item: QueueItem)
@@ -297,7 +298,7 @@ private fun removeWithUndo(
     template: String,
     undo: String,
     snackbars: SnackbarHostState,
-    scope: kotlinx.coroutines.CoroutineScope,
+    scope: CoroutineScope,
     /** Brings the sheet's bottom, where the snackbar shows, onto the screen. */
     reveal: suspend () -> Unit,
 ) {

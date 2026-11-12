@@ -14,11 +14,13 @@ import android.view.View
 import android.widget.RemoteViews
 import androidx.core.content.edit
 import androidx.core.net.toUri
+import java.text.NumberFormat
 import sh.hnet.music.MainActivity
 import sh.hnet.music.MusicApplication
 import sh.hnet.music.R
+import sh.hnet.music.data.LibraryTrack
 import sh.hnet.music.library.PlaylistSummary
-import java.text.NumberFormat
+import sh.hnet.music.ui.components.durationText
 
 /** How a Playlist widget looks (SPEC-widgets §5.1, §5.2). */
 enum class PlaylistLook { COVERS, SYSTEM }
@@ -93,7 +95,7 @@ open class PlaylistWidgetProvider : AppWidgetProvider() {
 
         /** Loads covers at the size a widget shows them. */
         fun interface Pictures {
-            suspend fun cover(track: sh.hnet.music.data.LibraryTrack, size: Int): Bitmap?
+            suspend fun cover(track: LibraryTrack, size: Int): Bitmap?
         }
 
         private suspend fun playlist(context: Context, id: Int, look: PlaylistLook, summary: PlaylistSummary, pictures: Pictures): RemoteViews {
@@ -108,7 +110,7 @@ open class PlaylistWidgetProvider : AppWidgetProvider() {
             val mosaic = WidgetBitmaps.mosaic(covers, size, if (system) role else colors.chip)
             val name = summary.playlist.name
             val count = context.resources.getQuantityString(R.plurals.label_track_count, summary.tracks.size, NumberFormat.getIntegerInstance().format(summary.tracks.size))
-            val length = context.getString(R.string.label_playlist_summary, count, duration(context, summary.durationMs))
+            val length = context.getString(R.string.label_playlist_summary, count, durationText(context.resources, summary.durationMs))
             val playlistId = summary.playlist.id
             val open = open(context, playlistId)
             val play = WidgetActionReceiver.playlist(context, playlistId, shuffle = false)
@@ -229,12 +231,6 @@ open class PlaylistWidgetProvider : AppWidgetProvider() {
                 .setData("music-widget://configure/$id".toUri())
                 .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id)
             return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-        }
-
-        /** "1 h 14 min", "52 min", as the playlist's page has it. */
-        private fun duration(context: Context, ms: Long): String {
-            val minutes = ((ms + 30_000) / 60_000).toInt().coerceAtLeast(1)
-            return if (minutes >= 60) context.getString(R.string.label_duration_hm, minutes / 60, minutes % 60) else context.getString(R.string.label_duration_m, minutes)
         }
 
         /** The picture is drawn once, at the largest size a layout shows it. */

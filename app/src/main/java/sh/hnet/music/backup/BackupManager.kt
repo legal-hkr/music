@@ -2,8 +2,9 @@ package sh.hnet.music.backup
 
 import android.content.SharedPreferences
 import android.net.Uri
-import android.provider.OpenableColumns
 import androidx.core.content.edit
+import java.io.IOException
+import java.time.Instant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,12 +12,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import sh.hnet.music.BuildConfig
 import sh.hnet.music.MusicApplication
+import sh.hnet.music.data.Documents
 import sh.hnet.music.data.Playlist
 import sh.hnet.music.data.PlaylistEntry
 import sh.hnet.music.library.PlaylistRepository
-import java.io.IOException
-import java.time.Instant
-import java.time.format.DateTimeParseException
 
 /**
  * Backup and restore (SPEC-settings-v2 §7): writes the settings, all playlists and the equalizer
@@ -157,29 +156,11 @@ class BackupManager(private val app: MusicApplication, private val stamps: Share
         durationMs = durationMs,
     )
 
-    private fun uniqueName(name: String, taken: MutableSet<String>): String {
-        val base = name.trim().take(PlaylistRepository.MAX_NAME - 5).ifEmpty { "Playlist" }
-        var candidate = base
-        var n = 2
-        while (!taken.add(PlaylistRepository.nameKey(candidate))) candidate = "$base (${n++})"
-        return candidate
-    }
+    /** A free name among those [taken] so far (by name key), which it joins. */
+    private fun uniqueName(name: String, taken: MutableSet<String>): String =
+        PlaylistRepository.uniqueName(PlaylistRepository.importedName(name)) { PlaylistRepository.nameKey(it) in taken }.also { taken.add(PlaylistRepository.nameKey(it)) }
 
-    private fun String?.toMillis(): Long? = this?.let {
-        try {
-            Instant.parse(it).toEpochMilli()
-        } catch (_: DateTimeParseException) {
-            null
-        }
-    }
-
-    fun displayName(uri: Uri): String? = try {
-        resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
-            if (cursor.moveToFirst()) cursor.getString(0) else null
-        }
-    } catch (_: Exception) {
-        null
-    }
+    private fun displayName(uri: Uri): String? = Documents.displayName(resolver, uri)
 
     private companion object {
         const val LAST_BACKUP = "last_backup"

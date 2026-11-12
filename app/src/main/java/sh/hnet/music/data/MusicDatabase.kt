@@ -2,10 +2,10 @@ package sh.hnet.music.data
 
 import android.content.Context
 import androidx.room3.AutoMigration
+import androidx.room3.ColumnTypeConverters
 import androidx.room3.Database
 import androidx.room3.Room
 import androidx.room3.RoomDatabase
-import androidx.room3.ColumnTypeConverters
 import androidx.sqlite.driver.AndroidSQLiteDriver
 
 @Database(

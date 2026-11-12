@@ -40,8 +40,8 @@ import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import sh.hnet.music.R
 import kotlin.math.roundToInt
+import sh.hnet.music.R
 
 /**
  * A full page with one task, as ComfyChair's FormPage: a top bar (Back and title; none when

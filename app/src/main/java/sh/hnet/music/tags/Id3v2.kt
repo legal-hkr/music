@@ -1,5 +1,7 @@
 package sh.hnet.music.tags
 
+import java.io.ByteArrayOutputStream
+import java.util.zip.DataFormatException
 import java.util.zip.Inflater
 
 /** ID3v2.2, 2.3 and 2.4 at the start of a file (MP3, sometimes FLAC). */
@@ -227,7 +229,7 @@ internal object Id3v2 {
         val inflater = Inflater()
         return try {
             inflater.setInput(data)
-            val out = java.io.ByteArrayOutputStream()
+            val out = ByteArrayOutputStream()
             val buffer = ByteArray(8192)
             while (!inflater.finished()) {
                 val n = inflater.inflate(buffer)
@@ -236,7 +238,7 @@ internal object Id3v2 {
                 if (out.size() > limit) return null
             }
             out.toByteArray()
-        } catch (_: java.util.zip.DataFormatException) {
+        } catch (_: DataFormatException) {
             null
         } finally {
             inflater.end()
@@ -245,7 +247,7 @@ internal object Id3v2 {
 
     /** Undoes unsynchronisation: FF 00 becomes FF. */
     private fun resync(data: ByteArray): ByteArray {
-        val out = java.io.ByteArrayOutputStream(data.size)
+        val out = ByteArrayOutputStream(data.size)
         var i = 0
         while (i < data.size) {
             out.write(data[i].toInt())
@@ -308,7 +310,7 @@ internal object ApeTag {
             r.seek(pos)
             val valueSize = r.u32le()
             val flags = r.u32le()
-            val keyBytes = java.io.ByteArrayOutputStream()
+            val keyBytes = ByteArrayOutputStream()
             while (true) {
                 val b = r.u8()
                 if (b == 0 || keyBytes.size() > 255) break

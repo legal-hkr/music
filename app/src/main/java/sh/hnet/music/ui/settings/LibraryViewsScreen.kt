@@ -2,7 +2,6 @@
 
 package sh.hnet.music.ui.settings
 
-import sh.hnet.music.ui.components.moveActions
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -50,6 +49,7 @@ import sh.hnet.music.ui.components.SettingsGroupHeader
 import sh.hnet.music.ui.components.SettingsRadioRow
 import sh.hnet.music.ui.components.dragHandle
 import sh.hnet.music.ui.components.groupShapes
+import sh.hnet.music.ui.components.moveActions
 import sh.hnet.music.ui.components.rememberReorderState
 import sh.hnet.music.ui.components.reorderableItem
 import sh.hnet.music.ui.components.settingsRowColors

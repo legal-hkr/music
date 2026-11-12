@@ -1,9 +1,5 @@
 package sh.hnet.music.playback
 
-import org.junit.Assert.assertArrayEquals
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
-import org.junit.Test
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.PI
@@ -11,6 +7,10 @@ import kotlin.math.abs
 import kotlin.math.log10
 import kotlin.math.sin
 import kotlin.math.sqrt
+import org.junit.Assert.assertArrayEquals
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
 
 class DsdToPcmTest {
     private val dsd64 = 2_822_400

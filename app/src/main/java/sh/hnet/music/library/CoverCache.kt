@@ -8,16 +8,16 @@ import android.os.ParcelFileDescriptor
 import android.util.LruCache
 import androidx.core.graphics.scale
 import androidx.core.net.toUri
+import java.io.File
+import java.io.IOException
+import java.security.MessageDigest
+import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.withContext
 import sh.hnet.music.data.LibraryTrack
 import sh.hnet.music.tags.CoverExtractor
 import sh.hnet.music.tags.FileChannelSource
-import java.io.File
-import java.io.IOException
-import java.security.MessageDigest
-import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Cover thumbnails: decoded from the embedded picture once, kept in memory and in the app's own

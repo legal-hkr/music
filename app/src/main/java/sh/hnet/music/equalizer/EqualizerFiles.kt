@@ -2,9 +2,9 @@ package sh.hnet.music.equalizer
 
 import android.content.ContentResolver
 import android.net.Uri
+import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.IOException
 
 /**
  * Reading and writing preset files the user picks (SPEC-equalizer §10): read once or written once,

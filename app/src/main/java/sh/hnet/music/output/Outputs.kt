@@ -1,6 +1,8 @@
 package sh.hnet.music.output
 
 import android.content.Context
+import java.io.File
+import java.io.IOException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -19,8 +21,6 @@ import sh.hnet.music.Preferences
 import sh.hnet.music.playback.CurrentOutput
 import sh.hnet.music.playback.OutputKind
 import sh.hnet.music.playback.OutputSnapshot
-import java.io.File
-import java.io.IOException
 
 /**
  * The outputs as the system has them and the devices Music remembers (SPEC-output §2), for as long

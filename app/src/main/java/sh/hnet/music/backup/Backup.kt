@@ -1,14 +1,16 @@
 package sh.hnet.music.backup
 
+import java.time.Instant
+import java.time.format.DateTimeParseException
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.json.contentOrNull
 
 /**
  * Music's backup file (SPEC-settings-v2 §7.2): the settings and every playlist, Starred included,
@@ -98,6 +100,15 @@ data class BackupEntry(
     val album: String? = null,
     val durationMs: Long? = null,
 )
+
+/** A backup's ISO 8601 time as milliseconds; null when absent or not a time. */
+internal fun String?.toMillis(): Long? = this?.let {
+    try {
+        Instant.parse(it).toEpochMilli()
+    } catch (_: DateTimeParseException) {
+        null
+    }
+}
 
 /** What a picked file turned out to be (§7.3 step 2), before anything changes. */
 sealed interface BackupCheck {

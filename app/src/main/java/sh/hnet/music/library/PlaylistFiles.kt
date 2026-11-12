@@ -1,13 +1,13 @@
 package sh.hnet.music.library
 
-import org.w3c.dom.Element
-import org.xml.sax.InputSource
 import java.io.StringReader
 import java.nio.ByteBuffer
 import java.nio.charset.CharacterCodingException
 import java.nio.charset.Charset
 import java.nio.charset.CodingErrorAction
 import javax.xml.parsers.DocumentBuilderFactory
+import org.w3c.dom.Element
+import org.xml.sax.InputSource
 
 /** The formats Music reads and writes (SPEC-playlists §9, §10), alphabetical as the export dialog lists them. */
 enum class PlaylistFormat(val extension: String, val mimeType: String) {

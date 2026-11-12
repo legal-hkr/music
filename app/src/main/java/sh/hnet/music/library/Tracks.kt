@@ -1,9 +1,9 @@
 package sh.hnet.music.library
 
-import sh.hnet.music.data.LibraryTrack
 import java.text.CollationKey
 import java.text.Collator
 import java.util.Locale
+import sh.hnet.music.data.LibraryTrack
 
 /** The Tracks sorts; Most played last (owner's decision), Title the default. */
 enum class TrackSort { TITLE, ARTIST, ALBUM, RECENTLY_ADDED, MOST_PLAYED }

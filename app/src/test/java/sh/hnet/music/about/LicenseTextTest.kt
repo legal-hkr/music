@@ -1,9 +1,9 @@
 package sh.hnet.music.about
 
+import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.io.File
 
 /** The GPL page in the assets read into blocks: the shape the License page shows. */
 class LicenseTextTest {

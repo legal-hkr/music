@@ -25,8 +25,8 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import sh.hnet.music.R
-import sh.hnet.music.ui.components.SettingsPage
 import sh.hnet.music.about.LicenseText
+import sh.hnet.music.ui.components.SettingsPage
 
 /**
  * The app's license, GPL-3.0, as the FSF publishes it (its standalone page in the assets, always in English: only the

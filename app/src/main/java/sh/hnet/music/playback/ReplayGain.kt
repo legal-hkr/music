@@ -3,6 +3,8 @@ package sh.hnet.music.playback
 import kotlin.math.log10
 import kotlin.math.min
 import kotlin.math.pow
+import sh.hnet.music.data.LibraryTrack
+import sh.hnet.music.data.Track
 
 enum class ReplayGainMode { OFF, TRACK, ALBUM, AUTO }
 
@@ -59,9 +61,9 @@ object ReplayGain {
 }
 
 /** Tags of a library track. */
-fun sh.hnet.music.data.Track.gainTags() = GainTags(trackGainDb, trackPeak, albumGainDb, albumPeak)
+fun Track.gainTags() = GainTags(trackGainDb, trackPeak, albumGainDb, albumPeak)
 
-fun sh.hnet.music.data.LibraryTrack.gainTags() = GainTags(trackGainDb, trackPeak, albumGainDb, albumPeak)
+fun LibraryTrack.gainTags() = GainTags(trackGainDb, trackPeak, albumGainDb, albumPeak)
 
 /**
  * "An album plays in order" (SPEC §11.4) as the queue shows it: shuffle off and a neighbor in the

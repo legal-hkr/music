@@ -32,9 +32,10 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItemShapes
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -235,7 +236,7 @@ private fun WelcomePage(choice: WelcomeChoice?, restored: Int?, onChoose: (Welco
 
 /** A radio row with its icon at the end, as the rows of ComfyChair's welcome page. */
 @Composable
-private fun ChoiceRow(shapes: androidx.compose.material3.ListItemShapes, title: Int, supporting: Int, @DrawableRes icon: Int, selected: Boolean, onSelect: () -> Unit) {
+private fun ChoiceRow(shapes: ListItemShapes, title: Int, supporting: Int, @DrawableRes icon: Int, selected: Boolean, onSelect: () -> Unit) {
     SegmentedListItem(
         selected = selected,
         onClick = onSelect,

@@ -2,12 +2,6 @@
 
 package sh.hnet.music.ui.settings
 
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.text.AnnotatedString
-import sh.hnet.music.ui.player.sampleRateText
-import sh.hnet.music.ui.components.SingleChoiceDialog
-import sh.hnet.music.DSD_PCM_RATES
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,19 +17,24 @@ import androidx.compose.material3.SliderState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
+import sh.hnet.music.DSD_PCM_RATES
 import sh.hnet.music.MusicApplication
 import sh.hnet.music.R
 import sh.hnet.music.playback.GainSettings
@@ -43,9 +42,10 @@ import sh.hnet.music.playback.ReplayGainMode
 import sh.hnet.music.ui.components.SettingsGroup
 import sh.hnet.music.ui.components.SettingsNote
 import sh.hnet.music.ui.components.SettingsPage
+import sh.hnet.music.ui.components.SingleChoiceDialog
 import sh.hnet.music.ui.components.settingsRowColors
 import sh.hnet.music.ui.player.decibels
-import kotlin.math.roundToInt
+import sh.hnet.music.ui.player.sampleRateText
 
 fun ReplayGainMode.label(): Int = when (this) {
     ReplayGainMode.OFF -> R.string.label_rg_off

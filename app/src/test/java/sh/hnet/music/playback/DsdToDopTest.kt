@@ -1,12 +1,12 @@
 package sh.hnet.music.playback
 
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 
 class DsdToDopTest {
     private fun bytes(vararg values: Int) = ByteArray(values.size) { values[it].toByte() }

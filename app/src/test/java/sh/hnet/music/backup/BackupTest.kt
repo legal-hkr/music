@@ -1,18 +1,18 @@
 package sh.hnet.music.backup
 
-import org.junit.Assert.assertFalse
-import sh.hnet.music.playback.FilterType
-import sh.hnet.music.playback.EqSettings
-import sh.hnet.music.playback.EqFilter
-import sh.hnet.music.equalizer.EqualizerState
-import sh.hnet.music.equalizer.BuiltInPresets
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import sh.hnet.music.playback.OutputKind
-import sh.hnet.music.playback.AudioOutput
-import sh.hnet.music.output.DevicesState
+import sh.hnet.music.equalizer.BuiltInPresets
+import sh.hnet.music.equalizer.EqualizerState
 import sh.hnet.music.equalizer.PresetRef
+import sh.hnet.music.output.DevicesState
+import sh.hnet.music.playback.AudioOutput
+import sh.hnet.music.playback.EqFilter
+import sh.hnet.music.playback.EqSettings
+import sh.hnet.music.playback.FilterType
+import sh.hnet.music.playback.OutputKind
 
 class BackupTest {
     private val sample = BackupFile(

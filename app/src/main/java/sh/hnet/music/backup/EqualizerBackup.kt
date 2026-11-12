@@ -1,20 +1,20 @@
 package sh.hnet.music.backup
 
+import java.time.Instant
 import kotlinx.serialization.Serializable
 import sh.hnet.music.equalizer.BuiltInPresets
 import sh.hnet.music.equalizer.EqualizerState
 import sh.hnet.music.equalizer.OwnPreset
 import sh.hnet.music.equalizer.PresetRef
+import sh.hnet.music.library.PlaylistRepository
 import sh.hnet.music.output.Device
 import sh.hnet.music.output.DevicesState
 import sh.hnet.music.playback.AudioOutput
-import sh.hnet.music.playback.OutputKind
 import sh.hnet.music.playback.EqFilter
 import sh.hnet.music.playback.EqSettings
 import sh.hnet.music.playback.Equalizer
 import sh.hnet.music.playback.FilterType
-import java.time.Instant
-import java.time.format.DateTimeParseException
+import sh.hnet.music.playback.OutputKind
 
 /**
  * The equalizer in a backup (SPEC-equalizer §13.1): under `settings.equalizer` what is in use, and a
@@ -118,9 +118,7 @@ object EqualizerBackup {
         val renamed = HashMap<String, String>()
         val own = presets.mapNotNull { stored ->
             val base = stored.name.trim().take(MAX_NAME - 5).ifEmpty { return@mapNotNull null }
-            var name = base
-            var n = 2
-            while (!taken.add(nameKey(name))) name = "$base (${n++})"
+            val name = PlaylistRepository.uniqueName(base) { nameKey(it) in taken }.also { taken.add(nameKey(it)) }
             renamed.putIfAbsent(stored.name, name)
             OwnPreset(name, stored.changedAt.toMillis() ?: now, values(stored.preamp, stored.filters))
         }
@@ -164,14 +162,6 @@ object EqualizerBackup {
     private fun gain(db: Float) = Equalizer.roundTo(db.finite(0f).coerceIn(-Equalizer.MAX_GAIN, Equalizer.MAX_GAIN), 1)
 
     private fun Float.finite(otherwise: Float) = if (isFinite()) this else otherwise
-
-    private fun String?.toMillis(): Long? = this?.let {
-        try {
-            Instant.parse(it).toEpochMilli()
-        } catch (_: DateTimeParseException) {
-            null
-        }
-    }
 
     /** As a playlist's name. */
     private const val MAX_NAME = 100

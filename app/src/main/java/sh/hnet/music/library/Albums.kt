@@ -1,9 +1,9 @@
 package sh.hnet.music.library
 
-import sh.hnet.music.data.LibraryTrack
 import java.text.CollationKey
 import java.text.Collator
 import java.util.Locale
+import sh.hnet.music.data.LibraryTrack
 
 /**
  * An album as the library shows it (SPEC §4.4).

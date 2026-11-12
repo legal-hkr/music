@@ -2,16 +2,9 @@
 
 package sh.hnet.music.ui.settings
 
-import sh.hnet.music.playback.EqSettings
-import sh.hnet.music.equalizer.PresetRef
-import sh.hnet.music.output.Device
-import androidx.core.text.htmlEncode
-import androidx.compose.ui.text.fromHtml
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.remember
-import androidx.compose.material3.SliderState
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -42,6 +35,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderState
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
@@ -57,6 +51,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -73,26 +69,32 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.text.htmlEncode
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import java.text.NumberFormat
+import java.util.Locale
+import kotlin.math.ln
+import kotlin.math.pow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import sh.hnet.music.MusicApplication
 import sh.hnet.music.R
+import sh.hnet.music.data.Documents
 import sh.hnet.music.equalizer.BuiltInPresets
 import sh.hnet.music.equalizer.EqualizerFiles
 import sh.hnet.music.equalizer.EqualizerState
 import sh.hnet.music.equalizer.EqualizerText
+import sh.hnet.music.equalizer.PresetRef
 import sh.hnet.music.library.PlaylistRepository
-import sh.hnet.music.ui.library.ErrorDetails
-import sh.hnet.music.ui.library.ErrorDetailsDialog
-import sh.hnet.music.ui.library.reportFailure
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import sh.hnet.music.output.Device
 import sh.hnet.music.playback.EqFilter
+import sh.hnet.music.playback.EqSettings
 import sh.hnet.music.playback.Equalizer
 import sh.hnet.music.playback.FilterType
 import sh.hnet.music.ui.components.DestructiveButton
@@ -105,11 +107,10 @@ import sh.hnet.music.ui.components.SettingsNote
 import sh.hnet.music.ui.components.SettingsPage
 import sh.hnet.music.ui.components.StepperField
 import sh.hnet.music.ui.components.settingsRowColors
+import sh.hnet.music.ui.library.ErrorDetails
+import sh.hnet.music.ui.library.ErrorDetailsDialog
+import sh.hnet.music.ui.library.reportFailure
 import sh.hnet.music.ui.player.decibels
-import java.text.NumberFormat
-import java.util.Locale
-import kotlin.math.ln
-import kotlin.math.pow
 
 /**
  * Settings › Sound › Equalizer (SPEC-equalizer §3–§9): the response curve pinned under the top bar,
@@ -155,7 +156,7 @@ fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageSco
     val importPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         messageScope.launch {
-            val fileName = withContext(Dispatchers.IO) { app.transfer.displayName(uri) } ?: uri.lastPathSegment.orEmpty()
+            val fileName = withContext(Dispatchers.IO) { Documents.displayName(app.contentResolver, uri) } ?: uri.lastPathSegment.orEmpty()
             when (val read = EqualizerFiles.read(app.contentResolver, uri)) {
                 is EqualizerFiles.Read.Unreadable -> reportFailure(snackbars, plain(R.string.error_import_unreadable, fileName), read.details, show) { errorShown = it }
                 is EqualizerFiles.Read.NotAPreset -> reportFailure(snackbars, plain(R.string.error_import_not_preset, fileName), read.details, show) { errorShown = it }
@@ -166,7 +167,7 @@ fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageSco
                     var imported = ""
                     editing = null
                     store.update { now ->
-                        imported = EqualizerText.uniqueName(EqualizerText.presetName(parsed, fileName, newPresetName)) { now.nameTaken(it, builtInNames, PlaylistRepository::nameKey) }
+                        imported = PlaylistRepository.uniqueName(EqualizerText.presetName(parsed, fileName, newPresetName)) { now.nameTaken(it, builtInNames, PlaylistRepository::nameKey) }
                         now.savedAsNew(imported, System.currentTimeMillis(), parsed.settings)
                     }
                     val count = parsed.settings.filters.size
@@ -198,7 +199,7 @@ fun EqualizerScreen(onBack: () -> Unit, snackbars: SnackbarHostState, messageSco
         } ?: return@rememberLauncherForActivityResult
         messageScope.launch {
             val failed = EqualizerFiles.write(app.contentResolver, uri, EqualizerText.write(name, settings))
-            val fileName = withContext(Dispatchers.IO) { app.transfer.displayName(uri) } ?: uri.lastPathSegment.orEmpty()
+            val fileName = withContext(Dispatchers.IO) { Documents.displayName(app.contentResolver, uri) } ?: uri.lastPathSegment.orEmpty()
             if (failed == null) {
                 snackbars.currentSnackbarData?.dismiss()
                 snackbars.showSnackbar(plain(R.string.msg_exported, fileName), duration = SnackbarDuration.Short)

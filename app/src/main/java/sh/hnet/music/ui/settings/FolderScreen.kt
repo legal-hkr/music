@@ -2,9 +2,6 @@
 
 package sh.hnet.music.ui.settings
 
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
-import sh.hnet.music.ui.components.DestructiveButton
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -14,20 +11,23 @@ import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import sh.hnet.music.R
-import sh.hnet.music.ui.components.formatDuration
 import sh.hnet.music.data.SkipReason
 import sh.hnet.music.data.SkippedFile
+import sh.hnet.music.ui.components.DestructiveButton
 import sh.hnet.music.ui.components.RowIcon
 import sh.hnet.music.ui.components.SettingsGroup
 import sh.hnet.music.ui.components.SettingsPage
 import sh.hnet.music.ui.components.formatCount
+import sh.hnet.music.ui.components.formatDuration
 import sh.hnet.music.ui.components.settingsRowColors
 
 private const val SHOWN_PER_GROUP = 50

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItemShapes
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
@@ -30,6 +31,7 @@ import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.unit.dp
 import androidx.core.text.htmlEncode
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import java.text.DecimalFormatSymbols
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import sh.hnet.music.MusicApplication
@@ -52,7 +54,6 @@ import sh.hnet.music.ui.components.SettingsPage
 import sh.hnet.music.ui.components.settingsRowColors
 import sh.hnet.music.ui.player.channelsText
 import sh.hnet.music.ui.player.sampleRateText
-import java.text.DecimalFormatSymbols
 
 /** A device as shown: its own name, or what kind of output it is. */
 @Composable
@@ -180,7 +181,7 @@ fun OutputScreen(onBack: () -> Unit, onOpenDevice: (String) -> Unit, topInsets: 
 
 /** The device playing now is highlighted as a selected row, its icon without the tonal box that would vanish in it. */
 @Composable
-private fun DeviceRow(device: Device, view: OutputsView, shapes: androidx.compose.material3.ListItemShapes, onClick: () -> Unit) {
+private fun DeviceRow(device: Device, view: OutputsView, shapes: ListItemShapes, onClick: () -> Unit) {
     val isCurrent = device.key == view.current?.key
     val (first, second) = deviceLines(device, view)
     SegmentedListItem(

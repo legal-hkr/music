@@ -18,13 +18,13 @@ import androidx.media3.extractor.PositionHolder
 import androidx.media3.extractor.SeekMap
 import androidx.media3.extractor.SeekPoint
 import androidx.media3.extractor.TrackOutput
+import java.io.EOFException
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import sh.hnet.music.tags.ByteInput
 import sh.hnet.music.tags.DsdFormat
 import sh.hnet.music.tags.DsdStream
 import sh.hnet.music.tags.TagFormatException
-import java.io.EOFException
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 
 /** How a DSD file is to be played, asked when it is opened. */
 interface DsdPlayback {

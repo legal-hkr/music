@@ -1,12 +1,12 @@
 package sh.hnet.music.equalizer
 
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import sh.hnet.music.playback.EqFilter
 import sh.hnet.music.playback.EqSettings
 import sh.hnet.music.playback.Equalizer
 import sh.hnet.music.playback.FilterType
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /**
  * Presets as Equalizer APO text (SPEC-equalizer §10), the format AutoEq publishes: `Preamp: -6.3 dB`
@@ -91,13 +91,6 @@ object EqualizerText {
     fun presetName(parsed: Parsed, fileName: String, fallback: String): String =
         (parsed.name ?: fileName.substringAfterLast('/').substringBeforeLast('.', fileName).trim()).take(MAX_NAME).trim().ifEmpty { fallback }
 
-    /** [base], or "[base] (2)", "(3)"… while [taken]. */
-    fun uniqueName(base: String, taken: (String) -> Boolean): String {
-        if (!taken(base)) return base
-        var n = 2
-        while (taken("$base ($n)")) n++
-        return "$base ($n)"
-    }
 
     /** The text of a file's bytes: UTF-8, or UTF-16 when it starts with that byte order mark (Windows editors). */
     fun decode(bytes: ByteArray): String = when {

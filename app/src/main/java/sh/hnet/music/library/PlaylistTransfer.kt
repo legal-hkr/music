@@ -2,14 +2,14 @@ package sh.hnet.music.library
 
 import android.content.Context
 import android.net.Uri
-import android.provider.OpenableColumns
+import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import sh.hnet.music.data.Documents
 import sh.hnet.music.data.LibraryFolderDao
 import sh.hnet.music.data.PlaylistDao
 import sh.hnet.music.data.PlaylistEntry
 import sh.hnet.music.data.shownTitle
-import java.io.IOException
 
 /**
  * Import and export of playlist files (SPEC-playlists §9, §10) through files the user picks in the
@@ -104,19 +104,7 @@ class PlaylistTransfer(
     }
 
     /** "Summer 2019", else "Summer 2019 (2)", "(3)"… when the name is taken (§9.3). */
-    private fun uniqueName(base: String): String {
-        val trimmed = base.trim().take(PlaylistRepository.MAX_NAME - 5).ifEmpty { "Playlist" }
-        if (!playlists.nameTaken(trimmed)) return trimmed
-        var n = 2
-        while (playlists.nameTaken("$trimmed ($n)")) n++
-        return "$trimmed ($n)"
-    }
+    private fun uniqueName(base: String): String = PlaylistRepository.uniqueName(PlaylistRepository.importedName(base)) { playlists.nameTaken(it) }
 
-    fun displayName(uri: Uri): String? = try {
-        resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
-            if (cursor.moveToFirst()) cursor.getString(0) else null
-        }
-    } catch (_: Exception) {
-        null
-    }
+    private fun displayName(uri: Uri): String? = Documents.displayName(resolver, uri)
 }

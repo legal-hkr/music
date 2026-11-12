@@ -22,11 +22,11 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,10 +39,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import sh.hnet.music.MusicApplication
 import sh.hnet.music.R
+import sh.hnet.music.data.LibraryTrack
 import sh.hnet.music.ui.library.AddRequest
 import sh.hnet.music.ui.library.LocalAddToPlaylist
 import sh.hnet.music.ui.library.LocalStarring
-import sh.hnet.music.data.LibraryTrack
 
 /** How a track relates to what plays now. */
 enum class PlayState { NONE, PLAYING, PAUSED }

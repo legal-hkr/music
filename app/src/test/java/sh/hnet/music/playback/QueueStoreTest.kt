@@ -1,9 +1,9 @@
 package sh.hnet.music.playback
 
-import org.junit.Assert.assertEquals
-import org.junit.Test
 import java.io.File
 import java.nio.file.Files
+import org.junit.Assert.assertEquals
+import org.junit.Test
 
 class QueueStoreTest {
     private fun store() = QueueStore(File(Files.createTempDirectory("queue").toFile(), "queue"))

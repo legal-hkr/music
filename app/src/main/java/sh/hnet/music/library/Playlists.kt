@@ -1,27 +1,27 @@
 package sh.hnet.music.library
 
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.flow.MutableStateFlow
+import java.text.Collator
+import java.util.Locale
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import sh.hnet.music.data.EntryRef
 import sh.hnet.music.data.LibraryTrack
 import sh.hnet.music.data.Playlist
 import sh.hnet.music.data.PlaylistDao
 import sh.hnet.music.data.PlaylistEntry
 import sh.hnet.music.data.TrackDao
-import java.text.Collator
-import java.util.Locale
 
 enum class PlaylistSort { RECENTLY_CHANGED, RECENTLY_ADDED, NAME }
 
@@ -246,6 +246,17 @@ class PlaylistRepository(
 
     companion object {
         const val MAX_NAME = 100
+
+        /** A name brought in from outside (a file, a backup) as a playlist can have it, with room for " (2)". */
+        fun importedName(name: String): String = name.trim().take(MAX_NAME - 5).ifEmpty { "Playlist" }
+
+        /** [base], or "[base] (2)", "(3)"… while [taken]: how playlists and presets get a name that is free. */
+        fun uniqueName(base: String, taken: (String) -> Boolean): String {
+            if (!taken(base)) return base
+            var n = 2
+            while (taken("$base ($n)")) n++
+            return "$base ($n)"
+        }
 
         fun nameKey(name: String) = SearchIndex.normalize(name.trim())
 
