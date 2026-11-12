@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Widgets: the system's own color roles (dynamic colors), as the launcher resolves them. No colors of our own. -->
+    <color name="widget_surface">@android:color/system_surface_container_low_dark</color>
+    <color name="widget_on_surface">@android:color/system_on_surface_dark</color>
+    <color name="widget_on_surface_variant">@android:color/system_on_surface_variant_dark</color>
+    <color name="widget_primary">@android:color/system_primary_dark</color>
+    <color name="widget_on_primary">@android:color/system_on_primary_dark</color>
+    <color name="widget_primary_container">@android:color/system_primary_container_dark</color>
+    <color name="widget_on_primary_container">@android:color/system_on_primary_container_dark</color>
+    <color name="widget_secondary_container">@android:color/system_secondary_container_dark</color>
+    <color name="widget_on_secondary_container">@android:color/system_on_secondary_container_dark</color>
+</resources>

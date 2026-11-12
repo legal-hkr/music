@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The placeholder for a cover: the cookie in secondaryContainer with a music note (SPEC-widgets §2.2). -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/widget_cookie" />
+    <item>
+        <inset android:drawable="@drawable/widget_ic_music_note" android:inset="31%" />
+    </item>
+</layer-list>

@@ -54,6 +54,10 @@ class PlayerConnection(private val context: Context) {
     private val _isPlaying = MutableStateFlow(false)
     val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
 
+    private val _connected = MutableStateFlow(false)
+    /** Whether the player's state is known yet: before that, an empty queue means nothing (the widgets wait for it). */
+    val connected: StateFlow<Boolean> = _connected.asStateFlow()
+
     private val _queue = MutableStateFlow(QueueSnapshot())
     val queue: StateFlow<QueueSnapshot> = _queue.asStateFlow()
 
@@ -123,6 +127,7 @@ class PlayerConnection(private val context: Context) {
             connected.addListener(listener)
             sync(connected)
             syncQueue(connected)
+            _connected.value = true
             pending.toList().forEach { it(connected) }
             pending.clear()
         }, ContextCompat.getMainExecutor(context))
@@ -130,6 +135,9 @@ class PlayerConnection(private val context: Context) {
 
     /** Connects early, so lists can mark the current track as soon as they show. */
     fun connect() = withController {}
+
+    /** Runs [done] once everything asked for before it has gone to the player. */
+    fun whenConnected(done: () -> Unit) = withController { done() }
 
     /** The current position; read on demand (the seek bar polls it while visible). */
     fun positionMs(): Long = controller?.currentPosition?.coerceAtLeast(0) ?: 0

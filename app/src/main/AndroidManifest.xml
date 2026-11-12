@@ -49,6 +49,23 @@
                 <action android:name="androidx.media3.session.MediaSessionService" />
             </intent-filter>
         </service>
+
+        <!-- Home screen widgets (SPEC-widgets). Their broadcasts come from the system and from our
+             own pending intents, so nothing is exported. -->
+        <receiver
+            android:name=".widget.NowPlayingWidgetProvider"
+            android:exported="false"
+            android:label="@string/label_widget_now_playing">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_now_playing" />
+        </receiver>
+        <receiver
+            android:name=".widget.WidgetActionReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>

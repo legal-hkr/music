@@ -34,4 +34,12 @@ class MusicApplication : Application() {
     val player: PlayerConnection by lazy { PlayerConnection(this) }
 
     val preferences: Preferences by lazy { Preferences(this) }
+
+    val widgets: sh.hnet.music.widget.Widgets by lazy { sh.hnet.music.widget.Widgets(this) }
+
+    override fun onCreate() {
+        super.onCreate()
+        // Placed widgets follow the player from the start of the process, whatever started it
+        widgets.start()
+    }
 }

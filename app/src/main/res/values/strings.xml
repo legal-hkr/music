@@ -643,4 +643,10 @@
     <string name="desc_reset_play_counts">Every track’s play count returns to zero. The library and playlists stay as they are.</string>
     <string name="button_reset_play_counts">Reset play counts</string>
     <string name="msg_play_counts_reset">Play counts reset</string>
+    <!-- Widgets (SPEC-widgets) -->
+    <string name="label_widget_now_playing">Now playing</string>
+    <string name="desc_widget_now_playing">The current track with play controls</string>
+    <string name="label_widget_nothing_playing">Nothing playing</string>
+    <string name="desc_widget_tap_to_open">Tap to open Music</string>
+    <string name="content_description_widget_now_playing">%1$s, %2$s. Opens Now playing</string>
 </resources>
