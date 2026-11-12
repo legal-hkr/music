@@ -38,7 +38,8 @@ fun SettingsRootScreen(
     val startView by app.preferences.startView.collectAsStateWithLifecycle(sh.hnet.music.ui.library.LibraryView.ALBUMS)
     val lastBackup by app.backup.lastBackup.collectAsStateWithLifecycle()
     val equalizer by app.equalizer.state.collectAsStateWithLifecycle()
-    val bitPerfectOn by app.preferences.bitPerfect.collectAsStateWithLifecycle(false)
+    val outputs by app.outputs.system.collectAsStateWithLifecycle()
+    val devices by app.outputs.devices.collectAsStateWithLifecycle()
     val bitPerfectActive by app.bitPerfect.active.collectAsStateWithLifecycle()
     val language = appLanguages.firstOrNull { it.tag == currentLanguageTag(context) } ?: appLanguages.first()
     SettingsPage(title = stringResource(R.string.title_settings), onBack = null) {
@@ -65,8 +66,11 @@ fun SettingsRootScreen(
                 SettingsNavigationRow(shapes, R.drawable.ic_equalizer, stringResource(R.string.title_equalizer), equalizerSummary(equalizer, bitPerfectActive), onClick = onOpenEqualizer)
             }
             row { shapes ->
-                val summary = stringResource(if (bitPerfectOn) R.string.desc_bit_perfect_on else R.string.desc_bit_perfect_off)
-                SettingsNavigationRow(shapes, R.drawable.ic_usb, stringResource(R.string.title_output), summary, onClick = onOpenOutput)
+                // The device playing now (SPEC-output §3)
+                val current = outputs.current ?: sh.hnet.music.playback.AudioOutput(sh.hnet.music.playback.OutputKind.SPEAKER, "")
+                val name = outputName(current)
+                val summary = if (devices.deviceFor(current).bitPerfect) stringResource(R.string.label_output_bit_perfect, name) else name
+                SettingsNavigationRow(shapes, R.drawable.ic_speaker_group, stringResource(R.string.title_output), summary, onClick = onOpenOutput)
             }
         }
         SettingsGroup(stringResource(R.string.title_settings_group_app)) {

@@ -190,10 +190,10 @@ class Preferences(private val context: Context) {
 
     private val bitPerfectKey = booleanPreferencesKey("bit_perfect_output")
 
-    /** Bit-perfect output to USB DACs (Settings › Output); off by default. */
-    val bitPerfect: Flow<Boolean> = context.settings.data.map { prefs -> prefs[bitPerfectKey] ?: false }
+    /** The one bit-perfect switch there was before the setting became each USB device's own (SPEC-output §10); read once, to move it. */
+    val legacyBitPerfect: Flow<Boolean> = context.settings.data.map { prefs -> prefs[bitPerfectKey] ?: false }
 
-    suspend fun setBitPerfect(on: Boolean) = context.settings.edit { it[bitPerfectKey] = on }
+    suspend fun clearLegacyBitPerfect() = context.settings.edit { it.remove(bitPerfectKey) }
 
     private val dsdPcmRateKey = intPreferencesKey("dsd_pcm_rate")
 

@@ -35,4 +35,5 @@ sealed interface Screen : NavKey {
     @Serializable data object SettingsBackup : Screen
     @Serializable data object SettingsEqualizer : Screen
     @Serializable data object SettingsOutput : Screen
+    @Serializable data class SettingsDevice(val key: String) : Screen
 }

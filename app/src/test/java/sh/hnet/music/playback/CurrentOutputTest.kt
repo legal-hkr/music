@@ -19,6 +19,7 @@ class CurrentOutputTest {
         assertEquals("usb:HiBy R4", CurrentOutput.output(AudioDeviceInfo.TYPE_USB_HEADSET, "HiBy R4").key)
         assertEquals("bluetooth:WH-1000XM5", CurrentOutput.output(AudioDeviceInfo.TYPE_BLUETOOTH_A2DP, "WH-1000XM5").key)
         assertEquals("bluetooth:WH-1000XM5", CurrentOutput.output(AudioDeviceInfo.TYPE_BLE_HEADSET, "WH-1000XM5").key)
+        assertEquals("usb:HiBy R4", CurrentOutput.output(AudioDeviceInfo.TYPE_USB_DEVICE, "USB-Audio - HiBy R4").key)
         assertEquals("usb:", CurrentOutput.output(AudioDeviceInfo.TYPE_USB_DEVICE, null).key)
     }
 

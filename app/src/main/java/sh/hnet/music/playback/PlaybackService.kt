@@ -16,6 +16,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import sh.hnet.music.MusicApplication
@@ -147,17 +149,28 @@ class PlaybackService : MediaSessionService() {
         scope.launch {
             (application as MusicApplication).preferences.gain.collect { gainSink.settings = it }
         }
-        // Bit-perfect output: the switch, and USB outputs coming and going. Either way the output is
+        // Bit-perfect output: the devices' switches, and USB outputs coming and going. Either way the output is
         // opened again for what plays, so the change is heard (and shown) at once
         bitPerfect.start()
         bitPerfect.onOutputChanged = { reopenOutput(player) }
+        val outputs = (application as MusicApplication).outputs
         scope.launch {
-            (application as MusicApplication).preferences.bitPerfect.collect { on ->
-                if (bitPerfect.enabled != on) {
-                    bitPerfect.enabled = on
+            outputs.devices.collect { state ->
+                val keys = state.bitPerfectKeys
+                if (bitPerfect.enabledKeys != keys) {
+                    bitPerfect.enabledKeys = keys
                     reopenOutput(player)
                 }
             }
+        }
+        // Devices are remembered once music plays on them (SPEC-output §2.1)
+        player.addListener(object : Player.Listener {
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                if (isPlaying) outputs.played()
+            }
+        })
+        scope.launch {
+            outputs.system.map { it.current }.distinctUntilChanged().collect { if (player.isPlaying) outputs.played() }
         }
         // The equalizer: heard at once, whatever changes it
         scope.launch {

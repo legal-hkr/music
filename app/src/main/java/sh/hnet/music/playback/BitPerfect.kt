@@ -128,8 +128,18 @@ class BitPerfectController(context: Context) {
     private val audio = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private val media = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build()
 
-    /** The user's switch (Settings › Output). */
-    @Volatile var enabled = false
+    /** The USB devices whose own switch is on (SPEC-output §9), by [AudioOutput.key]. */
+    @Volatile var enabledKeys: Set<String> = emptySet()
+
+    /** What goes to the USB device now: [bitPerfect] or through the mixer although its switch is on; [bits] 0 when not known. */
+    data class Stream(val bitPerfect: Boolean, val bits: Int, val sampleRate: Int)
+
+    private val _stream = MutableStateFlow<Stream?>(null)
+    /** For the Output pages; null when nothing was opened for a device with the switch on. */
+    val stream: StateFlow<Stream?> = _stream.asStateFlow()
+
+    /** The stream last refused although the device's switch is on, to say why it plays through the mixer. */
+    @Volatile private var refused: Stream? = null
 
     /** The decision for the stream being configured; null: it plays the usual way. */
     @Volatile var pending: Choice? = null
@@ -160,6 +170,7 @@ class BitPerfectController(context: Context) {
         audio.unregisterAudioDeviceCallback(callback)
         onOutputChanged = null
         pending = null
+        refused = null
         close()
     }
 
@@ -167,9 +178,13 @@ class BitPerfectController(context: Context) {
         val now = usbDevice()?.id
         if (now == lastUsb) return
         lastUsb = now
-        if (now == null) close()
-        // With the switch off nothing of ours depends on the output: the system's own routing is enough
-        if (enabled) onOutputChanged?.invoke()
+        if (now == null) {
+            close()
+            refused = null
+            _stream.value = null
+        }
+        // With no switch on nothing of ours depends on the output: the system's own routing is enough
+        if (enabledKeys.isNotEmpty()) onOutputChanged?.invoke()
     }
 
     private fun usbDevice(): AudioDeviceInfo? = OutputDevices.usbDevice(audio)
@@ -180,12 +195,15 @@ class BitPerfectController(context: Context) {
      */
     fun prepare(sampleRate: Int, sourceBits: Int, channels: Int): Boolean {
         pending = choose(sampleRate, sourceBits, channels)
+        refused = if (pending == null && usbDevice()?.let { CurrentOutput.output(it).key in enabledKeys } == true) Stream(false, sourceBits, sampleRate) else null
+        // Already through the mixer, where one output serves stream after stream: the reason follows the stream
+        if (pending == null && _stream.value?.bitPerfect == false) _stream.value = refused
         return pending != null
     }
 
     private fun choose(sampleRate: Int, sourceBits: Int, channels: Int): Choice? {
-        if (!enabled) return null
         val device = usbDevice() ?: return null
+        if (CurrentOutput.output(device).key !in enabledKeys) return null
         val offered = audio.getSupportedMixerAttributes(device).filter { it.mixerBehavior == AudioMixerAttributes.MIXER_BEHAVIOR_BIT_PERFECT }
         val formats = offered.map { OutputDevices.format(it.format) }
         val chosen = BitPerfect.choose(formats, sampleRate, sourceBits, channels) ?: return null
@@ -208,6 +226,7 @@ class BitPerfectController(context: Context) {
         // again would only make the system reopen the device
         if (set != null && setKey == choice.key) {
             _active.value = true
+            _stream.value = Stream(true, choice.bits, choice.attributes.format.sampleRate)
             return true
         }
         val done = try {
@@ -220,12 +239,14 @@ class BitPerfectController(context: Context) {
             setKey = choice.key
         }
         _active.value = done
+        _stream.value = if (done) Stream(true, choice.bits, choice.attributes.format.sampleRate) else refused
         return done
     }
 
     /** Back to the system's own mixing. */
     fun close() {
         _active.value = false
+        _stream.value = refused
         val device = set ?: return
         set = null
         setKey = null

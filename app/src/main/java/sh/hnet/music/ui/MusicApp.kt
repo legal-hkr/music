@@ -457,7 +457,10 @@ fun MusicApp(openNowPlaying: Int = 0) {
                         })
                     }
                     entry<Screen.SettingsPlayback> { PlaybackSettingsScreen(onBack = back) }
-                    entry<Screen.SettingsOutput> { sh.hnet.music.ui.settings.OutputScreen(onBack = back) }
+                    entry<Screen.SettingsOutput> { sh.hnet.music.ui.settings.OutputScreen(onBack = back, onOpenDevice = { currentStack.add(Screen.SettingsDevice(it)) }) }
+                    entry<Screen.SettingsDevice> { key ->
+                        sh.hnet.music.ui.settings.DeviceScreen(key.key, onBack = back, onOpenEqualizer = { currentStack.add(Screen.SettingsEqualizer) }, snackbars = snackbars, messageScope = scope)
+                    }
                     entry<Screen.SettingsEqualizer> { EqualizerScreen(onBack = back, snackbars = snackbars, messageScope = scope) }
                     entry<Screen.SettingsAbout> {
                         AboutScreen(
@@ -496,7 +499,8 @@ fun MusicApp(openNowPlaying: Int = 0) {
         // Registered here, after the destinations, so they win over the pages' own Back while open
         BackHandler(enabled = detailsOpen) { detailsOpen = false }
         BackHandler(enabled = equalizerOpen) { equalizerOpen = false }
-        BackHandler(enabled = settingsOpen != null) { settingsOpen = null }
+        // A device's page was opened from the Output page
+        BackHandler(enabled = settingsOpen != null) { settingsOpen = if (settingsOpen?.startsWith(DEVICE_PAGE) == true) "output" else null }
         PredictiveBackHandler(enabled = nowPlaying.targetState && !detailsOpen && !equalizerOpen && settingsOpen == null) { events ->
             try {
                 events.collect { nowPlaying.seekTo(it.progress, targetState = false) }
@@ -565,7 +569,17 @@ fun MusicApp(openNowPlaying: Int = 0) {
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
                     Box(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
                         CompositionLocalProvider(LocalBottomOverlay provides 0.dp) {
-                            if (page == "output") sh.hnet.music.ui.settings.OutputScreen(onBack = { settingsOpen = null }, topInsets = false)
+                            val shown = page
+                            if (shown == "output") sh.hnet.music.ui.settings.OutputScreen(onBack = { settingsOpen = null }, onOpenDevice = { settingsOpen = DEVICE_PAGE + it }, topInsets = false)
+                            else if (shown != null && shown.startsWith(DEVICE_PAGE)) sh.hnet.music.ui.settings.DeviceScreen(
+                                shown.removePrefix(DEVICE_PAGE),
+                                onBack = { settingsOpen = "output" },
+                                // The equalizer's page lies under this one
+                                onOpenEqualizer = { settingsOpen = null; equalizerOpen = true },
+                                snackbars = snackbars,
+                                messageScope = scope,
+                                topInsets = false,
+                            )
                             else PlaybackSettingsScreen(onBack = { settingsOpen = null }, topInsets = false)
                         }
                     }
@@ -591,3 +605,6 @@ fun MusicApp(openNowPlaying: Int = 0) {
     )
     }
 }
+
+/** Before a device's key in the name of a settings page shown over now playing. */
+private const val DEVICE_PAGE = "device:"
