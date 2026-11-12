@@ -706,4 +706,17 @@
     <string name="label_widget_nothing_playing">Nic nie gra</string>
     <string name="desc_widget_tap_to_open">Dotknij, aby otworzyć Muzykę</string>
     <string name="content_description_widget_now_playing">%1$s, %2$s. Otwiera odtwarzacz</string>
+    <string name="label_widget_playlist">Playlista</string>
+    <string name="label_widget_playlist_wide">Playlista, szeroki</string>
+    <string name="desc_widget_playlist">Odtwarzanie playlisty z ekranu głównego</string>
+    <string name="label_widget_playlist_deleted">Playlista usunięta</string>
+    <string name="desc_widget_choose_another">Dotknij, aby wybrać inną</string>
+    <string name="title_playlist_widget">Widżet playlisty</string>
+    <string name="title_widget_look">Wygląd</string>
+    <string name="label_look_covers">Okładki</string>
+    <string name="label_look_system">Kolory systemu</string>
+    <string name="button_add_widget">Dodaj widżet</string>
+    <string name="content_description_widget_play_playlist">Odtwórz: %s</string>
+    <string name="content_description_widget_shuffle_playlist">Odtwórz losowo: %s</string>
+    <string name="content_description_widget_playlist">%1$s, %2$s. Otwiera playlistę</string>
 </resources>

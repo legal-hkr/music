@@ -72,6 +72,9 @@ class NowPlayingWidgetProvider : AppWidgetProvider() {
         private fun wide(context: Context, content: Content) = RemoteViews(context.packageName, R.layout.widget_now_playing_wide).apply {
             common(context, content, playing = R.drawable.widget_button_primary_pill, paused = R.drawable.widget_button_primary_rounded_wide)
             setViewVisibility(R.id.widget_buttons, if (content.title == null) View.GONE else View.VISIBLE)
+            // In the app's language: what a layout says by itself is in the launcher's
+            setContentDescription(R.id.widget_previous, context.getString(R.string.content_description_previous))
+            setContentDescription(R.id.widget_next, context.getString(R.string.content_description_next))
             setOnClickPendingIntent(R.id.widget_previous, WidgetActionReceiver.intent(context, WidgetActionReceiver.ACTION_PREVIOUS))
             setOnClickPendingIntent(R.id.widget_next, WidgetActionReceiver.intent(context, WidgetActionReceiver.ACTION_NEXT))
         }

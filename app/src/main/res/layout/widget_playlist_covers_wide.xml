@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Playlist, 4×2 in the Covers look (SPEC-widgets §5.1): the mosaic as a square at the start, fading into a
+     panel in the playlist's color; the label, name, length, Play and Shuffle. Every color here is set from
+     the covers: the panel is the background's tint, the fade a picture. -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:clipToOutline="true">
+
+    <ImageView
+        android:id="@+id/widget_cover"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:adjustViewBounds="true"
+        android:importantForAccessibility="no"
+        android:scaleType="fitStart" />
+
+    <ImageView
+        android:id="@+id/widget_fade"
+        android:layout_width="110dp"
+        android:layout_height="match_parent"
+        android:layout_alignEnd="@id/widget_cover"
+        android:importantForAccessibility="no"
+        android:scaleType="fitXY" />
+
+    <!-- The text and buttons start at 60 % of the widget's width (owner's decision), clear of the covers -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:baselineAligned="false"
+        android:orientation="horizontal">
+
+        <FrameLayout
+            android:id="@+id/widget_half"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="3" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginEnd="12dp"
+        android:layout_weight="2"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/widget_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:letterSpacing="0.1"
+            android:maxLines="1"
+            android:text="@string/label_widget_playlist"
+            android:textAllCaps="true"
+            android:textSize="11sp" />
+
+        <TextView
+            android:id="@+id/widget_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
+            android:maxLines="2"
+            android:textColor="@color/widget_on_surface" />
+
+        <TextView
+            android:id="@+id/widget_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/widget_on_surface_variant" />
+
+        <LinearLayout
+            android:id="@+id/widget_buttons"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- A circle, as in the square: the labeled pill and Shuffle don't fit side by side here -->
+            <ImageView
+                android:id="@+id/widget_play"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/widget_shape_circle"
+                android:contentDescription="@string/content_description_play"
+                android:padding="10dp"
+                android:src="@drawable/ic_play_arrow" />
+
+            <ImageView
+                android:id="@+id/widget_shuffle"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/widget_shape_circle"
+                android:contentDescription="@string/label_widget_playlist"
+                android:padding="11dp"
+                android:src="@drawable/ic_shuffle" />
+        </LinearLayout>
+    </LinearLayout>
+    </LinearLayout>
+</RelativeLayout>

@@ -2,6 +2,8 @@ package sh.hnet.music.widget
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -15,12 +17,33 @@ import sh.hnet.music.data.LibraryTrack
  * exists or one of them is used.
  */
 class Widgets(private val app: MusicApplication) {
-    private var started = false
+    private var nowPlaying = false
+    private var playlists = false
 
-    /** Starts following the player, if a widget is placed; a second call does nothing. Main thread only. */
-    fun start() {
-        if (started || NowPlayingWidgetProvider.ids(app).isEmpty()) return
-        started = true
+    /** What each Playlist widget was last drawn from; in memory, so a new process draws them once more. */
+    private val drawn = HashMap<Int, Any?>()
+    private val redraws = MutableStateFlow(0)
+
+    /**
+     * Starts following what the placed widgets show; a second call does nothing more, unless [redraw]
+     * asks for the Playlist widgets to be drawn again (one was placed, or its settings changed). Main thread only.
+     */
+    fun start(redraw: Boolean = false) {
+        if (!nowPlaying && NowPlayingWidgetProvider.ids(app).isNotEmpty()) {
+            nowPlaying = true
+            followPlayer()
+        }
+        if (!playlists && PlaylistWidgetProvider.ids(app).isNotEmpty()) {
+            playlists = true
+            followPlaylists()
+        }
+        if (redraw) {
+            drawn.clear()
+            redraws.value++
+        }
+    }
+
+    private fun followPlayer() {
         app.player.connect()
         app.appScope.launch(Dispatchers.Main) {
             combine(app.player.connected, app.player.currentId, app.player.isPlaying, app.library.playableByUri) { connected, id, playing, tracks ->
@@ -43,9 +66,28 @@ class Widgets(private val app: MusicApplication) {
         }
     }
 
+    /** Renamed, changed, deleted: each Playlist widget is drawn again when what it shows is different (SPEC-widgets §5.5). */
+    private fun followPlaylists() {
+        app.appScope.launch(Dispatchers.Main) {
+            combine(app.playlists.playlists.filterNotNull(), app.library.tracks.filterNotNull(), redraws) { list, _, _ -> list }.collectLatest { list ->
+                // Edits come in bursts, and the library's first reading after the playlists'
+                delay(PLAYLIST_SETTLE_MS)
+                for (id in PlaylistWidgetProvider.ids(app)) {
+                    val choice = app.playlistWidgets.get(id) ?: continue
+                    val summary = list.firstOrNull { it.playlist.id == choice.playlistId }
+                    val key = PlaylistWidgetProvider.key(choice.look, summary)
+                    if (drawn.containsKey(id) && drawn[id] == key) continue
+                    PlaylistWidgetProvider.update(app, id, choice.look, summary) { track, size -> app.covers.load(track, app.covers.sizeFor(size)) }
+                    drawn[id] = key
+                }
+            }
+        }
+    }
+
     private data class Shown(val connected: Boolean, val id: String?, val track: LibraryTrack?, val playing: Boolean)
 
     private companion object {
         const val SETTLE_MS = 3_000L
+        const val PLAYLIST_SETTLE_MS = 400L
     }
 }

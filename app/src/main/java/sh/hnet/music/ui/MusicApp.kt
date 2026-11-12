@@ -125,7 +125,7 @@ import sh.hnet.music.ui.settings.LicensesScreen
 
 /** The app's shell: one back stack per navigation bar destination, the bottom block, snackbars. */
 @Composable
-fun MusicApp(openNowPlaying: Int = 0) {
+fun MusicApp(openNowPlaying: Int = 0, openPlaylist: Pair<Int, Long> = 0 to -1L) {
     val app = LocalContext.current.applicationContext as MusicApplication
     val library: LibraryViewModel = viewModel { LibraryViewModel(app) }
     val browse: BrowseViewModel = viewModel { BrowseViewModel(app) }
@@ -194,10 +194,16 @@ fun MusicApp(openNowPlaying: Int = 0) {
         stacks.getValue(Tab.LIBRARY).add(Screen.Album(Albums.keyOf(track)))
     }
     /** A playlist's page on the Library stack (View after saving the queue as one). */
-    val openPlaylist: (Long) -> Unit = { id ->
+    val showPlaylist: (Long) -> Unit = { id ->
         closeNowPlaying()
         tab = Tab.LIBRARY
         stacks.getValue(Tab.LIBRARY).add(Screen.Playlist(id))
+    }
+    // A Playlist widget was tapped: its playlist's page, once per request
+    LaunchedEffect(openPlaylist.first) {
+        val stack = stacks.getValue(Tab.LIBRARY)
+        if (openPlaylist.first > 0 && stack.lastOrNull() != Screen.Playlist(openPlaylist.second)) showPlaylist(openPlaylist.second)
+        else if (openPlaylist.first > 0) { closeNowPlaying(); tab = Tab.LIBRARY }
     }
 
     val snackbars = remember { SnackbarHostState() }
@@ -604,7 +610,7 @@ fun MusicApp(openNowPlaying: Int = 0) {
         onAddDone = { addRequest = null },
         queueToSave = queueToSave,
         onSaveDone = { queueToSave = null },
-        onOpenPlaylist = { id -> openPlaylist(id) },
+        onOpenPlaylist = { id -> showPlaylist(id) },
     )
     }
 }

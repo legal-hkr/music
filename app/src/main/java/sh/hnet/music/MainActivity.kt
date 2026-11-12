@@ -30,6 +30,9 @@ class MainActivity : ComponentActivity() {
     /** Counts requests to show now playing (the notification was tapped); the UI reacts to changes. */
     private val openNowPlaying = mutableIntStateOf(0)
 
+    /** A playlist's page asked for by a Playlist widget: the request's number and the playlist. */
+    private val openPlaylist = mutableStateOf(0 to -1L)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
@@ -56,7 +59,7 @@ class MainActivity : ComponentActivity() {
                             firstRun = false
                         })
                     }
-                    false -> MusicApp(openNowPlaying = openNowPlaying.intValue)
+                    false -> MusicApp(openNowPlaying = openNowPlaying.intValue, openPlaylist = openPlaylist.value)
                 }
             }
         }
@@ -69,9 +72,12 @@ class MainActivity : ComponentActivity() {
 
     private fun handle(intent: Intent?) {
         if (intent?.getBooleanExtra(EXTRA_OPEN_NOW_PLAYING, false) == true) openNowPlaying.intValue++
+        val playlist = intent?.getLongExtra(EXTRA_OPEN_PLAYLIST, -1) ?: -1
+        if (playlist >= 0) openPlaylist.value = openPlaylist.value.first + 1 to playlist
     }
 
     companion object {
         const val EXTRA_OPEN_NOW_PLAYING = "sh.hnet.music.OPEN_NOW_PLAYING"
+        const val EXTRA_OPEN_PLAYLIST = "sh.hnet.music.OPEN_PLAYLIST"
     }
 }

@@ -36,6 +36,7 @@ class MusicApplication : Application() {
     val preferences: Preferences by lazy { Preferences(this) }
 
     val widgets: sh.hnet.music.widget.Widgets by lazy { sh.hnet.music.widget.Widgets(this) }
+    val playlistWidgets: sh.hnet.music.widget.PlaylistWidgetStore by lazy { sh.hnet.music.widget.PlaylistWidgetStore(getSharedPreferences("widgets", MODE_PRIVATE)) }
 
     override fun onCreate() {
         super.onCreate()
