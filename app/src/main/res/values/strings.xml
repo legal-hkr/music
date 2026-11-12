@@ -658,6 +658,8 @@
     <string name="title_playlist_widget">Playlist widget</string>
     <string name="title_widget_look">Look</string>
     <string name="label_look_covers">Covers</string>
+    <string name="title_now_playing_widget">Now playing widget</string>
+    <string name="label_look_card">With background</string>
     <string name="label_look_floating">Floating</string>
     <string name="label_widget_deleted_short">Deleted</string>
     <string name="button_add_widget">Add widget</string>

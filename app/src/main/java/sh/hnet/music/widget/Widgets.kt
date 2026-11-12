@@ -26,6 +26,9 @@ class Widgets(private val app: MusicApplication) {
     private val drawn = HashMap<Int, Any?>()
     private val redraws = MutableStateFlow(0)
 
+    /** What the Now playing widgets show, to draw them again when one's look changes. */
+    private var nowPlayingContent: NowPlayingWidgetProvider.Content? = null
+
     /**
      * Starts following what the placed widgets show; a second call does nothing more, unless [redraw]
      * asks for the Playlist widgets to be drawn again (one was placed, or its settings changed). Main thread only.
@@ -44,6 +47,8 @@ class Widgets(private val app: MusicApplication) {
             followAlbums()
         }
         if (redraw) {
+            // A Now playing widget's look may have changed
+            nowPlayingContent?.let { NowPlayingWidgetProvider.update(app, it) }
             drawn.clear()
             redraws.value++
         }
@@ -61,16 +66,21 @@ class Widgets(private val app: MusicApplication) {
                     // Nothing queued, or a track the library hasn't listed yet. Either may be a moment's state –
                     // the service restoring its queue, the library loading – so the empty widget waits
                     delay(SETTLE_MS)
-                    if (shown.id == null) NowPlayingWidgetProvider.update(app, NowPlayingWidgetProvider.Content(null, null, null, false))
+                    if (shown.id == null) show(NowPlayingWidgetProvider.Content(null, null, null, false))
                     return@collectLatest
                 }
                 val track = shown.track
                 val size = NowPlayingWidgetProvider.coverSize(app)
                 // A circle here (owner's choice, on trial); the Playlist widgets have their own shape
                 val cover = app.covers.load(track, app.covers.sizeFor(size))?.let { WidgetBitmaps.circle(it, size) }
-                NowPlayingWidgetProvider.update(app, NowPlayingWidgetProvider.Content(track.displayTitle, track.artists.joinToString(", "), cover, shown.playing))
+                show(NowPlayingWidgetProvider.Content(track.displayTitle, track.artists.joinToString(", "), cover, shown.playing))
             }
         }
+    }
+
+    private fun show(content: NowPlayingWidgetProvider.Content) {
+        nowPlayingContent = content
+        NowPlayingWidgetProvider.update(app, content)
     }
 
     /** Renamed, changed, deleted: each Playlist widget is drawn again when what it shows is different (SPEC-widgets §5.5). */

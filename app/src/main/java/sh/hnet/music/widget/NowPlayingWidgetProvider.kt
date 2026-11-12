@@ -6,10 +6,12 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.util.SizeF
 import android.view.View
 import android.widget.RemoteViews
+import androidx.core.content.edit
 import sh.hnet.music.MainActivity
 import sh.hnet.music.MusicApplication
 import sh.hnet.music.R
@@ -20,10 +22,29 @@ import sh.hnet.music.R
  * cells by two rows look wrong): this one two cells wide – a bar (2×1) or a square (2×2) – and
  * [NowPlayingWideWidgetProvider] four cells wide. Floating (SPEC-widgets rev. 2 §2.1): no widget
  * background – the round cover as tall as the widget straight on the wallpaper, the text in a small
- * label, the buttons on their own, each with a shadow (elevation in the layouts). Plain RemoteViews
+ * label, the buttons on their own, each with a shadow (elevation in the layouts). Each placed widget
+ * can instead have a background ([NowPlayingLook.CARD], set in its settings). Plain RemoteViews
  * (owner's decision: no Glance, which brings WorkManager along).
  */
+/** How a Now playing widget looks: floating without a background (the default), or on a surface card. */
+enum class NowPlayingLook { FLOATING, CARD }
+
+/** The look of each placed Now playing widget, by widget id; the Playlist widgets' preferences, and in no backup either. */
+class NowPlayingWidgetStore(private val preferences: SharedPreferences) {
+    fun get(widgetId: Int): NowPlayingLook =
+        NowPlayingLook.entries.firstOrNull { it.name == preferences.getString("now_playing_look_$widgetId", null) } ?: NowPlayingLook.FLOATING
+
+    fun put(widgetId: Int, look: NowPlayingLook) = preferences.edit { putString("now_playing_look_$widgetId", look.name) }
+
+    fun remove(widgetId: Int) = preferences.edit { remove("now_playing_look_$widgetId") }
+}
+
 open class NowPlayingWidgetProvider : AppWidgetProvider() {
+    override fun onDeleted(context: Context, appWidgetIds: IntArray) {
+        val store = (context.applicationContext as MusicApplication).nowPlayingWidgets
+        appWidgetIds.forEach(store::remove)
+    }
+
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         // After a restart of the phone or the process there is nothing to show yet: the app's widget
         // updater connects to the player, whose kept queue gives the last track, paused
@@ -44,23 +65,48 @@ open class NowPlayingWidgetProvider : AppWidgetProvider() {
         /** The largest cover a layout shows, in pixels: the cover is as tall as the widget, two rows at most (§2.5). */
         fun coverSize(context: Context): Int = (COVER_DP * context.resources.displayMetrics.density).toInt()
 
-        /** Every placed widget shows [content], in the layout its size takes. */
+        /** Every placed widget shows [content], in its own look and in the layout its size takes. */
         fun update(context: Context, content: Content) {
             val ids = ids(context)
             if (ids.isEmpty()) return
+            val store = (context.applicationContext as MusicApplication).nowPlayingWidgets
+            val manager = AppWidgetManager.getInstance(context)
             // Of the layouts that fit the widget's size the launcher shows the nearest one (the least distance
             // between the two sizes), so each is declared close to the sizes it is for. On the Pixel launcher
             // one row is about 110 dp high and two about 236; two and four cells are about 181 and 379 dp wide
-            val views = RemoteViews(
-                mapOf(
-                    SizeF(NARROW_DP, BAR_DP) to bar(context, content, wide = false),
-                    SizeF(BAR_WIDTH_DP, BAR_DP) to bar(context, content, wide = true),
-                    SizeF(SQUARE_DP, TWO_ROWS_DP) to square(context, content),
-                    SizeF(WIDE_DP, TWO_ROWS_DP) to wide(context, content),
-                ),
-            )
-            AppWidgetManager.getInstance(context).updateAppWidget(ids, views)
+            val floating by lazy {
+                RemoteViews(
+                    mapOf(
+                        SizeF(NARROW_DP, BAR_DP) to bar(context, content, wide = false),
+                        SizeF(BAR_WIDTH_DP, BAR_DP) to bar(context, content, wide = true),
+                        SizeF(SQUARE_DP, TWO_ROWS_DP) to square(context, content),
+                        SizeF(WIDE_DP, TWO_ROWS_DP) to wide(context, content),
+                    ),
+                )
+            }
+            val card by lazy {
+                RemoteViews(
+                    mapOf(
+                        SizeF(NARROW_DP, BAR_DP) to cardBar(context, content, wide = false),
+                        SizeF(BAR_WIDTH_DP, BAR_DP) to cardBar(context, content, wide = true),
+                        SizeF(SQUARE_DP, TWO_ROWS_DP) to card(context, content, R.layout.widget_now_playing_card_square),
+                        SizeF(WIDE_DP, TWO_ROWS_DP) to cardWide(context, content),
+                    ),
+                )
+            }
+            for (id in ids) manager.updateAppWidget(id, if (store.get(id) == NowPlayingLook.CARD) card else floating)
         }
+
+        /** With a background, one row: the cover only where there is room for it, four cells wide. */
+        private fun cardBar(context: Context, content: Content, wide: Boolean) = card(context, content, R.layout.widget_now_playing_card_bar).apply {
+            setViewVisibility(R.id.widget_cover, if (wide) View.VISIBLE else View.GONE)
+        }
+
+        private fun card(context: Context, content: Content, layout: Int) = RemoteViews(context.packageName, layout).apply {
+            common(context, content, artist = true)
+        }
+
+        private fun cardWide(context: Context, content: Content) = card(context, content, R.layout.widget_now_playing_card_wide).apply { skipButtons(context, content) }
 
         /**
          * One row (§3.3). Four cells wide: the cover, the label over its end, Play/Pause at the end. Two cells
@@ -84,6 +130,11 @@ open class NowPlayingWidgetProvider : AppWidgetProvider() {
         /** Two rows, four cells (§3.1). */
         private fun wide(context: Context, content: Content) = RemoteViews(context.packageName, R.layout.widget_now_playing_wide).apply {
             common(context, content, artist = true)
+            skipButtons(context, content)
+        }
+
+        /** The wide layouts' row of buttons: Previous and Next beside Play/Pause, gone with nothing to play. */
+        private fun RemoteViews.skipButtons(context: Context, content: Content) {
             setViewVisibility(R.id.widget_buttons, if (content.title == null) View.GONE else View.VISIBLE)
             // In the app's language: what a layout says by itself is in the launcher's
             setContentDescription(R.id.widget_previous, context.getString(R.string.content_description_previous))

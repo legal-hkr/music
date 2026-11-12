@@ -68,8 +68,8 @@ class AlbumsWidgetProvider : AppWidgetProvider() {
             )
             fun views(picture: Bitmap) = RemoteViews(context.packageName, R.layout.widget_albums).apply {
                 setImageViewBitmap(R.id.widget_cover, picture)
-                setContentDescription(R.id.widget_root, description)
-                setOnClickPendingIntent(R.id.widget_root, open)
+                setContentDescription(android.R.id.background, description)
+                setOnClickPendingIntent(android.R.id.background, open)
             }
             // Each picture has room for the tilted corners and the shadows; the launcher fits it into the widget
             val narrow = views(WidgetBitmaps.fan(cards.take(NARROW_ALBUMS), fan(196, 156, NARROW_CARD_DP, 30), placeholder, note.takeIf { albums.isEmpty() }))

@@ -15,6 +15,7 @@ import sh.hnet.music.library.PlaylistTransfer
 import sh.hnet.music.output.Outputs
 import sh.hnet.music.playback.BitPerfectController
 import sh.hnet.music.playback.PlayerConnection
+import sh.hnet.music.widget.NowPlayingWidgetStore
 import sh.hnet.music.widget.PlaylistWidgetStore
 import sh.hnet.music.widget.Widgets
 
@@ -44,6 +45,7 @@ class MusicApplication : Application() {
 
     val widgets: Widgets by lazy { Widgets(this) }
     val playlistWidgets: PlaylistWidgetStore by lazy { PlaylistWidgetStore(getSharedPreferences("widgets", MODE_PRIVATE)) }
+    val nowPlayingWidgets: NowPlayingWidgetStore by lazy { NowPlayingWidgetStore(getSharedPreferences("widgets", MODE_PRIVATE)) }
 
     override fun onCreate() {
         super.onCreate()
