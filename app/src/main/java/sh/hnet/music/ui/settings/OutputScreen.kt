@@ -18,7 +18,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.Flow
 import sh.hnet.music.R
+import sh.hnet.music.playback.AudioOutput
+import sh.hnet.music.playback.CurrentOutput
 import sh.hnet.music.playback.OutputDevices
+import sh.hnet.music.playback.OutputKind
 import sh.hnet.music.playback.OutputFormat
 import sh.hnet.music.playback.OutputFormatGroup
 import sh.hnet.music.playback.UsbOutput
@@ -39,6 +42,29 @@ fun rememberUsbOutput(): UsbOutput? {
     return output
 }
 
+/** The output music plays through now, followed while something shows it. */
+@Composable
+fun rememberCurrentOutput(): AudioOutput? {
+    val context = LocalContext.current.applicationContext
+    val flow = remember(context) { CurrentOutput.flow(context) }
+    val output by flow.collectAsStateWithLifecycle(null)
+    return output
+}
+
+/** An output as shown: its own name, or what kind of output it is. */
+@Composable
+fun outputName(output: AudioOutput): String = output.name.ifEmpty {
+    stringResource(
+        when (output.kind) {
+            OutputKind.SPEAKER -> R.string.label_output_speaker
+            OutputKind.WIRED -> R.string.label_output_wired
+            OutputKind.USB -> R.string.label_usb_audio
+            OutputKind.BLUETOOTH -> R.string.label_output_bluetooth
+            OutputKind.OTHER -> R.string.label_output_other
+        },
+    )
+}
+
 private fun usbOutputOf(context: Context): Flow<UsbOutput?> = OutputDevices.usbOutput(context)
 
 /**
@@ -48,6 +74,8 @@ private fun usbOutputOf(context: Context): Flow<UsbOutput?> = OutputDevices.usbO
 @Composable
 fun OutputScreen(onBack: () -> Unit, topInsets: Boolean = true) {
     val output = rememberUsbOutput()
+    val current = rememberCurrentOutput()
+    val currentName = current?.let { outputName(it) }
     val app = LocalContext.current.applicationContext as MusicApplication
     val on by app.preferences.bitPerfect.collectAsStateWithLifecycle(false)
     val active by app.bitPerfect.active.collectAsStateWithLifecycle()
@@ -68,6 +96,21 @@ fun OutputScreen(onBack: () -> Unit, topInsets: Boolean = true) {
             }
         }
         SettingsNote(stringResource(R.string.desc_bit_perfect_output))
+        // Device profiles, stage P0: what the equalizer's profiles will be tied to
+        if (currentName != null) {
+            SettingsGroup(stringResource(R.string.title_current_output)) {
+                row { shapes ->
+                    SegmentedListItem(
+                        onClick = {},
+                        shapes = shapes,
+                        colors = settingsRowColors(),
+                        leadingContent = { RowIcon(if (current.kind == OutputKind.USB) R.drawable.ic_usb else R.drawable.ic_devices) },
+                    ) {
+                        Text(currentName)
+                    }
+                }
+            }
+        }
         if (output == null) {
             SettingsNote(stringResource(R.string.msg_no_usb_output))
             return@SettingsPage

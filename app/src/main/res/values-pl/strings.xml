@@ -623,6 +623,11 @@
     <string name="label_usb_audio">Urządzenie audio USB</string>
     <string name="msg_no_usb_output">Nie podłączono urządzenia audio USB. Po jego podłączeniu pojawią się tutaj formaty, w których system może przesyłać do niego dźwięk.</string>
     <string name="title_connected_output">Podłączone urządzenie</string>
+    <string name="title_current_output">Bieżące wyjście</string>
+    <string name="label_output_speaker">Głośnik telefonu</string>
+    <string name="label_output_wired">Słuchawki przewodowe</string>
+    <string name="label_output_bluetooth">Urządzenie Bluetooth</string>
+    <string name="label_output_other">Inne wyjście</string>
     <string name="title_bit_perfect_formats">Bit-perfect</string>
     <string name="title_mixed_formats">Przez mikser systemowy</string>
     <string name="msg_no_bit_perfect">System nie udostępnia trybu bit-perfect dla tego urządzenia.</string>
