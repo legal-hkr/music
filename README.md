@@ -6,6 +6,8 @@ A private, offline music player for Android with DSD, bit-perfect USB output and
 
 Source code and releases: [git.hnet.sh/hkr/music](https://git.hnet.sh/hkr/music)
 
+Bug reports and feature requests: [github.com/legal-hkr/music](https://github.com/legal-hkr/music/issues)
+
 ## Overview
 
 Music plays the audio files in the folders you choose and nothing else. It has no internet permission, doesn’t ask for access to your storage or media, and keeps nothing about you: the library, playlists and settings stay on the device. It is built for people who keep their own collection – FLAC, hi-res and DSD included – and want a player that respects it.
@@ -64,6 +66,13 @@ cd music
 ```
 
 Set the Android SDK path in `local.properties` (`sdk.dir=…`) first. Unit tests run with `./gradlew test`.
+
+## Contributing
+
+Development happens on [git.hnet.sh](https://git.hnet.sh/hkr/music), where the releases are published too. The [GitHub repository](https://github.com/legal-hkr/music) is a read-only mirror, updated on every push, and the place to report problems:
+
+- **Issues**: Open them on [GitHub](https://github.com/legal-hkr/music/issues), with the app version and your Android version
+- **Pull requests**: Welcome on GitHub as well, but they can’t be merged there – accepted changes are applied on git.hnet.sh and reach the mirror from there, so the pull request itself ends up closed rather than merged
 
 ## Tech stack
 
