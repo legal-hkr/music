@@ -1,0 +1,5 @@
+v0.3.1
+
+Zmiany:
+- Nowa ikona aplikacji: turkusowa nuta, także w „O aplikacji” i na stronie powitalnej
+- Widżety nie mają już tła: usunięto wygląd „Z tłem” widżetu „Teraz gra” i wygląd „Okładki” widżetu „Playlista”. Widżety umieszczone wcześniej na ekranie głównym przechodzą na wygląd bez tła

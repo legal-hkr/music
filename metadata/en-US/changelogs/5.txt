@@ -1,0 +1,5 @@
+v0.3.1
+
+Changes:
+- New app icon: a teal note, also in About and on the welcome page
+- Widgets no longer have a background: the Now playing widget’s “With background” look and the Playlist widget’s “Covers” look have been removed. Widgets already on the home screen switch to the look without a background
