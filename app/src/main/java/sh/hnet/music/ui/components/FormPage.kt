@@ -128,8 +128,8 @@ fun AppLogo(titleInset: Dp, modifier: Modifier = Modifier) {
 
 private val LOGO_SIZE = 144.dp
 
-/** Where the note starts in ic_launcher_foreground, as a share of its width (x 5 of 24 units, scaled 8/3 from 22 of 108). */
-private const val LOGO_MARK_START = (22f + 5f * 8f / 3f) / 108f
+/** Where the note starts in ic_launcher_foreground, as a share of its width (x 123 on the 512 grid, moved by 128 on the 768-unit canvas). */
+private const val LOGO_MARK_START = (128f + 123f) / 768f
 
-/** The empty band below the note, as a share of the height (the note ends at y 21 of 24 units). */
-private const val LOGO_EMPTY_BELOW = (108f - 22f - 21f * 8f / 3f) / 108f
+/** The empty band below the note, as a share of the height (the note ends at y 426 on the 512 grid). */
+private const val LOGO_EMPTY_BELOW = (768f - 128f - 426f) / 768f

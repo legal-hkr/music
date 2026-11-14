@@ -1,30 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Music's mark: a note with a curved flag, drawn by the owner from Material Icons "music_note"
-    (Apache License 2.0, Google). On the 108 dp adaptive canvas the 24-unit artwork is scaled 8/3
-    and centered: the note is 48 dp tall, inside the 66 dp safe zone. Also the in-app logo (About).
+    Music's mark: a note with a curved flag in a teal gradient. The artwork is drawn on a 512 grid and moved by 128 on the 768-unit canvas of the 108 dp adaptive icon: the note is 48 dp tall, inside the 66 dp safe zone. Also the in-app logo (About, the welcome wizard).
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
+    android:viewportWidth="768"
+    android:viewportHeight="768">
     <group
-        android:scaleX="2.6666667"
-        android:scaleY="2.6666667"
-        android:translateX="22"
-        android:translateY="22">
-        <path android:pathData="M11,3V13.55C10.41,13.21 9.73,13 9,13c-2.21,0 -4,1.79 -4,4c0,2.21 1.79,4 4,4c2.21,0 4,-1.79 4,-4V7c2.878696,0 6,2.0208333 6,2V5C19,5 15.137987,3 11,3Z">
+        android:translateX="128"
+        android:translateY="128">
+        <path android:pathData="M241,85 H275 C300,112 410,148 392,236 C386,264 366,286 338,298 C352,272 350,244 330,226 C314,212 296,206 275,204 V350 A76,76 0 1,1 241,286.7 Z">
             <aapt:attr name="android:fillColor">
                 <gradient
                     android:type="linear"
-                    android:startX="5.03125"
-                    android:startY="20.953125"
-                    android:endX="18.984375"
-                    android:endY="3.046875"
-                    android:startColor="#FFF0413A"
-                    android:endColor="#FFFF9F1C" />
+                    android:startX="388"
+                    android:startY="85"
+                    android:endX="123"
+                    android:endY="426"
+                    android:startColor="#FF2ED6C0"
+                    android:endColor="#FF0B8FA0" />
             </aapt:attr>
         </path>
     </group>
