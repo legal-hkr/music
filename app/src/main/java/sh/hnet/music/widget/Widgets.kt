@@ -31,7 +31,7 @@ class Widgets(private val app: MusicApplication) {
     private val drawn = HashMap<Int, Any?>()
     private val redraws = MutableStateFlow(0)
 
-    /** What the Now playing widgets show, to draw them again when one's look changes. */
+    /** What the Now playing widgets show, to draw them again when asked to. */
     private var nowPlayingContent: NowPlayingWidgetProvider.Content? = null
 
     /**
@@ -52,7 +52,7 @@ class Widgets(private val app: MusicApplication) {
             followAlbums()
         }
         if (redraw) {
-            // A Now playing widget's look may have changed
+            // One was placed, or the theme, the wallpaper's colors or the language changed
             nowPlayingContent?.let { NowPlayingWidgetProvider.update(app, it) }
             drawn.clear()
             redraws.value++
@@ -90,7 +90,7 @@ class Widgets(private val app: MusicApplication) {
                 }
                 val track = shown.track
                 val size = NowPlayingWidgetProvider.coverSize(app)
-                // A circle here (owner's choice, on trial); the Playlist widgets have their own shape
+                // A circle here (owner's choice); the Playlist widgets have their own shape
                 // Drawn off the main thread, as every widget picture is
                 val cover = app.covers.load(track, app.covers.sizeFor(size))?.let { withContext(Dispatchers.Default) { WidgetBitmaps.circle(it, size) } }
                 show(NowPlayingWidgetProvider.Content(track.displayTitle, track.artists.joinToString(", "), cover, shown.playing))
@@ -110,12 +110,12 @@ class Widgets(private val app: MusicApplication) {
                 // Edits come in bursts, and the library's first reading after the playlists'
                 delay(PLAYLIST_SETTLE_MS)
                 for (id in PlaylistWidgetProvider.ids(app)) {
-                    val choice = app.playlistWidgets.get(id) ?: continue
-                    val summary = list.firstOrNull { it.playlist.id == choice.playlistId }
-                    val key = PlaylistWidgetProvider.key(choice.look, summary)
+                    val playlistId = app.playlistWidgets.get(id) ?: continue
+                    val summary = list.firstOrNull { it.playlist.id == playlistId }
+                    val key = PlaylistWidgetProvider.key(summary)
                     if (drawn.containsKey(id) && drawn[id] == key) continue
                     withContext(Dispatchers.Default) {
-                        PlaylistWidgetProvider.update(app, id, choice.look, summary) { track, size -> app.covers.load(track, app.covers.sizeFor(size)) }
+                        PlaylistWidgetProvider.update(app, id, summary) { track, size -> app.covers.load(track, app.covers.sizeFor(size)) }
                     }
                     drawn[id] = key
                 }

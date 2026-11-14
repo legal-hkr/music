@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Playlist (SPEC-widgets §5): two cells wide, 2×2 by default and 2×1; the width is fixed, as three cells by
-     two rows suit neither look (owner's decision) – the wide form is a widget of its own (widget_playlist_wide).
+     two rows look wrong (owner's decision) – the wide form is a widget of its own (widget_playlist_wide).
      One playlist per widget, chosen when it is placed and changeable later. -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:configure="sh.hnet.music.widget.PlaylistWidgetConfigActivity"

@@ -44,7 +44,7 @@ Music plays the audio files in the folders you choose and nothing else. It has n
 ### Interface
 
 - **Material 3 Expressive** design with your phone’s colors
-- **Home-screen widgets**: Now playing with play controls, a playlist of your choice to play or shuffle, and the covers of your most played albums; with or without a background
+- **Home-screen widgets**: Now playing with playback controls, a playlist of your choice to play or shuffle, and the covers of your most played albums; all sit directly on the wallpaper, without a background
 
 ### Settings
 

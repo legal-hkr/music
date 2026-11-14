@@ -6,10 +6,7 @@
     <color name="widget_on_surface_variant">@android:color/system_on_surface_variant_light</color>
     <color name="widget_primary">@android:color/system_primary_light</color>
     <color name="widget_on_primary">@android:color/system_on_primary_light</color>
-    <color name="widget_primary_container">@android:color/system_primary_container_light</color>
-    <color name="widget_on_primary_container">@android:color/system_on_primary_container_light</color>
     <color name="widget_secondary_container">@android:color/system_secondary_container_light</color>
-    <color name="widget_on_secondary_container">@android:color/system_on_secondary_container_light</color>
     <!-- The placeholder cookie of the floating widgets (SPEC-widgets rev. 2 §2.2) -->
     <color name="widget_placeholder">@android:color/system_surface_container_low_light</color>
 </resources>

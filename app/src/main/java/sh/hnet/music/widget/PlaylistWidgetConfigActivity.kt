@@ -44,7 +44,7 @@ import sh.hnet.music.ui.library.PlaylistPicture
 import sh.hnet.music.ui.theme.MusicTheme
 
 /**
- * Playlist widget (SPEC-widgets §5.4): which playlist a widget shows and how it looks. Opened by
+ * Playlist widget (SPEC-widgets §5.4): which playlist a widget shows. Opened by
  * the launcher when the widget is placed – Back or Cancel then leave no widget – and again from
  * the widget's settings or from a widget whose playlist was deleted.
  */
@@ -68,8 +68,8 @@ class PlaylistWidgetConfigActivity : ComponentActivity() {
                         app = app,
                         current = current,
                         onCancel = ::finish,
-                        onDone = { choice ->
-                            app.playlistWidgets.put(id, choice)
+                        onDone = { playlistId ->
+                            app.playlistWidgets.put(id, playlistId)
                             app.widgets.start(redraw = true)
                             setResult(Activity.RESULT_OK, Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id))
                             finish()
@@ -82,14 +82,13 @@ class PlaylistWidgetConfigActivity : ComponentActivity() {
 }
 
 @Composable
-private fun PlaylistWidgetConfig(app: MusicApplication, current: PlaylistWidgetStore.Choice?, onCancel: () -> Unit, onDone: (PlaylistWidgetStore.Choice) -> Unit) {
+private fun PlaylistWidgetConfig(app: MusicApplication, current: Long?, onCancel: () -> Unit, onDone: (Long) -> Unit) {
     val all by app.playlists.playlists.collectAsStateWithLifecycle()
     val sort by app.preferences.playlistSort.collectAsStateWithLifecycle(PlaylistSort.RECENTLY_CHANGED)
     val locale = LocalConfiguration.current.locales[0]
     // Starred first and always (it is there even while empty), then the others in the Library's order
     val list = all.orEmpty().let { summaries -> summaries.filter { it.starred } + PlaylistRepository.sort(summaries.filter { !it.starred }, sort, locale) }
-    var chosen by rememberSaveable { mutableStateOf(current?.playlistId) }
-    var look by rememberSaveable { mutableStateOf(current?.look ?: PlaylistLook.FLOATING) }
+    var chosen by rememberSaveable { mutableStateOf(current) }
     val selected = list.firstOrNull { it.playlist.id == chosen } ?: list.firstOrNull()
     Box(Modifier.fillMaxSize().navigationBarsPadding()) {
         SettingsPage(title = stringResource(R.string.title_playlist_widget), onBack = onCancel) {
@@ -102,15 +101,9 @@ private fun PlaylistWidgetConfig(app: MusicApplication, current: PlaylistWidgetS
                     }
                 }
             }
-            WidgetLookChoice(
-                options = PlaylistLook.entries,
-                selected = look,
-                label = { if (it == PlaylistLook.COVERS) R.string.label_look_covers else R.string.label_look_floating },
-                onSelect = { look = it },
-            )
             // Changing a placed widget: Save
             WidgetConfigActions(stringResource(if (current == null) R.string.button_add_widget else R.string.button_save), enabled = selected != null, onCancel = onCancel) {
-                selected?.let { onDone(PlaylistWidgetStore.Choice(it.playlist.id, look)) }
+                selected?.let { onDone(it.playlist.id) }
             }
         }
     }

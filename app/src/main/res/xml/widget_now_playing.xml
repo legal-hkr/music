@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Now playing (SPEC-widgets §3): two cells wide, 2×2 by default and 2×1; the width is fixed, as three cells
      by two rows look wrong (owner's decision) – the wide form is a widget of its own (widget_now_playing_wide).
-     Updated on events only. Its look (floating or with a background) can be changed in its settings; placing it
-     asks nothing. -->
+     Updated on events only; nothing to set up. -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:configure="sh.hnet.music.widget.NowPlayingWidgetConfigActivity"
     android:description="@string/desc_widget_now_playing"
     android:initialLayout="@layout/widget_now_playing_square"
     android:maxResizeHeight="150dp"
@@ -17,5 +15,4 @@
     android:targetCellWidth="2"
     android:targetCellHeight="2"
     android:updatePeriodMillis="0"
-    android:widgetCategory="home_screen"
-    android:widgetFeatures="reconfigurable|configuration_optional" />
+    android:widgetCategory="home_screen" />

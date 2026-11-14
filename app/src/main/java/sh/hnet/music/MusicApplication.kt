@@ -4,7 +4,9 @@ import android.app.Application
 import android.content.res.Configuration
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import sh.hnet.music.backup.BackupManager
 import sh.hnet.music.data.MusicDatabase
 import sh.hnet.music.equalizer.EqualizerStore
@@ -16,7 +18,6 @@ import sh.hnet.music.library.PlaylistTransfer
 import sh.hnet.music.output.Outputs
 import sh.hnet.music.playback.BitPerfectController
 import sh.hnet.music.playback.PlayerConnection
-import sh.hnet.music.widget.NowPlayingWidgetStore
 import sh.hnet.music.widget.PlaylistWidgetStore
 import sh.hnet.music.widget.Widgets
 
@@ -46,7 +47,6 @@ class MusicApplication : Application() {
 
     val widgets: Widgets by lazy { Widgets(this) }
     val playlistWidgets: PlaylistWidgetStore by lazy { PlaylistWidgetStore(getSharedPreferences("widgets", MODE_PRIVATE)) }
-    val nowPlayingWidgets: NowPlayingWidgetStore by lazy { NowPlayingWidgetStore(getSharedPreferences("widgets", MODE_PRIVATE)) }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
@@ -59,5 +59,7 @@ class MusicApplication : Application() {
         // Placed widgets are kept up to date from the start of the process, whatever started it; the player
         // itself isn't started for them
         widgets.start()
+        // What earlier versions kept about the widgets' looks with a background
+        appScope.launch(Dispatchers.IO) { playlistWidgets.forgetLooks() }
     }
 }

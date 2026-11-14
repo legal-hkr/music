@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- A circle given its color by a tint: the Covers look's colors are computed from the covers. -->
-<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="?android:attr/colorControlHighlight">
-    <item>
-        <shape android:shape="oval">
-            <solid android:color="@color/widget_surface" />
-        </shape>
-    </item>
-</ripple>
