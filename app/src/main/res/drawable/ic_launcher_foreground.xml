@@ -11,7 +11,7 @@
     <group
         android:translateX="128"
         android:translateY="128">
-        <path android:pathData="M241,85 H275 C300,112 410,148 392,236 C386,264 366,286 338,298 C352,272 350,244 330,226 C314,212 296,206 275,204 V350 A76,76 0 1,1 241,286.7 Z">
+        <path android:pathData="M241,85 C272,118 410,148 392,236 C386,264 366,286 338,298 C352,272 350,244 330,226 C314,212 296,206 275,204 V350 A76,76 0 1,1 241,286.7 Z">
             <aapt:attr name="android:fillColor">
                 <gradient
                     android:type="linear"
@@ -19,8 +19,8 @@
                     android:startY="85"
                     android:endX="123"
                     android:endY="426"
-                    android:startColor="#FF2ED6C0"
-                    android:endColor="#FF0B8FA0" />
+                    android:startColor="#FF5CF0D0"
+                    android:endColor="#FF06708F" />
             </aapt:attr>
         </path>
     </group>
