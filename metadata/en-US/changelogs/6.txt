@@ -1,0 +1,4 @@
+v0.3.2
+
+Changes:
+- Refined app icon: the note has a pointed stem and a deeper gradient

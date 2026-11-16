@@ -1,0 +1,4 @@
+v0.3.2
+
+Zmiany:
+- Dopracowana ikona aplikacji: nuta z ostro zakończoną laską i głębszym gradientem
