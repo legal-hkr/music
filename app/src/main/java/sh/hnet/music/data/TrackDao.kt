@@ -17,6 +17,18 @@ interface TrackDao {
     @Upsert
     suspend fun upsertTracks(tracks: List<Track>)
 
+    @Query("SELECT documentUri, folderCover_uri, folderCover_size, folderCover_lastModified FROM track WHERE folderUri = :folderUri")
+    suspend fun folderCovers(folderUri: String): List<TrackFolderCover>
+
+    @Query("UPDATE track SET folderCover_uri = :uri, folderCover_size = :size, folderCover_lastModified = :lastModified WHERE documentUri = :documentUri")
+    suspend fun setFolderCover(documentUri: String, uri: String?, size: Long?, lastModified: Long?)
+
+    /** Folder covers found, replaced or gone for tracks that didn't change themselves. */
+    @Transaction
+    suspend fun setFolderCovers(changes: Map<String, FolderCover?>) {
+        changes.forEach { (documentUri, cover) -> setFolderCover(documentUri, cover?.uri, cover?.size, cover?.lastModified) }
+    }
+
     @Upsert
     suspend fun upsertSkipped(files: List<SkippedFile>)
 
@@ -103,14 +115,16 @@ interface TrackDao {
     @Query(
         "SELECT documentUri, folderUri, relativePath, title, artists, album, albumArtists, trackNumber, " +
             "discNumber, year, durationMs, compilation, titleSort, artistSort, albumSort, albumArtistSort, " +
-            "lastModified, size, hasEmbeddedCover, trackGainDb, trackPeak, albumGainDb, albumPeak FROM track",
+            "lastModified, size, hasEmbeddedCover, trackGainDb, trackPeak, albumGainDb, albumPeak, " +
+            "folderCover_uri, folderCover_size, folderCover_lastModified FROM track",
     )
     fun observeLibrary(): Flow<List<LibraryTrack>>
 
     @Query(
         "SELECT documentUri, folderUri, relativePath, title, artists, album, albumArtists, trackNumber, " +
             "discNumber, year, durationMs, compilation, titleSort, artistSort, albumSort, albumArtistSort, " +
-            "lastModified, size, hasEmbeddedCover, trackGainDb, trackPeak, albumGainDb, albumPeak FROM track WHERE documentUri IN (:uris)",
+            "lastModified, size, hasEmbeddedCover, trackGainDb, trackPeak, albumGainDb, albumPeak, " +
+            "folderCover_uri, folderCover_size, folderCover_lastModified FROM track WHERE documentUri IN (:uris)",
     )
     suspend fun libraryTracks(uris: List<String>): List<LibraryTrack>
 

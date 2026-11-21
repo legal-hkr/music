@@ -423,7 +423,7 @@ fun PlaylistPicture(summary: PlaylistSummary, size: Dp) {
                     for (column in 0..1) {
                         val track = covers[row * 2 + column]
                         // A tile without a cover: the plain placeholder tile, not a shrunken cover placeholder
-                        if (track.hasEmbeddedCover) {
+                        if (track.hasCover) {
                             Cover(track, RectangleShape, Modifier.size(size / 2))
                         } else {
                             Box(Modifier.size(size / 2).background(MaterialTheme.colorScheme.surfaceContainerHighest), contentAlignment = Alignment.Center) {

@@ -1,5 +1,6 @@
 package sh.hnet.music.data
 
+import androidx.room3.Embedded
 import androidx.room3.Entity
 import androidx.room3.Index
 import androidx.room3.PrimaryKey
@@ -50,9 +51,11 @@ data class Track(
     val albumGainDb: Float?,
     val albumPeak: Float?,
     val hasEmbeddedCover: Boolean,
+    /** The cover image in the track's folder (FolderCovers), used when the file has no picture of its own. */
+    @Embedded(prefix = FolderCover.PREFIX) val folderCover: FolderCover? = null,
 ) {
     companion object {
-        fun from(file: ScannedFile, parsed: ParsedAudio): Track {
+        fun from(file: ScannedFile, parsed: ParsedAudio, folderCover: FolderCover?): Track {
             val p = parsed.properties
             val t = parsed.tags
             return Track(
@@ -68,6 +71,7 @@ data class Track(
                 trackGainDb = t.replayGain.trackGainDb, trackPeak = t.replayGain.trackPeak,
                 albumGainDb = t.replayGain.albumGainDb, albumPeak = t.replayGain.albumPeak,
                 hasEmbeddedCover = t.hasEmbeddedCover,
+                folderCover = folderCover,
             )
         }
     }
@@ -109,6 +113,24 @@ data class ScannedFile(
     val lastModified: Long,
 )
 
+/**
+ * An image file next to the audio (folder.jpg, cover.png…), as the listing described it: size and
+ * modification time tell a replaced image apart, so its thumbnail is made again.
+ */
+data class FolderCover(val uri: String, val size: Long, val lastModified: Long) {
+    companion object {
+        const val PREFIX = "folderCover_"
+
+        fun of(file: ScannedFile) = FolderCover(file.documentUri, file.size, file.lastModified)
+    }
+}
+
+/** A track's folder cover as stored, for the scan to compare. */
+data class TrackFolderCover(
+    val documentUri: String,
+    @Embedded(prefix = FolderCover.PREFIX) val folderCover: FolderCover?,
+)
+
 /** What a scan compares against the listing. */
 data class FileState(val documentUri: String, val size: Long, val lastModified: Long)
 
@@ -139,7 +161,12 @@ data class LibraryTrack(
     val trackPeak: Float? = null,
     val albumGainDb: Float? = null,
     val albumPeak: Float? = null,
+    @Embedded(prefix = FolderCover.PREFIX) val folderCover: FolderCover? = null,
 ) {
+    /** A picture to show: the file's own, else the one in its folder. */
+    val hasCover: Boolean
+        get() = hasEmbeddedCover || folderCover != null
+
     /** The title, or the file name without its extension when the file has none. */
     val displayTitle: String
         get() = title ?: relativePath.substringAfterLast('/').substringBeforeLast('.')

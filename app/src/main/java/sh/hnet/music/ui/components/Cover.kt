@@ -51,17 +51,18 @@ fun Cover(track: LibraryTrack?, shape: Shape, modifier: Modifier = Modifier, pla
         val shown = remember { ShownCover() }
         val image by produceState<ImageBitmap?>(
             initialValue = track?.let { covers.cached(it, size)?.asImageBitmap() },
-            key1 = track?.documentUri, key2 = track?.lastModified, key3 = size,
+            // The folder image too: one added or replaced beside an unchanged file shows without a restart
+            track?.documentUri, track?.lastModified, track?.folderCover, size,
         ) {
             // The state outlives a change of track (the mini player keeps its place). The next track
             // of the same album keeps the picture shown until its own is decoded (usually the same
             // cover), so skipping doesn't flash the placeholder; another album's picture is dropped
             val album = track?.let(::albumOf)
             val cached = track?.let { covers.cached(it, size) }
-            val sameAlbum = album != null && album == shown.album && track.hasEmbeddedCover
+            val sameAlbum = album != null && album == shown.album && track.hasCover
             value = cached?.asImageBitmap() ?: if (sameAlbum) value else null
             shown.album = album
-            if (cached == null && track?.hasEmbeddedCover == true) value = covers.load(track, size)?.asImageBitmap()
+            if (cached == null && track?.hasCover == true) value = covers.load(track, size)?.asImageBitmap()
         }
         val picture = image
         if (picture != null) {

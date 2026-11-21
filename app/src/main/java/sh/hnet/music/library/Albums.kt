@@ -40,6 +40,9 @@ enum class AlbumSort { ALBUM_ARTIST, TITLE, YEAR, RECENTLY_ADDED }
 object Albums {
     private val DISC_FOLDER = Regex("""^(cd|disc|disk|dysk|płyta)\s*[-_]?\s*\d+$""", RegexOption.IGNORE_CASE)
 
+    /** A disc's own folder inside an album's ("CD1", "Disc 2"). */
+    fun isDiscFolder(name: String): Boolean = DISC_FOLDER.matches(name.trim())
+
     /** Groups tracks into albums; tracks without an album tag stay out (they're in Tracks). */
     fun group(tracks: List<LibraryTrack>): List<Album> =
         tracks.filter { !it.album.isNullOrBlank() }
@@ -56,7 +59,7 @@ object Albums {
             return "a\u0000$title\u0000" + track.albumArtists.joinToString("\u0001") { normalize(it) }
         }
         val parts = track.relativePath.split('/').dropLast(1)
-        val folder = if (parts.isNotEmpty() && DISC_FOLDER.matches(parts.last().trim())) parts.dropLast(1) else parts
+        val folder = if (parts.isNotEmpty() && isDiscFolder(parts.last())) parts.dropLast(1) else parts
         return "f\u0000$title\u0000${track.folderUri}\u0000" + folder.joinToString("/")
     }
 
@@ -89,7 +92,7 @@ object Albums {
             discCount = ordered.mapNotNull { it.discNumber }.distinct().size.coerceAtLeast(1),
             durationMs = ordered.sumOf { it.durationMs },
             addedAt = ordered.maxOf { it.lastModified },
-            coverTrack = ordered.firstOrNull { it.hasEmbeddedCover },
+            coverTrack = ordered.firstOrNull { it.hasCover },
             albumSort = ordered.firstNotNullOfOrNull { it.albumSort },
             albumArtistSort = ordered.firstNotNullOfOrNull { it.albumArtistSort },
         )

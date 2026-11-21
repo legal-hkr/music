@@ -24,6 +24,7 @@ Music plays the audio files in the folders you choose and nothing else. It has n
 - **Albums, artists, tracks and playlists**: Four views in the order you choose, opening on the one you pick or the last one used; albums group by album and album artist, with compilations and multi-disc albums grouped properly
 - **Search**: Albums, artists, tracks and playlists at once, ignoring diacritics
 - **Scanning**: New and changed files are picked up on every start, or on demand; very short files (sounds, voice notes) can be left out
+- **Covers**: The picture embedded in each file, or else a cover image in the album’s folder (`cover`, `folder`, `front` or `album` as JPEG, PNG or WebP; for CD1/Disc 2 folders, the one above)
 - **Play counts**: Tracks you listen to at least halfway are counted, for a Most played sort and an artist’s most played tracks – a number per track, nothing more. Counting can be switched off and the counts reset
 
 ### Playback

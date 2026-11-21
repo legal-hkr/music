@@ -6,6 +6,9 @@ import android.provider.DocumentsContract.Document
 import androidx.core.net.toUri
 import sh.hnet.music.data.ScannedFile
 
+/** What a folder holds: the audio candidates, and the images that may be covers (FolderCovers). */
+internal data class Listing(val files: List<ScannedFile>, val images: List<ScannedFile>)
+
 /**
  * Lists the audio candidates below a picked folder through the Storage Access Framework.
  * Each directory is one provider query, which is the slow part of a scan on large libraries.
@@ -36,9 +39,10 @@ internal object FolderWalker {
      * @param skipDirectories Document IDs (same provider) of other picked folders inside this one: their
      *   files belong to them, so nothing is listed twice.
      */
-    fun list(resolver: ContentResolver, folderUri: String, skipDirectories: Set<String>): List<ScannedFile> {
+    fun list(resolver: ContentResolver, folderUri: String, skipDirectories: Set<String>): Listing {
         val tree = folderUri.toUri()
         val files = mutableListOf<ScannedFile>()
+        val images = mutableListOf<ScannedFile>()
         val pending = ArrayDeque<Pair<String, String>>() // document ID, relative path
         pending += DocumentsContract.getTreeDocumentId(tree) to ""
         while (pending.isNotEmpty()) {
@@ -60,19 +64,22 @@ internal object FolderWalker {
                     val mime = it.getString(2).orEmpty()
                     if (mime == Document.MIME_TYPE_DIR) {
                         if (id !in skipDirectories) pending += id to relative
-                    } else if (isAudio(name, mime)) {
-                        files += ScannedFile(
+                    } else {
+                        val audio = isAudio(name, mime)
+                        if (!audio && !FolderCovers.isCandidate(name)) continue
+                        val file = ScannedFile(
                             documentUri = DocumentsContract.buildDocumentUriUsingTree(tree, id).toString(),
                             folderUri = folderUri,
                             relativePath = relative,
                             size = if (it.isNull(3)) -1 else it.getLong(3),
                             lastModified = if (it.isNull(4)) -1 else it.getLong(4),
                         )
+                        if (audio) files += file else images += file
                     }
                 }
             }
         }
-        return files
+        return Listing(files, images)
     }
 
     private fun isAudio(name: String, mime: String): Boolean =

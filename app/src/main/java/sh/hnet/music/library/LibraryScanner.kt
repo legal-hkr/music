@@ -22,6 +22,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import sh.hnet.music.data.FileState
+import sh.hnet.music.data.FolderCover
 import sh.hnet.music.data.LibraryFolder
 import sh.hnet.music.data.LibraryFolderDao
 import sh.hnet.music.data.LibraryFolders
@@ -133,21 +134,33 @@ class LibraryScanner(
             .map { LibraryFolders.rootOf(it.treeUri) }
             .filter { it.first == authority }
             .mapTo(HashSet()) { it.second }
-        val files = try {
+        val listing = try {
             FolderWalker.list(resolver, uri, nested)
         } catch (_: FolderWalker.IncompleteListing) {
             return false
         }
+        val files = listing.files
+        val images = FolderCovers.byDirectory(listing.images)
+        val coverOf = { file: ScannedFile -> FolderCovers.forTrack(file.relativePath, images)?.let(FolderCover::of) }
 
         val known = (tracks.trackStates(uri) + tracks.skippedStates(uri)).associateBy { it.documentUri }
         val toRead = files.filter { known[it.documentUri]?.matches(it) != true }
         val present = files.mapTo(HashSet()) { it.documentUri }
         val gone = known.keys.filter { it !in present }
         if (gone.isNotEmpty()) tracks.removeFiles(gone)
+        // A cover image added, replaced or removed beside tracks that didn't change: the tracks read
+        // below get theirs with the rest
+        val byUri = files.associateBy { it.documentUri }
+        val covers = tracks.folderCovers(uri).mapNotNull { stored ->
+            val file = byUri[stored.documentUri] ?: return@mapNotNull null
+            val cover = coverOf(file)
+            if (cover == stored.folderCover) null else stored.documentUri to cover
+        }.toMap()
+        if (covers.isNotEmpty()) tracks.setFolderCovers(covers)
 
         _progress.update { it + (uri to FolderScan(listing = false, total = toRead.size)) }
         toRead.chunked(BATCH).forEach { batch ->
-            val results = coroutineScope { batch.map { file -> async(parsing) { read(file) } }.awaitAll() }
+            val results = coroutineScope { batch.map { file -> async(parsing) { read(file, coverOf(file)) } }.awaitAll() }
             tracks.applyResults(results.filterIsInstance<Track>(), results.filterIsInstance<SkippedFile>())
             _progress.update { map ->
                 val current = map[uri] ?: return@update map
@@ -160,7 +173,7 @@ class LibraryScanner(
     private fun FileState.matches(file: ScannedFile) = size == file.size && lastModified == file.lastModified
 
     /** A [Track], or a [SkippedFile] saying why not. */
-    private fun read(file: ScannedFile): Any {
+    private fun read(file: ScannedFile, folderCover: FolderCover?): Any {
         val parsed = try {
             val descriptor = resolver.openFileDescriptor(file.documentUri.toUri(), "r")
                 ?: return SkippedFile.from(file, SkipReason.UNREADABLE)
@@ -177,7 +190,7 @@ class LibraryScanner(
         return when (parsed?.properties?.codec) {
             null, AudioCodec.UNKNOWN -> SkippedFile.from(file, SkipReason.UNSUPPORTED)
             AudioCodec.PROTECTED -> SkippedFile.from(file, SkipReason.PROTECTED)
-            else -> Track.from(file, parsed)
+            else -> Track.from(file, parsed, folderCover)
         }
     }
 

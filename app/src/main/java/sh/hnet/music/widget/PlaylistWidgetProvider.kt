@@ -85,7 +85,7 @@ open class PlaylistWidgetProvider : AppWidgetProvider() {
 
         /** What a widget's content depends on: drawn again only when this changes (§2.4). */
         fun key(summary: PlaylistSummary?): Any? =
-            summary?.let { listOf(it.playlist.name, it.tracks.size, it.durationMs, it.coverTracks.map { track -> track.documentUri }) }
+            summary?.let { listOf(it.playlist.name, it.tracks.size, it.durationMs, it.coverTracks.map { track -> track.documentUri to track.folderCover }) }
 
         /** Loads covers at the size a widget shows them. */
         fun interface Pictures {
@@ -95,7 +95,7 @@ open class PlaylistWidgetProvider : AppWidgetProvider() {
         private suspend fun playlist(context: Context, summary: PlaylistSummary, pictures: Pictures): RemoteViews {
             val size = (PICTURE_DP * context.resources.displayMetrics.density).toInt()
             val tracks = summary.coverTracks
-            val covers = tracks.map { if (it.hasEmbeddedCover) pictures.cover(it, if (tracks.size == 4) size / 2 else size) else null }
+            val covers = tracks.map { if (it.hasCover) pictures.cover(it, if (tracks.size == 4) size / 2 else size) else null }
             // A tile whose track has no cover: plain, in the system's tone
             val picture = WidgetBitmaps.shaped(WidgetBitmaps.mosaic(covers, size, context.getColor(R.color.widget_secondary_container)), size)
             val name = summary.playlist.name

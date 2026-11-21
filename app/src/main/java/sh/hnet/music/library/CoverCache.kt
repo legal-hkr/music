@@ -9,19 +9,23 @@ import android.util.LruCache
 import androidx.core.graphics.scale
 import androidx.core.net.toUri
 import java.io.File
+import java.io.FileInputStream
 import java.io.IOException
 import java.security.MessageDigest
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.withContext
+import sh.hnet.music.data.FolderCover
 import sh.hnet.music.data.LibraryTrack
 import sh.hnet.music.tags.CoverExtractor
 import sh.hnet.music.tags.FileChannelSource
 
 /**
- * Cover thumbnails: decoded from the embedded picture once, kept in memory and in the app's own
- * cache directory (never backed up), one folder per picked folder so removing it removes its covers.
+ * Cover thumbnails: decoded once from the file's own picture, or from the cover image in its folder
+ * when it has none, kept in memory and in the app's own cache directory (never backed up), one folder
+ * per picked folder so removing it removes its covers. A folder image's thumbnail is keyed by the
+ * image, so the tracks of an album share it.
  */
 class CoverCache(context: Context) {
     private val resolver: ContentResolver = context.contentResolver
@@ -40,9 +44,13 @@ class CoverCache(context: Context) {
     private fun key(track: LibraryTrack, size: Int) =
         sha1("${track.documentUri}\u0000${track.lastModified}\u0000${track.size}") + "_$size"
 
+    private fun key(cover: FolderCover, size: Int) =
+        sha1("${cover.uri}\u0000${cover.lastModified}\u0000${cover.size}") + "_$size"
+
     private fun folderOf(folderUri: String) = File(root, sha1(folderUri))
 
-    fun cached(track: LibraryTrack, size: Int): Bitmap? = memory.get(key(track, size))
+    fun cached(track: LibraryTrack, size: Int): Bitmap? =
+        (if (track.hasEmbeddedCover) memory.get(key(track, size)) else null) ?: track.folderCover?.let { memory.get(key(it, size)) }
 
     /** Sizes the player's surfaces (mini player, now playing) show the current cover at. */
     private val playerSizes: MutableSet<Int> = ConcurrentHashMap.newKeySet()
@@ -56,27 +64,45 @@ class CoverCache(context: Context) {
      * at once instead of the placeholder while it is decoded.
      */
     suspend fun prefetch(track: LibraryTrack) {
-        if (!track.hasEmbeddedCover) return
+        if (!track.hasCover) return
         playerSizes.forEach { size -> if (cached(track, size) == null) load(track, size) }
     }
 
+    /** The file's own picture, else (or when that one can't be decoded) its folder's image. */
     suspend fun load(track: LibraryTrack, size: Int): Bitmap? = withContext(decoding) {
-        val key = key(track, size)
-        memory.get(key)?.let { return@withContext it }
-        val file = File(folderOf(track.folderUri), "$key.webp")
-        val bitmap = (if (file.exists()) BitmapFactory.decodeFile(file.path) else null) ?: decodeEmbedded(track, size)?.also { store(file, it) }
-        bitmap?.also { memory.put(key, it) }
+        (if (track.hasEmbeddedCover) loadAs(key(track, size), track.folderUri) { decode(readEmbedded(track), size) } else null)
+            ?: track.folderCover?.let { cover -> loadAs(key(cover, size), track.folderUri) { decode(readImage(cover), size) } }
     }
 
-    private fun decodeEmbedded(track: LibraryTrack, size: Int): Bitmap? {
-        val bytes = try {
-            val descriptor = resolver.openFileDescriptor(track.documentUri.toUri(), "r") ?: return null
-            ParcelFileDescriptor.AutoCloseInputStream(descriptor).use { CoverExtractor.extract(FileChannelSource(it.channel)) }
-        } catch (_: IOException) {
-            null
-        } catch (_: SecurityException) {
-            null
-        } ?: return null
+    private fun loadAs(key: String, folderUri: String, decode: () -> Bitmap?): Bitmap? {
+        memory.get(key)?.let { return it }
+        val file = File(folderOf(folderUri), "$key.webp")
+        val bitmap = (if (file.exists()) BitmapFactory.decodeFile(file.path) else null) ?: decode()?.also { store(file, it) }
+        return bitmap?.also { memory.put(key, it) }
+    }
+
+    private fun readEmbedded(track: LibraryTrack): ByteArray? = read(track.documentUri) { CoverExtractor.extract(FileChannelSource(it.channel)) }
+
+    /** A folder image whole; one larger than [MAX_IMAGE_BYTES] is left out rather than read into memory. */
+    private fun readImage(cover: FolderCover): ByteArray? = read(cover.uri) { stream ->
+        val length = stream.channel.size()
+        if (length <= 0 || length > MAX_IMAGE_BYTES) null else stream.readBytes()
+    }
+
+    private fun read(uri: String, block: (FileInputStream) -> ByteArray?): ByteArray? = try {
+        resolver.openFileDescriptor(uri.toUri(), "r")?.let { descriptor ->
+            ParcelFileDescriptor.AutoCloseInputStream(descriptor).use(block)
+        }
+    } catch (_: IOException) {
+        null
+    } catch (_: SecurityException) {
+        null
+    } catch (_: IllegalArgumentException) {
+        null
+    }
+
+    private fun decode(bytes: ByteArray?, size: Int): Bitmap? {
+        if (bytes == null) return null
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
         if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
@@ -109,6 +135,9 @@ class CoverCache(context: Context) {
 
     private companion object {
         val SIZES = intArrayOf(144, 384, 768)
+
+        /** Larger folder images (print scans) are left out; the embedded-picture parser has its own bound. */
+        const val MAX_IMAGE_BYTES = 32L * 1024 * 1024
 
         fun sha1(text: String): String =
             MessageDigest.getInstance("SHA-1").digest(text.toByteArray()).joinToString("") { "%02x".format(it) }

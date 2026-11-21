@@ -131,7 +131,7 @@ class Widgets(private val app: MusicApplication) {
         app.appScope.launch(Dispatchers.Main) {
             combine(app.library.albums.filterNotNull(), app.library.playCounts, redraws) { albums, counts, redraw ->
                 MostPlayed.albums(albums, counts, AlbumsWidgetProvider.ALBUMS) to redraw
-            }.distinctUntilChanged { old, new -> old.second == new.second && old.first.map { it.key to it.coverTrack?.documentUri } == new.first.map { it.key to it.coverTrack?.documentUri } }
+            }.distinctUntilChanged { old, new -> old.second == new.second && old.first.map { it.key to it.coverTrack?.let { track -> track.documentUri to track.folderCover } } == new.first.map { it.key to it.coverTrack?.let { track -> track.documentUri to track.folderCover } } }
                 .collectLatest { (most, _) ->
                     // The library's first reading comes before the counts'
                     delay(PLAYLIST_SETTLE_MS)
