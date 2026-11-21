@@ -2,7 +2,7 @@
 
 A private, offline music player for Android with DSD, bit-perfect USB output and a parametric equalizer.
 
-**Current version**: v0.3.2
+**Current version**: v0.3.3
 
 Source code and releases: [git.hnet.sh/hkr/music](https://git.hnet.sh/hkr/music)
 
