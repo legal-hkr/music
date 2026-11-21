@@ -85,7 +85,7 @@ open class PlaylistWidgetProvider : AppWidgetProvider() {
 
         /** What a widget's content depends on: drawn again only when this changes (§2.4). */
         fun key(summary: PlaylistSummary?): Any? =
-            summary?.let { listOf(it.playlist.name, it.tracks.size, it.durationMs, it.coverTracks.map { track -> track.documentUri to track.folderCover }) }
+            summary?.let { listOf(it.playlist.name, it.tracks.size, it.durationMs, it.coverTracks.map { track -> track.coverIdentity }) }
 
         /** Loads covers at the size a widget shows them. */
         fun interface Pictures {

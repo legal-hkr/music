@@ -5,6 +5,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import sh.hnet.music.data.FolderCover
 import sh.hnet.music.data.LibraryTrack
 
 class AlbumsTest {
@@ -25,6 +26,16 @@ class AlbumsTest {
         year = year, durationMs = 1000, compilation = compilation, titleSort = null, artistSort = null,
         albumSort = albumSort, albumArtistSort = null, lastModified = modified, size = 1, hasEmbeddedCover = false,
     )
+
+    @Test
+    fun theCoverComesFromATrackWithItsOwnPictureFirstThenFromAFolderImage() {
+        val folder = FolderCover("doc:X/cover.jpg", 10, 1)
+        val first = track("X/CD1/1.flac", "X", number = 1, disc = 1).copy(folderCover = folder)
+        val own = track("X/CD2/1.flac", "X", number = 1, disc = 2).copy(hasEmbeddedCover = true)
+        assertEquals(own.documentUri, Albums.group(listOf(first, own)).single().coverTrack?.documentUri)
+        assertEquals(first.documentUri, Albums.group(listOf(first, track("X/CD2/2.flac", "X", number = 2, disc = 2))).single().coverTrack?.documentUri)
+        assertEquals(null, Albums.group(listOf(track("Y/1.flac", "Y"))).single().coverTrack)
+    }
 
     @Test
     fun withoutAlbumArtistGroupsByFolderAndJoinsDiscFolders() {

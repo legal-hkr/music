@@ -36,7 +36,8 @@ import sh.hnet.music.data.LibraryTrack
 import sh.hnet.music.library.Albums
 
 /**
- * A track's embedded cover, square and cropped, or the placeholder (SPEC §4.5) when it has none.
+ * A track's cover – the file's own picture, else its folder image – square and cropped, or the
+ * placeholder (SPEC §4.5) when it has none.
  * The placeholder also shows while the picture loads, so nothing jumps. [player] marks the mini
  * player and now playing, whose neighboring tracks' covers are loaded ahead.
  */

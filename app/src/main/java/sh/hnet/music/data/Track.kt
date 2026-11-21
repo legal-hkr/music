@@ -167,6 +167,10 @@ data class LibraryTrack(
     val hasCover: Boolean
         get() = hasEmbeddedCover || folderCover != null
 
+    /** What the shown cover depends on, for redrawing pictures made from it (widgets). */
+    val coverIdentity: Any
+        get() = Triple(documentUri, lastModified, folderCover)
+
     /** The title, or the file name without its extension when the file has none. */
     val displayTitle: String
         get() = title ?: relativePath.substringAfterLast('/').substringBeforeLast('.')

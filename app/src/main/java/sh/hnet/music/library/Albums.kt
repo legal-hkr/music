@@ -92,7 +92,8 @@ object Albums {
             discCount = ordered.mapNotNull { it.discNumber }.distinct().size.coerceAtLeast(1),
             durationMs = ordered.sumOf { it.durationMs },
             addedAt = ordered.maxOf { it.lastModified },
-            coverTrack = ordered.firstOrNull { it.hasCover },
+            // A track with its own picture first: a folder image may be too large or fail to decode
+            coverTrack = ordered.firstOrNull { it.hasEmbeddedCover } ?: ordered.firstOrNull { it.hasCover },
             albumSort = ordered.firstNotNullOfOrNull { it.albumSort },
             albumArtistSort = ordered.firstNotNullOfOrNull { it.albumArtistSort },
         )

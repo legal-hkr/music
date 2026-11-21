@@ -49,8 +49,21 @@ class CoverCache(context: Context) {
 
     private fun folderOf(folderUri: String) = File(root, sha1(folderUri))
 
-    fun cached(track: LibraryTrack, size: Int): Bitmap? =
-        (if (track.hasEmbeddedCover) memory.get(key(track, size)) else null) ?: track.folderCover?.let { memory.get(key(it, size)) }
+    /** Embedded pictures that couldn't be decoded: those tracks show their folder image instead. */
+    private val undecodable: MutableSet<String> = ConcurrentHashMap.newKeySet()
+
+    /**
+     * The thumbnail in memory, or null. A track with its own picture never takes the folder image here,
+     * as the album's other tracks may have put it in memory first – only once its own failed to decode.
+     */
+    fun cached(track: LibraryTrack, size: Int): Bitmap? {
+        if (track.hasEmbeddedCover) {
+            val key = key(track, size)
+            memory.get(key)?.let { return it }
+            if (key !in undecodable) return null
+        }
+        return track.folderCover?.let { memory.get(key(it, size)) }
+    }
 
     /** Sizes the player's surfaces (mini player, now playing) show the current cover at. */
     private val playerSizes: MutableSet<Int> = ConcurrentHashMap.newKeySet()
@@ -70,8 +83,15 @@ class CoverCache(context: Context) {
 
     /** The file's own picture, else (or when that one can't be decoded) its folder's image. */
     suspend fun load(track: LibraryTrack, size: Int): Bitmap? = withContext(decoding) {
-        (if (track.hasEmbeddedCover) loadAs(key(track, size), track.folderUri) { decode(readEmbedded(track), size) } else null)
-            ?: track.folderCover?.let { cover -> loadAs(key(cover, size), track.folderUri) { decode(readImage(cover), size) } }
+        ownPicture(track, size) ?: track.folderCover?.let { cover -> loadAs(key(cover, size), track.folderUri) { decode(readImage(cover), size) } }
+    }
+
+    private fun ownPicture(track: LibraryTrack, size: Int): Bitmap? {
+        if (!track.hasEmbeddedCover) return null
+        val key = key(track, size)
+        val bitmap = loadAs(key, track.folderUri) { decode(readEmbedded(track), size) }
+        if (bitmap == null) undecodable += key
+        return bitmap
     }
 
     private fun loadAs(key: String, folderUri: String, decode: () -> Bitmap?): Bitmap? {
@@ -117,13 +137,18 @@ class CoverCache(context: Context) {
     }
 
     private fun store(file: File, bitmap: Bitmap) {
+        var partial: File? = null
         try {
             file.parentFile?.mkdirs()
-            val partial = File(file.path + ".part")
+            // Its own temporary file: the tracks of an album share a folder image's thumbnail, so two
+            // loads of one key may write at once, and one name would mix their bytes
+            partial = File.createTempFile(file.name, ".part", file.parentFile)
             partial.outputStream().use { bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, 85, it) }
-            partial.renameTo(file)
+            if (partial.renameTo(file)) partial = null
         } catch (_: IOException) {
             // A missing thumbnail is decoded again next time
+        } finally {
+            partial?.delete()
         }
     }
 
