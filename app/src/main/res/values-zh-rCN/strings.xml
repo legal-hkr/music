@@ -1,0 +1,670 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Music</string>
+
+    <!-- Navigation -->
+    <string name="label_nav_library">媒体库</string>
+    <string name="label_nav_search">搜索</string>
+    <string name="label_nav_settings">设置</string>
+    <plurals name="content_description_settings_scanning">
+        <item quantity="one">设置，正在扫描 %d 个文件夹</item>
+        <item quantity="other">设置，正在扫描 %d 个文件夹</item>
+    </plurals>
+    <string name="content_description_back">返回</string>
+
+    <!-- Library and Search (empty states until S2 and S6) -->
+    <string name="msg_library_filling">读取到的音乐文件将显示在此处。</string>
+    <string name="msg_search_empty">输入歌曲名、艺人、专辑或播放列表名称。</string>
+
+    <!-- Settings root -->
+    <string name="title_settings">设置</string>
+    <string name="title_settings_about">关于</string>
+    <string name="label_version_value">版本 %s</string>
+    <string name="label_library_summary">%1$s（%2$s）</string>
+    <plurals name="label_folder_count">
+        <item quantity="one">%s 个文件夹</item>
+        <item quantity="other">%s 个文件夹</item>
+    </plurals>
+    <plurals name="label_track_count">
+        <item quantity="one">%s 首曲目</item>
+        <item quantity="other">%s 首曲目</item>
+    </plurals>
+    <plurals name="label_scanning_folders">
+        <item quantity="one">正在扫描 %d 个文件夹</item>
+        <item quantity="other">正在扫描 %d 个文件夹</item>
+    </plurals>
+    <string name="label_no_folders">暂无文件夹</string>
+    <string name="label_no_playable_files">无可播放文件</string>
+    <string name="label_folder_needs_attention">有文件夹需要处理</string>
+
+    <!-- Settings › Library -->
+    <string name="title_music_folders">音乐文件夹</string>
+    <string name="label_folder_counts">%1$s（%2$s）</string>
+    <plurals name="label_skipped_count">
+        <item quantity="one">已跳过 %s 个</item>
+        <item quantity="other">已跳过 %s 个</item>
+    </plurals>
+    <string name="msg_scan_listing">正在查找音乐文件…</string>
+    <string name="label_scanning_progress">正在扫描… %1$s / %2$s 个文件</string>
+    <string name="msg_folder_no_access">无法访问此文件夹。</string>
+    <string name="button_choose_folder_again">重新选择文件夹</string>
+    <string name="button_add_folder">添加文件夹</string>
+    <string name="msg_folder_already_added"><![CDATA[<b>%s</b> 已在媒体库中。]]></string>
+    <string name="msg_only_listed_folders">仅访问此处列出的文件夹。</string>
+
+    <!-- Folder page -->
+    <string name="title_skipped_not_supported">不支持的格式</string>
+    <string name="title_skipped_drm">受 DRM 保护</string>
+    <string name="title_skipped_unreadable">无法读取</string>
+    <string name="msg_skipped_dsd">不支持此 DSD 文件（例如采用了 DST 压缩）。</string>
+    <string name="msg_skipped_format">不支持此格式。</string>
+    <string name="msg_skipped_drm">无法播放受版权保护的文件。</string>
+    <string name="msg_skipped_damaged">文件已损坏或不完整。</string>
+    <string name="msg_skipped_unreadable">无法打开此文件。</string>
+    <string name="msg_no_skipped_files">此文件夹中的所有文件均可播放。</string>
+    <string name="button_show_all">显示全部 %s 项</string>
+    <string name="button_remove_folder">移除文件夹</string>
+    <string name="button_cancel">取消</string>
+
+    <!-- About -->
+    <string name="msg_copied">已复制</string>
+    <string name="msg_about_privacy">Music 应用无网络访问权限，仅读取您选择的文件夹，且不会收集或保存任何与您相关的信息。</string>
+    <!-- Library views (S2) -->
+    <string name="label_view_albums">专辑</string>
+    <string name="label_view_artists">艺人</string>
+    <string name="label_view_tracks">曲目</string>
+    <string name="content_description_library_view">媒体库视图</string>
+    <plurals name="label_album_count">
+        <item quantity="one">%s 张专辑</item>
+        <item quantity="other">%s 张专辑</item>
+    </plurals>
+    <string name="label_sort_album_artist">专辑艺人</string>
+    <string name="label_sort_title">标题</string>
+    <string name="label_sort_year">年份</string>
+    <string name="label_sort_recently_added">最近添加</string>
+    <string name="content_description_sort">按%s排序</string>
+    <string name="label_various_artists">群星</string>
+    <string name="content_description_album">专辑，%1$s，%2$s</string>
+    <string name="label_disc">第 %d 张碟</string>
+    <string name="label_duration_hm">%1$d 小时 %2$d 分钟</string>
+    <string name="label_duration_m">%d 分钟</string>
+    <string name="button_play">播放</string>
+    <string name="button_shuffle">随机播放</string>
+    <string name="menu_play_next">下一首播放</string>
+    <string name="menu_add_to_queue">添加到播放队列</string>
+    <string name="menu_go_to_artist">转至艺人</string>
+    <string name="menu_go_to_album">转至专辑</string>
+    <string name="msg_plays_next">将在下一首播放</string>
+    <string name="msg_added_to_queue">已添加到播放队列</string>
+    <string name="content_description_more_for">更过关于 %s 的内容</string>
+    <string name="desc_playing">正在播放</string>
+    <string name="desc_paused">已暂停</string>
+    <!-- Artists and Tracks (S3) -->
+    <string name="label_sort_artist">艺人</string>
+    <string name="label_sort_album">专辑</string>
+    <plurals name="label_artist_count">
+        <item quantity="one">%s 位艺人</item>
+        <item quantity="other">%s 位艺人</item>
+    </plurals>
+    <plurals name="label_artist_appears_on">
+        <item quantity="one">收录于 %s 张专辑</item>
+        <item quantity="other">收录于 %s 张专辑</item>
+    </plurals>
+    <string name="title_artist_albums">专辑</string>
+    <string name="title_artist_appears_on">参与专辑</string>
+    <string name="title_artist_tracks">曲目</string>
+    <plurals name="button_show_all_tracks">
+        <item quantity="one">显示 %s 首曲目</item>
+        <item quantity="other">显示全部 %s 首曲目</item>
+    </plurals>
+    <!-- Player (S4) -->
+    <string name="content_description_now_playing">正在播放，%1$s，%2$s</string>
+    <string name="content_description_play">播放</string>
+    <string name="content_description_pause">暂停</string>
+    <string name="content_description_next">下一首</string>
+    <string name="content_description_previous">上一首</string>
+    <string name="content_description_close_now_playing">关闭正在播放</string>
+    <string name="content_description_track_actions">曲目操作</string>
+    <string name="content_description_shuffle">随机播放</string>
+    <string name="content_description_repeat">循环播放</string>
+    <string name="desc_on">开启</string>
+    <string name="desc_off">关闭</string>
+    <string name="desc_repeat_off">关闭循环</string>
+    <string name="desc_repeat_all">列表循环</string>
+    <string name="desc_repeat_one">单曲循环</string>
+    <string name="desc_shuffle_on_action">开启随机播放</string>
+    <string name="desc_shuffle_off_action">关闭随机播放</string>
+    <string name="desc_repeat_off_action">关闭循环播放</string>
+    <string name="desc_repeat_all_action">列表循环播放</string>
+    <string name="desc_repeat_one_action">单曲循环播放</string>
+    <string name="desc_seek_position">%1$s / %2$s</string>
+    <string name="label_seek_back">快退 10 秒</string>
+    <string name="label_seek_forward">快进 10 秒</string>
+    <string name="label_tech_lossless">%1$s %2$s bit / %3$s kHz</string>
+    <string name="label_tech_lossy">%1$s %2$s kb/s</string>
+    <string name="label_tech_kbps">%s kb/s</string>
+    <string name="label_mono">单声道</string>
+    <string name="label_stereo">立体声</string>
+    <plurals name="label_channels">
+        <item quantity="one">%d 声道</item>
+        <item quantity="other">%d 声道</item>
+    </plurals>
+    <string name="menu_track_details">曲目详情</string>
+    <string name="title_track_details">曲目详情</string>
+    <string name="title_details_file">文件</string>
+    <string name="title_details_format">格式</string>
+    <string name="title_details_tags">标签</string>
+    <string name="title_details_replaygain">回放增益</string>
+    <string name="label_details_folder">文件夹</string>
+    <string name="label_details_path">路径</string>
+    <string name="label_details_size">大小</string>
+    <string name="label_details_modified">修改日期</string>
+    <string name="label_details_codec">编码器</string>
+    <string name="label_details_bitrate">比特率</string>
+    <string name="label_details_duration">时长</string>
+    <string name="label_details_title">标题</string>
+    <string name="label_details_artists">艺人</string>
+    <string name="label_details_album">专辑</string>
+    <string name="label_details_album_artists">专辑艺人</string>
+    <string name="label_details_track">音轨</string>
+    <string name="label_details_disc">碟片</string>
+    <string name="label_details_date">日期</string>
+    <string name="label_details_genres">流派</string>
+    <string name="label_details_composers">作曲</string>
+    <string name="label_details_compilation">合辑</string>
+    <string name="label_details_track_gain">音轨增益</string>
+    <string name="label_details_track_peak">音轨峰值</string>
+    <string name="label_details_album_gain">专辑增益</string>
+    <string name="label_details_album_peak">专辑峰值</string>
+    <string name="label_of">%1$d / %2$d</string>
+    <string name="label_yes">是</string>
+    <string name="msg_no_replaygain">无标签</string>
+    <!-- Queue (S5) -->
+    <string name="title_queue">播放队列</string>
+    <plurals name="label_queue_remaining">
+        <item quantity="one">剩余 %1$d 首曲目（%2$s）</item>
+        <item quantity="other">剩余 %1$d 首曲目（%2$s）</item>
+    </plurals>
+    <string name="label_queue_none_remaining">无更多曲目</string>
+    <string name="content_description_reorder">调整 %s 的排序</string>
+    <string name="label_move_up">上移</string>
+    <string name="label_move_down">下移</string>
+    <string name="label_remove_from_queue">从播放队列移除</string>
+    <string name="msg_removed_from_queue"><![CDATA[已从播放队列移除 <b>%s</b>]]></string>
+    <string name="button_undo">撤销</string>
+    <string name="button_clear_queue">清空播放队列</string>
+    <!-- Search (S6) -->
+    <string name="hint_search">搜索媒体库</string>
+    <string name="content_description_clear_search">清除搜索内容</string>
+    <string name="msg_search_no_results"><![CDATA[音乐库中没有与 <b>%s</b> 匹配的内容。]]></string>
+    <plurals name="button_show_all_albums">
+        <item quantity="one">显示 %s 张专辑</item>
+        <item quantity="other">显示全部 %s 张专辑</item>
+    </plurals>
+    <plurals name="button_show_all_artists">
+        <item quantity="one">显示 %s 位艺人</item>
+        <item quantity="other">显示全部 %s 位艺人</item>
+    </plurals>
+    <!-- S7: states, lost access, playback, licenses -->
+    <string name="msg_welcome">Music 应用仅播放您所选文件夹中的文件，无法访问您手机上的其他任何内容，也绝不会联网。</string>
+    <string name="msg_nothing_playable">文件夹中没有可播放的文件。</string>
+    <string name="button_see_skipped_files">查看已跳过的文件</string>
+    <string name="msg_folder_lost_access"><![CDATA[Music应用已无法读取 <b>%s</b>。]]></string>
+    <plurals name="msg_folders_lost_access">
+        <item quantity="one">Music 应用已无法读取您的 %d 个文件夹。</item>
+        <item quantity="other">Music 应用已无法读取您的 %d 个文件夹。</item>
+    </plurals>
+    <string name="button_fix">修复</string>
+    <string name="content_description_settings_attention">设置，有文件夹需要处理</string>
+    <string name="title_settings_playback">播放</string>
+    <string name="label_settings_replaygain_value">ReplayGain（重放增益）：%s</string>
+    <string name="title_replaygain">ReplayGain（重放增益）</string>
+    <string name="label_rg_off">关闭</string>
+    <string name="desc_rg_off">不进行响度均衡</string>
+    <string name="label_rg_track">音轨</string>
+    <string name="desc_rg_track">让每个音轨的响度保持一致</string>
+    <string name="label_rg_album">专辑</string>
+    <string name="desc_rg_album">保留专辑内各音轨之间的响度差异</string>
+    <string name="label_rg_auto">自动</string>
+    <string name="desc_rg_auto">顺序播放时按“专辑”处理，其他情况按“音轨”处理</string>
+    <string name="title_volume">音量</string>
+    <string name="label_preamp">无标签文件的前置增益</string>
+    <string name="desc_preamp">适用于不含 ReplayGain（重放增益）标签的文件</string>
+    <string name="label_db">%s dB</string>
+    <string name="label_prevent_clipping">防止削波</string>
+    <string name="desc_prevent_clipping">当音轨峰值可能发生削波时降低增益</string>
+    <string name="label_replaygain_applied">回放增益：%s dB</string>
+    <string name="label_licenses">开源许可协议</string>
+    <string name="desc_licenses">Music 应用所使用的开源组件</string>
+    <string name="label_apache_license">Apache 许可协议 2.0</string>
+    <string name="button_close">关闭</string>
+    <!-- Playlists, stage 1 -->
+    <string name="label_view_playlists">播放列表</string>
+    <plurals name="label_playlist_count">
+        <item quantity="one">%s 个播放列表</item>
+        <item quantity="other">%s 个播放列表</item>
+    </plurals>
+    <string name="label_playlist_summary">%1$s（%2$s）</string>
+    <string name="label_playlist_no_tracks">暂无曲目</string>
+    <plurals name="label_not_available_count">
+        <item quantity="one">%s 首不可用</item>
+        <item quantity="other">%s 首不可用</item>
+    </plurals>
+    <string name="label_sort_recently_changed">最近修改</string>
+    <string name="label_sort_name">名称</string>
+    <string name="msg_playlists_empty">暂无播放列表。</string>
+    <string name="content_description_playlist_fab">新建或导入播放列表</string>
+    <string name="button_new_playlist">新建播放列表</string>
+    <string name="menu_play">播放</string>
+    <string name="menu_rename">重命名</string>
+    <string name="menu_delete">删除</string>
+    <string name="title_new_playlist">新建播放列表</string>
+    <string name="label_name">名称</string>
+    <string name="button_create">创建</string>
+    <string name="error_name_empty">请输入名称</string>
+    <string name="error_name_taken">已存在同名播放列表</string>
+    <string name="title_rename_playlist">重命名播放列表</string>
+    <string name="button_rename">重命名</string>
+    <string name="msg_renamed">已重命名</string>
+    <string name="msg_playlist_deleted"><![CDATA[已删除 <b>%s</b>]]></string>
+    <!-- Playlists, stage 2 -->
+    <string name="menu_remove_from_playlist">从播放列表移除</string>
+    <string name="content_description_playlist_actions">播放列表操作</string>
+    <string name="desc_no_tracks_to_play">没有可播放的曲目</string>
+    <string name="msg_playlist_empty"><![CDATA[此播放列表为空。要添加曲目，请在曲目菜单中选择<b>添加到播放列表</b>。]]></string>
+    <string name="msg_removed_from_playlist"><![CDATA[已将 <b>%1$s</b> 从 <b>%2$s</b> 中移除]]></string>
+    <string name="msg_playlist_gone">此播放列表已被删除。</string>
+    <string name="label_not_available">不可用</string>
+    <string name="label_not_available_artist">不可用：%s</string>
+    <string name="desc_not_available">不可用</string>
+    <string name="label_move_to_top">移至顶部</string>
+    <string name="label_move_to_bottom">移至底部</string>
+    <!-- Playlists, stage 3 -->
+    <string name="menu_add_to_playlist">添加到播放列表</string>
+    <string name="title_add_to_playlist">添加到播放列表</string>
+    <plurals name="label_adding_tracks">
+        <item quantity="one">%1$s（%2$d 首曲目）</item>
+        <item quantity="other">%1$s（%2$d 首曲目）</item>
+    </plurals>
+    <string name="label_has_this_track">已包含此曲目</string>
+    <string name="msg_added_to_playlist"><![CDATA[已添加到 <b>%s</b>]]></string>
+    <plurals name="msg_added_n_to_playlist">
+        <item quantity="one"><![CDATA[已将 %1$d 首曲目添加到 <b>%2$s</b>]]></item>
+        <item quantity="other"><![CDATA[已将 %1$d 首曲目添加到 <b>%2$s</b>]]></item>
+    </plurals>
+    <string name="msg_added_already_there_one"><![CDATA[已添加到 <b>%s</b>（该曲目此前已存在）]]></string>
+    <plurals name="msg_added_already_there_n">
+        <item quantity="one"><![CDATA[已将 %1$d 首曲目添加到 <b>%2$s</b>（其中 %3$d 首此前已存在）]]></item>
+        <item quantity="other"><![CDATA[已将 %1$d 首曲目添加到 <b>%2$s</b>（其中 %3$d 首此前已存在）]]></item>
+    </plurals>
+    <string name="msg_track_added_to_new"><![CDATA[将把 <b>%s</b> 添加到其中。]]></string>
+    <plurals name="msg_tracks_added_to_new">
+        <item quantity="one">将把 %d 首曲目添加到其中。</item>
+        <item quantity="other">将把 %d 首曲目添加到其中。</item>
+    </plurals>
+    <plurals name="msg_playlist_created_with">
+        <item quantity="one"><![CDATA[已创建 <b>%1$s</b>，包含 %2$d 首曲目]]></item>
+        <item quantity="other"><![CDATA[已创建 <b>%1$s</b>，包含 %2$d 首曲目]]></item>
+    </plurals>
+    <string name="content_description_add_album_to_playlist">将专辑添加到播放列表</string>
+    <string name="content_description_add_artist_to_playlist">将艺人的曲目添加到播放列表</string>
+    <string name="button_save_as_playlist">另存为播放列表</string>
+    <string name="title_save_as_playlist">另存为播放列表</string>
+    <plurals name="msg_save_queue_what">
+        <item quantity="one">正在播放的曲目及随后的 %d 首曲目。</item>
+        <item quantity="other">正在播放的曲目及随后的 %d 首曲目。</item>
+    </plurals>
+    <string name="msg_save_queue_current">正在播放的曲目。</string>
+    <string name="label_save_to">保存到</string>
+    <string name="msg_replace_playlist"><![CDATA[<b>%1$s</b>（%2$s）中的所有条目将被替换为这些曲目（%3$s）。]]></string>
+    <string name="button_save">保存</string>
+    <string name="button_replace">替换</string>
+    <string name="msg_queue_saved"><![CDATA[已将播放队列保存为 <b>%s</b>]]></string>
+    <string name="button_view">查看</string>
+    <string name="msg_playlist_replaced"><![CDATA[已替换 <b>%s</b>]]></string>
+    <!-- Playlists, stage 4 -->
+    <string name="menu_remove_missing">移除不可用曲目</string>
+    <plurals name="msg_removed_n">
+        <item quantity="one">已移除 %d 首曲目</item>
+        <item quantity="other">已移除 %d 首曲目</item>
+    </plurals>
+    <!-- Playlists, stage 5 -->
+    <string name="button_import_playlist">导入播放列表</string>
+    <string name="menu_export">导出</string>
+    <string name="msg_imported"><![CDATA[已导入 <b>%1$s</b> – %2$s]]></string>
+    <string name="msg_imported_missing"><![CDATA[已导入 <b>%1$s</b> – %2$s，%3$s]]></string>
+    <string name="error_import_not_playlist"><![CDATA[<b>%s</b> 不是Music 应用可读取的播放列表文件。]]></string>
+    <string name="error_import_unreadable"><![CDATA[Music 应用无法读取 <b>%s</b>。]]></string>
+    <string name="error_import_empty"><![CDATA[<b>%s</b> 中没有曲目。]]></string>
+    <string name="title_export"><![CDATA[导出 <b>%s</b>]]></string>
+    <string name="button_export">导出</string>
+    <string name="msg_exported"><![CDATA[已导出 <b>%s</b>]]></string>
+    <string name="error_export_write"><![CDATA[Music 应用无法写入 <b>%s</b>。]]></string>
+    <string name="button_show">显示</string>
+    <string name="button_copy">复制</string>
+    <!-- Playlists, stage 6 -->
+    <plurals name="button_show_all_playlists">
+        <item quantity="one">显示 %s 个播放列表</item>
+        <item quantity="other">显示全部 %s 个播放列表</item>
+    </plurals>
+    <!-- Now playing v2 -->
+    <string name="content_description_volume">音量</string>
+    <string name="content_description_mute">静音</string>
+    <string name="content_description_unmute">取消静音</string>
+    <string name="desc_volume_percent">%d%%</string>
+    <string name="desc_volume_fixed">此设备的音量已固定</string>
+    <string name="content_description_queue">播放队列</string>
+    <string name="content_description_replay">从队列开头播放</string>
+    <string name="desc_end_of_queue">已到达播放队列末尾</string>
+    <!-- Starred -->
+    <string name="label_starred_playlist">已加星标</string>
+    <string name="menu_star">加星标</string>
+    <string name="menu_unstar">取消星标</string>
+    <string name="content_description_star">加星标</string>
+    <string name="content_description_unstar">取消星标</string>
+    <string name="desc_starred">已加星标</string>
+    <string name="desc_not_starred">未加星标</string>
+    <string name="msg_unstarred"><![CDATA[已取消 <b>%s</b> 的星标]]></string>
+    <!-- Settings v2: app group, language, reset, About -->
+    <string name="title_settings_group_library">媒体库</string>
+    <string name="title_settings_group_sound">音效</string>
+    <string name="title_settings_group_app">应用</string>
+    <string name="title_settings_group_data">数据</string>
+    <string name="title_settings_language">语言</string>
+    <string name="language_system_default">跟随系统</string>
+    <string name="language_name_en" translatable="false">English</string>
+    <string name="language_name_pl" translatable="false">Polski</string>
+    <string name="title_settings_reset">重置</string>
+    <string name="desc_settings_reset_row">恢复默认设置</string>
+    <string name="desc_settings_reset">所有设置将恢复为默认值，应用语言将跟随系统。您的文件夹、媒体库、播放列表和均衡器预设将保留。</string>
+    <string name="button_restore_defaults">恢复默认设置</string>
+    <string name="title_confirm_restore_defaults">要恢复默认设置吗？</string>
+    <string name="msg_confirm_restore_defaults">排序方式、媒体库视图、播放设置、均衡器（所有设备上均关闭并设为“平直”）、独占源码输出（所有设备上均关闭）、导出格式以及“跳过短音频文件”都将恢复为默认值，且应用语言将跟随系统。文件夹、媒体库、播放列表和均衡器预设将保持不变。</string>
+    <string name="button_restore">恢复</string>
+    <string name="msg_defaults_restored">已恢复默认设置</string>
+    <string name="title_about_license">许可协议</string>
+    <string name="label_about_license_name" translatable="false">GNU General Public License v3.0 (GPL-3.0)</string>
+    <string name="msg_license_english_only">仅英文原版文本具有法律约束力。</string>
+    <string name="title_about_source">源代码</string>
+    <string name="msg_no_browser">没有可打开此链接的应用</string>
+    <string name="whats_new_title">更新内容</string>
+    <string name="whats_new_badge">新</string>
+    <plurals name="whats_new_row_supporting">
+        <item quantity="one">版本 %1$s，%2$d 项更改</item>
+        <item quantity="other">版本 %1$s，%2$d 项更改</item>
+    </plurals>
+    <string name="whats_new_updated_snackbar">已更新至 %1$s</string>
+    <!-- Settings v2: Library views -->
+    <string name="title_library_views">媒体库视图</string>
+    <string name="label_opens_on_view">默认打开%s</string>
+    <string name="label_opens_on_last">默认打开上次使用的视图</string>
+    <string name="title_views_order">顺序</string>
+    <string name="title_opens_on">启动默认页</string>
+    <string name="label_last_used">上次使用</string>
+    <string name="label_views_preview">媒体库标签页预览</string>
+    <string name="title_folders">文件夹</string>
+    <!-- Settings v2: scanning and short files -->
+    <string name="title_scanning_group">扫描</string>
+    <string name="label_scan_now">立即扫描</string>
+    <string name="label_last_scan">上次扫描：%s</string>
+    <string name="label_never_scanned">从未扫描</string>
+    <string name="label_scanning_headline">正在扫描…</string>
+    <string name="label_scanning_files">%1$s / %2$s 个文件</string>
+    <string name="msg_scan_counting">正在统计文件…</string>
+    <string name="label_skip_short">跳过短音频文件</string>
+    <string name="label_skip_off">关闭</string>
+    <string name="label_skip_value">%d 秒</string>
+    <string name="label_shorter_than">短于 %d 秒</string>
+    <string name="msg_skip_short_explain">排除音乐文件夹中的提示音、短音效和语音备忘录。它们会显示在对应文件夹的页面中。</string>
+    <string name="title_skipped_short">时长过短</string>
+    <string name="msg_skipped_short">短于 %1$d 秒（%2$s）</string>
+    <!-- Settings v2: backup and restore, first-run wizard -->
+    <string name="title_backup_restore">备份与恢复</string>
+    <string name="msg_backup_intro">备份包含您的设置、播放列表（含“已加星标”）以及均衡器预设。</string>
+    <string name="label_create_backup">创建备份</string>
+    <string name="label_last_backup">上次备份：%s</string>
+    <string name="label_no_backup">暂无备份</string>
+    <string name="label_saving_backup">正在保存…</string>
+    <string name="label_restore_backup">从备份恢复</string>
+    <string name="desc_restore_backup">替换您当前的设置、播放列表和均衡器预设</string>
+    <string name="msg_backup_no_folders">音乐文件夹的访问权限无法备份。在新手机上恢复后，请重新添加您的文件夹，扫描完成后播放列表会自动匹配曲目。</string>
+    <string name="msg_backup_saved"><![CDATA[备份已保存为 <b>%s</b>]]></string>
+    <string name="error_backup_write"><![CDATA[Music 应用无法写入 <b>%s</b>。]]></string>
+    <string name="title_restore_confirm">要替换您的设置和播放列表吗？</string>
+    <string name="msg_restore_from"><![CDATA[<b>%1$s</b> – 创建于 %2$s（版本 %3$s），包含：]]></string>
+    <string name="msg_restore_settings">您的设置</string>
+    <string name="msg_restore_playlists">播放列表：%1$d 个，曲目：%2$d 首</string>
+    <string name="msg_restore_with_starred">%s（含“已加星标”）</string>
+    <string name="msg_restore_replaces">您当前的设置和所有播放列表（%d 个）将被替换。文件夹和媒体库将保持不变。</string>
+    <string name="msg_restored">已恢复您的设置和播放列表（%d 个）</string>
+    <string name="error_backup_not_ours"><![CDATA[<b>%s</b> 不是Music 应用的备份文件。]]></string>
+    <string name="error_backup_newer">此备份由更高版本的“音乐”创建。请更新应用后再恢复。</string>
+    <string name="error_backup_unreadable"><![CDATA[Music 应用无法读取 <b>%s</b>。]]></string>
+    <string name="title_welcome_wizard">欢迎使用 Music 应用</string>
+    <string name="label_welcome_question">您想要执行哪项操作？</string>
+    <string name="label_welcome_add_folder">添加音乐文件夹</string>
+    <string name="desc_welcome_add_folder">选择 Music 应用要播放的文件夹</string>
+    <string name="label_welcome_restore">恢复备份</string>
+    <string name="desc_welcome_restore">恢复您的播放列表、设置和均衡器预设</string>
+    <string name="button_next">下一步</string>
+    <string name="label_backup_brings_back">请选择在 Music 应用中创建的备份文件，它将恢复：</string>
+    <string name="label_backup_item_settings">设置</string>
+    <string name="desc_backup_item_settings">排序方式、媒体库视图、播放设置</string>
+    <string name="label_backup_item_playlists">播放列表</string>
+    <string name="desc_backup_item_playlists">含“已加星标”</string>
+    <string name="label_backup_no_folders_title">备份不包含文件夹访问权限。</string>
+    <string name="label_backup_no_folders_body">重新添加文件夹后，播放列表将在扫描完成后自动匹配曲目。</string>
+    <string name="button_backup_choose_file">选择备份文件</string>
+    <string name="button_backup_choose_another">选择其他文件</string>
+    <string name="button_backup_change">更改</string>
+    <string name="label_backup_unnamed_file">未命名</string>
+    <string name="label_backup_file_summary">播放列表：%1$d 个，曲目：%2$d 首（%3$s）</string>
+    <string name="error_backup_unreadable_title">无法读取文件</string>
+    <string name="error_backup_unreadable_body">无法打开 %1$s，请选择其他文件。</string>
+    <string name="error_backup_not_ours_title">不是 Music 应用备份文件</string>
+    <string name="error_backup_not_ours_body">%1$s 不包含 Music 应用的设置或播放列表。请选择在“设置”中创建的备份文件。</string>
+    <string name="error_backup_newer_title">无法恢复此备份</string>
+    <string name="error_backup_newer_body">%1$s 来自更高版本的 Music 应用。请更新应用或选择其他文件。</string>
+    <string name="title_playlists_ready">已就绪播放列表：%d 个</string>
+    <string name="msg_playlists_ready">播放列表目前为空。添加包含音乐的文件夹后，曲目将会自动恢复。</string>
+    <string name="msg_no_folders">暂无音乐文件夹。</string>
+    <string name="menu_reorder">调整顺序</string>
+    <string name="title_reorder">调整顺序</string>
+    <string name="content_description_cancel_reorder">取消更改</string>
+    <string name="button_done">完成</string>
+    <string name="label_filter_all_artists">全部艺人</string>
+    <string name="label_queue_repeat_one">正在单曲循环</string>
+    <string name="label_sort_most_played">最多播放</string>
+    <string name="label_count_with_length">%1$s（%2$s）</string>
+    <string name="label_artist_with_year">%1$s（%2$s）</string>
+    <string name="msg_queue_cleared">已清空播放队列</string>
+    <string name="msg_folder_removed"><![CDATA[已移除文件夹 <b>%s</b>]]></string>
+    <!-- DSD -->
+    <string name="label_tech_dsd">%1$s %2$s MHz</string>
+    <string name="title_dsd">DSD</string>
+    <string name="label_dsd_pcm_rate">PCM 采样率</string>
+    <string name="msg_dsd_pcm_rate">DSD 文件在播放时会转换为 PCM。较高的采样率可保留更多 20 kHz 以上的高频细节，但会增加手机处理器负载。此设置自下一首曲目起生效。</string>
+    <string name="label_khz">%s kHz</string>
+    <!-- Equalizer (SPEC-equalizer) -->
+    <string name="title_equalizer">均衡器</string>
+    <string name="label_eq_off">关闭</string>
+    <string name="label_eq_modified">%s（已修改）</string>
+    <string name="label_eq_unsaved">未保存的设置</string>
+    <string name="label_use_equalizer">启用均衡器</string>
+    <string name="title_preset_group">预设</string>
+    <string name="title_presets">预设</string>
+    <string name="desc_builtin">内置</string>
+    <string name="desc_own_preset">自定义</string>
+    <string name="desc_modified">已修改</string>
+    <string name="label_eq_preamp">前置增益</string>
+    <string name="title_filters">滤波器（%d）</string>
+    <string name="label_filter_type_peak">峰值（Peak）</string>
+    <string name="label_filter_type_low_shelf">低架（Low shelf）</string>
+    <string name="label_filter_type_high_shelf">高架（High shelf）</string>
+    <string name="content_description_filter_type">类型</string>
+    <string name="label_filter_row">%1$s：%2$s Hz</string>
+    <string name="desc_filter_row">增益 %1$s dB，Q 值 %2$s</string>
+    <string name="title_filter">滤波器 %d</string>
+    <string name="label_frequency">频率</string>
+    <string name="label_gain">增益</string>
+    <string name="label_q">Q 值</string>
+    <string name="unit_hz">Hz</string>
+    <string name="unit_db">dB</string>
+    <string name="error_frequency_range">请输入 20 至 20,000 Hz 之间的值</string>
+    <string name="error_gain_range">请输入 −20 至 20 dB 之间的值</string>
+    <string name="error_q_range">请输入 0.10 至 10.00 之间的值</string>
+    <string name="content_description_decrease">降低：%s</string>
+    <string name="content_description_increase">提高：%s</string>
+    <string name="button_add_filter">添加滤波器</string>
+    <string name="desc_filter_limit">最多 20 个滤波器</string>
+    <string name="button_sort_by_frequency">按频率排序</string>
+    <string name="msg_sorted_by_frequency">已按频率排序</string>
+    <string name="button_remove_filter">移除滤波器</string>
+    <string name="msg_removed_filter">已移除滤波器 %1$d（%2$s：%3$s Hz）</string>
+    <string name="msg_clipping">频响曲线峰值达到 %s dB，高音量段落可能会出现失真。</string>
+    <string name="button_set_preamp">将前置增益设为 %s dB</string>
+    <string name="label_curve_off">关闭</string>
+    <plurals name="desc_curve">
+        <item quantity="one">频响曲线：%1$d 个滤波器，峰值 %2$s dB</item>
+        <item quantity="other">频响曲线：%1$d 个滤波器，峰值 %2$s dB</item>
+    </plurals>
+    <plurals name="desc_filter_count">
+        <item quantity="one">%d 个滤波器</item>
+        <item quantity="other">%d 个滤波器</item>
+    </plurals>
+    <string name="label_flat">平直</string>
+    <string name="msg_changes_discarded">已放弃更改</string>
+    <string name="title_preset_sources">均衡器预设</string>
+    <string name="desc_preset_source_isine_10">基于 oratory1990 测量数据，由 Atrium Audio（atriumaudio.net）发布</string>
+    <string name="title_your_presets">自定义预设</string>
+    <string name="title_builtin_presets">内置预设</string>
+    <string name="label_new_preset">新建预设</string>
+    <string name="button_save_as_new">另存为新预设</string>
+    <string name="button_discard_changes">放弃更改</string>
+    <string name="title_new_preset">新建预设</string>
+    <string name="title_save_as_new_preset">另存为新预设</string>
+    <string name="title_rename_preset">重命名预设</string>
+    <plurals name="msg_saves_current">
+        <item quantity="one">保存当前参数：前置增益和 %d 个滤波器。</item>
+        <item quantity="other">保存当前参数：前置增益和 %d 个滤波器。</item>
+    </plurals>
+    <string name="msg_saves_empty">从空白开始：无滤波器，前置增益为 0 dB。</string>
+    <string name="title_start_from">起始基准</string>
+    <string name="label_current_values">当前参数</string>
+    <string name="label_empty_flat">空白（平直）</string>
+    <string name="error_preset_name_taken">已存在同名预设</string>
+    <string name="msg_restore_equalizer">均衡器</string>
+    <string name="msg_restore_equalizer_presets">均衡器及 %d 个自定义预设</string>
+    <string name="msg_restore_replaces_equalizer">您当前的设置、所有播放列表（%d 个）以及均衡器预设将被替换。文件夹和音乐库将保持不变。</string>
+    <string name="desc_backup_item_equalizer">均衡器参数及您的自定义预设</string>
+    <string name="label_import_preset">从文件导入</string>
+    <string name="desc_import_preset">Equalizer APO (AutoEq)</string>
+    <string name="msg_preset_imported"><![CDATA[已导入 <b>%1$s</b>（%2$s）]]></string>
+    <string name="msg_import_left_out_type">%1$s；已跳过不支持的类型：%2$d</string>
+    <string name="msg_import_left_out_limit">%1$s；已跳过超出 20 个上限的部分：%2$d</string>
+    <string name="error_import_not_preset"><![CDATA[<b>%s</b> 不是 Music 应用可读取的均衡器预设文件。]]></string>
+    <!-- Output (bit-perfect B0) -->
+    <string name="title_output">音频输出</string>
+    <string name="label_usb_audio">USB 音频</string>
+    <string name="label_output_speaker">手机扬声器</string>
+    <string name="label_output_wired">有线耳机</string>
+    <string name="label_output_bluetooth">蓝牙设备</string>
+    <string name="label_output_other">其他输出设备</string>
+    <string name="title_bit_perfect_formats">独占源码</string>
+    <string name="msg_no_bit_perfect">系统未向此设备提供独占源码（Bit-perfect）输出。</string>
+    <string name="label_bits_float">%s 位浮点</string>
+    <string name="label_other_encoding">其他格式</string>
+    <string name="label_format_channels">%1$s（%2$s）</string>
+    <string name="label_rates_khz">%s kHz</string>
+    <!-- Output and devices (SPEC-output) -->
+    <string name="title_playing_on">当前输出</string>
+    <string name="title_your_devices">您的设备</string>
+    <string name="button_switch_output">切换输出设备</string>
+    <string name="msg_output_note">Music 应用会记住您使用过的每台播放设备，每台设备均可单独配置均衡器预设。</string>
+    <string name="label_kind_usb">USB</string>
+    <string name="label_kind_bluetooth">蓝牙</string>
+    <string name="state_connected">已连接</string>
+    <string name="state_connected_lower">已连接</string>
+    <string name="state_not_connected">未连接</string>
+    <string name="state_not_connected_lower">未连接</string>
+    <string name="state_available">可用</string>
+    <string name="state_playing_now">正在播放</string>
+    <string name="state_playing_now_lower">正在播放</string>
+    <string name="desc_kind_state">%1$s，%2$s</string>
+    <string name="label_stream_format">%1$s，%2$s kHz</string>
+    <string name="desc_bit_perfect_stream">USB，独占源码：%s</string>
+    <string name="desc_usb_bit_perfect_on">USB，已开启独占源码</string>
+    <string name="desc_through_mixer">USB，经由系统混音器</string>
+    <string name="desc_not_supported_bit_perfect">独占源码模式下不支持 %s</string>
+    <string name="desc_rate_not_supported_bit_perfect">独占源码模式下不支持 %s kHz 的此格式</string>
+    <string name="desc_equalizer_preset">均衡器：%s</string>
+    <string name="desc_equalizer_off">均衡器已关闭</string>
+    <string name="label_output_bit_perfect">%s（独占源码）</string>
+    <string name="msg_bit_perfect_device">所有音频文件均以原始采样率无损直出至此设备，同时绕过均衡器、回放增益及系统音量调节，请在设备端调节音量。</string>
+    <string name="title_now">当前状态</string>
+    <string name="desc_eq_not_applied_bit_perfect">开启独占源码时已绕过</string>
+    <string name="desc_eq_set_on_page">在“均衡器”页面中设置</string>
+    <string name="msg_other_formats_mixer">其他格式的文件将经由系统混音器播放。</string>
+    <string name="msg_connect_for_formats">连接 %s 以查看其支持独占源码播放的格式。</string>
+    <string name="msg_bit_perfect_needs_usb">独占源码输出需要连接 USB 音频设备。</string>
+    <string name="button_forget_device">取消保存此设备</string>
+    <string name="msg_forgot_device"><![CDATA[已移除设备 <b>%s</b>]]></string>
+    <string name="label_applies_to">应用于</string>
+    <string name="msg_applies_to">使用 %s 的设备。勾选设备后将替换其当前预设。</string>
+    <plurals name="desc_applies_more">
+        <item quantity="one">%1$s 及另外 %2$d 台设备</item>
+        <item quantity="other">%1$s 及另外 %2$d 台设备</item>
+    </plurals>
+    <string name="label_other_devices">其他设备</string>
+    <string name="label_other_devices_lower">其他设备</string>
+    <string name="desc_other_devices">新设备及未勾选设备。当前：%s</string>
+    <string name="desc_now_preset">当前：%s</string>
+    <string name="desc_bit_perfect_not_heard">已开启独占源码：均衡器未生效</string>
+    <string name="desc_not_used">未使用</string>
+    <string name="desc_for_device">适用于 %s</string>
+    <plurals name="label_bit_count">
+        <item quantity="one">%d bit</item>
+        <item quantity="other">%d bit</item>
+    </plurals>
+    <string name="label_bit_perfect_output">独占源码输出</string>
+    <string name="desc_bit_perfect_on">已开启独占源码</string>
+    <string name="label_bit_perfect">独占源码</string>
+    <string name="label_bit_perfect_playing">正在以独占源码播放</string>
+    <string name="label_eq_bypassed">%s（已绕过：独占源码）</string>
+    <string name="label_curve_not_applied">未应用</string>
+    <string name="msg_eq_bitperfect">独占源码输出已开启，因此均衡器效果不会生效，但此处的各项设置仍会保留。</string>
+    <string name="label_dsd_boost">使 DSD 音量与 PCM 一致</string>
+    <string name="desc_dsd_boost">DSD 转换为 PCM 时增加 6 dB 增益</string>
+    <string name="msg_dsd_native">开启独占源码输出后，若设备支持所需采样率，DSD 音频将不经转换直接以 DoP 模式发送至 DAC，此时上述设置将被绕过。</string>
+    <string name="title_play_counts">播放次数</string>
+    <string name="label_count_plays">统计播放次数</string>
+    <string name="desc_count_plays">曲目播放进度达到一半及以上时计为一次播放</string>
+    <string name="msg_play_counts">“最多播放”排序及各位艺人的热门曲目均依赖此统计数据。关闭统计会保留现有记录；如需清零，请前往“设置 › 重置”。</string>
+    <string name="desc_reset_play_counts">所有曲目的播放次数将清零，音乐库和播放列表保持不变。</string>
+    <string name="button_reset_play_counts">重置播放次数</string>
+    <string name="msg_play_counts_reset">播放次数已重置</string>
+    <!-- Widgets (SPEC-widgets) -->
+    <string name="label_widget_now_playing">正在播放</string>
+    <string name="label_widget_now_playing_wide">正在播放（宽版）</string>
+    <string name="desc_widget_now_playing">显示当前曲目及播放控制按钮</string>
+    <string name="label_widget_nothing_playing">暂无播放内容</string>
+    <string name="desc_widget_tap_to_open">点按打开 Music 应用</string>
+    <string name="content_description_widget_now_playing">%1$s，%2$s。打开正在播放界面</string>
+    <string name="label_widget_playlist">播放列表</string>
+    <string name="label_widget_playlist_wide">播放列表（宽版）</string>
+    <string name="desc_widget_playlist">从主屏幕直接播放指定播放列表</string>
+    <!-- In the launcher's list of widgets only: a sample second line for the wide Playlist widget's preview -->
+    <string name="label_widget_preview_playlist_length">12 首曲目（48 分钟）</string>
+    <string name="label_widget_playlist_deleted">播放列表已删除</string>
+    <string name="desc_widget_choose_another">点按选择其他播放列表</string>
+    <string name="title_playlist_widget">播放列表微件</string>
+    <string name="label_widget_deleted_short">已删除</string>
+    <string name="button_add_widget">添加微件</string>
+    <string name="content_description_widget_play_playlist">播放 %s</string>
+    <string name="content_description_widget_shuffle_playlist">随机播放 %s</string>
+    <string name="content_description_widget_playlist">%1$s，%2$s。打开此播放列表</string>
+    <string name="label_widget_most_played">最常播放的专辑</string>
+    <string name="desc_widget_most_played">展示您最常播放的专辑封面</string>
+    <string name="content_description_widget_most_played">最常播放的专辑：%s</string>
+    <string name="content_description_widget_no_albums">最常播放的专辑。打开 Music 应用</string>
+</resources>
