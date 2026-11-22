@@ -22,7 +22,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -32,7 +31,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconToggleButton
@@ -46,8 +44,6 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.SliderState
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -69,11 +65,9 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
@@ -309,9 +303,9 @@ fun Modifier.closesVolumeBar(state: VolumeBarState): Modifier = composed {
 }
 
 /**
- * Volume (start), the output music plays on and Queue (end); Volume grows into the volume bar (§4),
- * which closes on Back, a tap outside it, or 5 s after the last touch. The output goes with Queue
- * while the bar is open (SPEC-output-and-grid §A2).
+ * Volume (start) and Queue (end); Volume grows into the volume bar (§4), which closes on Back, a tap
+ * outside it, or 5 s after the last touch. The output music plays on is a button of that bar
+ * (owner's decision 23.11.2026, over SPEC-output-and-grid §A2: the row keeps its symmetry).
  */
 @Composable
 fun BottomRow(
@@ -341,37 +335,30 @@ fun BottomRow(
                     FilledTonalIconButton(onClick = { bar.open = true; bar.touched++ }, modifier = shared.size(48.dp)) {
                         Icon(painterResource(volume.icon), contentDescription = stringResource(R.string.content_description_volume))
                     }
-                    if (output != null) OutputButton(output, onOutput, Modifier.weight(1f).padding(horizontal = 8.dp))
                     FilledTonalIconButton(onClick = onQueue, modifier = Modifier.size(48.dp)) {
                         Icon(painterResource(R.drawable.ic_queue_music), contentDescription = stringResource(R.string.content_description_queue))
                     }
                 }
             } else {
-                VolumeBar(volume, onTouch = { bar.touched++ }, onEqualizer = { bar.open = false; onEqualizer() }, modifier = shared.onGloballyPositioned { bar.bounds = it.boundsInRoot() })
+                VolumeBar(
+                    volume,
+                    output,
+                    onTouch = { bar.touched++ },
+                    onOutput = { bar.open = false; onOutput() },
+                    onEqualizer = { bar.open = false; onEqualizer() },
+                    modifier = shared.onGloballyPositioned { bar.bounds = it.boundsInRoot() },
+                )
             }
         }
     }
 }
 
 /**
- * The output music plays on (SPEC-output-and-grid §A2): a small text button with the device's kind
- * and name only, lighter than the tonal buttons beside it; a long name ends with an ellipsis (the
- * title above already scrolls).
+ * The pill (§4.2): mute, the volume slider, the output music plays on – the device's kind as its icon,
+ * its name for TalkBack; opens the output details – and the equalizer button (SPEC-equalizer §2.2).
  */
 @Composable
-private fun OutputButton(output: AudioOutput, onClick: () -> Unit, modifier: Modifier) {
-    val name = outputName(output)
-    val description = stringResource(R.string.content_description_output, name)
-    TextButton(onClick = onClick, modifier = modifier.semantics { contentDescription = description }) {
-        Icon(painterResource(outputIcon(output.kind)), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-        Text(name, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false).clearAndSetSemantics {})
-    }
-}
-
-/** The pill (§4.2): mute, the volume slider, and the equalizer button (SPEC-equalizer §2.2). */
-@Composable
-private fun VolumeBar(volume: MediaVolume, onTouch: () -> Unit, onEqualizer: () -> Unit, modifier: Modifier) {
+private fun VolumeBar(volume: MediaVolume, output: AudioOutput?, onTouch: () -> Unit, onOutput: () -> Unit, onEqualizer: () -> Unit, modifier: Modifier) {
     Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = CircleShape, modifier = modifier.fillMaxWidth().height(56.dp)) {
         Row(Modifier.padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
             if (!volume.fixed) {
@@ -406,6 +393,11 @@ private fun VolumeBar(volume: MediaVolume, onTouch: () -> Unit, onEqualizer: () 
                         stateDescription = if (volume.fixed) fixedReason else percent
                     },
             )
+            if (output != null) {
+                IconButton(onClick = onOutput, modifier = Modifier.size(48.dp)) {
+                    Icon(painterResource(outputIcon(output.kind)), contentDescription = stringResource(R.string.content_description_output, outputName(output)))
+                }
+            }
             IconButton(onClick = onEqualizer, modifier = Modifier.size(48.dp)) {
                 Icon(painterResource(R.drawable.ic_equalizer), contentDescription = stringResource(R.string.title_equalizer))
             }

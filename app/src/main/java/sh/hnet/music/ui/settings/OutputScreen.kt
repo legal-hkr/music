@@ -72,7 +72,7 @@ fun outputName(output: AudioOutput): String = output.name.ifEmpty {
 
 /** SPEC-output §2.1. */
 fun outputIcon(kind: OutputKind): Int = when (kind) {
-    OutputKind.SPEAKER -> R.drawable.ic_smartphone
+    OutputKind.SPEAKER -> R.drawable.ic_mobile_speaker
     OutputKind.WIRED -> R.drawable.ic_headphones
     OutputKind.BLUETOOTH -> R.drawable.ic_bluetooth
     OutputKind.USB -> R.drawable.ic_usb
@@ -89,7 +89,7 @@ private fun kindLabel(kind: OutputKind): String? = when (kind) {
 
 /** "24 bit, 96 kHz" ("24 bity, 96 kHz"). */
 @Composable
-private fun streamText(bits: Int, sampleRate: Int): String =
+fun streamText(bits: Int, sampleRate: Int): String =
     stringResource(R.string.label_stream_format, pluralStringResource(R.plurals.label_bit_count, bits, bits), sampleRateText(sampleRate))
 
 /** Everything the output pages show a device by. */

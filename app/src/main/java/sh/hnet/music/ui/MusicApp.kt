@@ -105,6 +105,7 @@ import sh.hnet.music.ui.library.PlaylistScreen
 import sh.hnet.music.ui.library.Starring
 import sh.hnet.music.ui.player.MiniPlayer
 import sh.hnet.music.ui.player.NowPlayingScreen
+import sh.hnet.music.ui.player.OutputPathScreen
 import sh.hnet.music.ui.player.PlayerViewModel
 import sh.hnet.music.ui.player.QueueSheet
 import sh.hnet.music.ui.player.TrackDetailsScreen
@@ -165,6 +166,10 @@ fun MusicApp(openNowPlaying: Int = 0, openPlaylist: Pair<Int, Long> = 0 to -1L) 
     // A settings page opened from a chip on now playing: "output" or "playback"
     var settingsOpen by rememberSaveable { mutableStateOf<String?>(null) }
     var queueOpen by rememberSaveable { mutableStateOf(false) }
+    // The output details over now playing, from the volume bar (SPEC-output-and-grid §A4, a page as the equalizer's)
+    var outputOpen by rememberSaveable { mutableStateOf(false) }
+    // A device's page opened from the output details: Back returns there, not to the Output page
+    var deviceFromPlayer by rememberSaveable { mutableStateOf(false) }
     // Add to playlist and Save as playlist, shown over everything (SPEC-playlists §7, §8)
     var addRequest by remember { mutableStateOf<AddRequest?>(null) }
     var queueToSave by remember { mutableStateOf<List<LibraryTrack>?>(null) }
@@ -172,7 +177,7 @@ fun MusicApp(openNowPlaying: Int = 0, openPlaylist: Pair<Int, Long> = 0 to -1L) 
     val tracksByUri by playerModel.tracks.collectAsStateWithLifecycle()
     val hasQueue = playerState.queueSize > 0
     fun openNowPlaying() = scope.launch { nowPlaying.animateTo(true) }
-    fun closeNowPlaying() = scope.launch { detailsOpen = false; equalizerOpen = false; settingsOpen = null; queueOpen = false; nowPlaying.animateTo(false) }
+    fun closeNowPlaying() = scope.launch { detailsOpen = false; equalizerOpen = false; settingsOpen = null; queueOpen = false; outputOpen = false; nowPlaying.animateTo(false) }
     // Asked for by the notification or a widget. From a widget the process may only just have started, with
     // the queue still being restored: the request waits a moment for it rather than being dropped
     val hasQueueNow by rememberUpdatedState(hasQueue)
@@ -519,9 +524,14 @@ fun MusicApp(openNowPlaying: Int = 0, openPlaylist: Pair<Int, Long> = 0 to -1L) 
         // Registered here, after the destinations, so they win over the pages' own Back while open
         BackHandler(enabled = detailsOpen) { detailsOpen = false }
         BackHandler(enabled = equalizerOpen) { equalizerOpen = false }
-        // A device's page was opened from the Output page
-        BackHandler(enabled = settingsOpen != null) { settingsOpen = if (settingsOpen?.startsWith(DEVICE_PAGE) == true) "output" else null }
-        PredictiveBackHandler(enabled = nowPlaying.targetState && !detailsOpen && !equalizerOpen && settingsOpen == null) { events ->
+        // Before the settings' handler: a device's page opened from the output details lies over them and wins
+        BackHandler(enabled = outputOpen && !equalizerOpen && settingsOpen == null) { outputOpen = false }
+        // A device's page goes back where it was opened from: the Output page, or now playing from the output details
+        fun leaveSettings() {
+            settingsOpen = if (settingsOpen?.startsWith(DEVICE_PAGE) == true && !deviceFromPlayer) "output" else null
+        }
+        BackHandler(enabled = settingsOpen != null) { leaveSettings() }
+        PredictiveBackHandler(enabled = nowPlaying.targetState && !detailsOpen && !equalizerOpen && settingsOpen == null && !outputOpen) { events ->
             try {
                 events.collect { nowPlaying.seekTo(it.progress, targetState = false) }
             } catch (canceled: CancellationException) {
@@ -547,6 +557,7 @@ fun MusicApp(openNowPlaying: Int = 0, openPlaylist: Pair<Int, Long> = 0 to -1L) 
                 onQueue = { queueOpen = true },
                 onEqualizer = { equalizerForDevice = false; equalizerOpen = true },
                 onOutputSettings = { settingsOpen = "output" },
+                onOutput = { outputOpen = true },
                 onPlaybackSettings = { settingsOpen = "playback" },
             )
             if (queueOpen) {
@@ -563,6 +574,26 @@ fun MusicApp(openNowPlaying: Int = 0, openPlaylist: Pair<Int, Long> = 0 to -1L) 
                 exit = slideOutHorizontally(spatial) { shift } + fadeOut(fastEffects),
             ) {
                 TrackDetailsScreen(playerModel, onBack = { detailsOpen = false })
+            }
+            // Under the equalizer's and the settings' pages: a device's page and its equalizer open over it
+            AnimatedVisibility(
+                visible = outputOpen,
+                enter = slideInHorizontally(spatial) { shift } + fadeIn(effects),
+                exit = slideOutHorizontally(spatial) { shift } + fadeOut(fastEffects),
+            ) {
+                Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
+                    Box(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
+                        CompositionLocalProvider(LocalBottomOverlay provides 0.dp) {
+                            OutputPathScreen(
+                                track = currentTrack,
+                                details = currentDetails,
+                                gain = currentGain,
+                                onBack = { outputOpen = false },
+                                onOpenDevice = { key -> deviceFromPlayer = true; settingsOpen = DEVICE_PAGE + key },
+                            )
+                        }
+                    }
+                }
             }
             AnimatedVisibility(
                 visible = equalizerOpen,
@@ -590,10 +621,10 @@ fun MusicApp(openNowPlaying: Int = 0, openPlaylist: Pair<Int, Long> = 0 to -1L) 
                     Box(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
                         CompositionLocalProvider(LocalBottomOverlay provides 0.dp) {
                             val shown = page
-                            if (shown == "output") OutputScreen(onBack = { settingsOpen = null }, onOpenDevice = { settingsOpen = DEVICE_PAGE + it }, topInsets = false)
+                            if (shown == "output") OutputScreen(onBack = { settingsOpen = null }, onOpenDevice = { deviceFromPlayer = false; settingsOpen = DEVICE_PAGE + it }, topInsets = false)
                             else if (shown != null && shown.startsWith(DEVICE_PAGE)) DeviceScreen(
                                 shown.removePrefix(DEVICE_PAGE),
-                                onBack = { settingsOpen = "output" },
+                                onBack = { leaveSettings() },
                                 // The equalizer's page lies under this one
                                 onOpenEqualizer = { settingsOpen = null; equalizerForDevice = true; equalizerOpen = true },
                                 snackbars = snackbars,

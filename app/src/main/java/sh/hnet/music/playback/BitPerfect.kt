@@ -29,6 +29,18 @@ import kotlinx.coroutines.flow.asStateFlow
  * The arithmetic of bit-perfect output (stage B1), pure and unit-tested: which of a device's formats
  * carries a stream unchanged, and the samples' way back from float to the integers they were.
  */
+/** Why a stream goes through the mixer although the USB device's bit-perfect switch is on. */
+enum class Refusal {
+    /** The device lists no bit-perfect format for the stream's rate and depth. */
+    FORMAT,
+
+    /** 32-bit and float sources (DSD converted to PCM among them): Music's float path can't hold them bit for bit. */
+    DEPTH,
+
+    /** More than two channels. */
+    CHANNELS,
+}
+
 object BitPerfect {
     /**
      * The device format a stream of [sourceBits] integer samples at [sampleRate] goes out in
@@ -36,6 +48,16 @@ object BitPerfect {
      * padding). Null when the device has none, or the stream isn't one we carry exactly: more than
      * two channels, or 32-bit and float sources, which our float path can't hold bit for bit.
      */
+    /**
+     * Why [choose] found no format for a stream: Music doesn't carry it exactly ([Refusal.CHANNELS],
+     * [Refusal.DEPTH]) or the device doesn't take it ([Refusal.FORMAT]). The same checks, in the same order.
+     */
+    fun refusal(sourceBits: Int, channels: Int): Refusal = when {
+        channels !in 1..2 -> Refusal.CHANNELS
+        sourceBits !in EXACT_BITS -> Refusal.DEPTH
+        else -> Refusal.FORMAT
+    }
+
     fun choose(formats: List<OutputFormat>, sampleRate: Int, sourceBits: Int, channels: Int): OutputFormat? {
         if (channels !in 1..2 || sourceBits !in EXACT_BITS) return null
         return formats
@@ -131,8 +153,11 @@ class BitPerfectController(context: Context) {
     /** The USB devices whose own switch is on (SPEC-output §9), by [AudioOutput.key]. */
     @Volatile var enabledKeys: Set<String> = emptySet()
 
-    /** What goes to the USB device now: [bitPerfect] or through the mixer although its switch is on; [bits] 0 when not known. */
-    data class Stream(val bitPerfect: Boolean, val bits: Int, val sampleRate: Int)
+    /**
+     * What goes to the USB device now: [bitPerfect] or through the mixer although its switch is on; [bits] 0 when
+     * not known; [refusal] why it went through the mixer (SPEC-output-and-grid §A5.5).
+     */
+    data class Stream(val bitPerfect: Boolean, val bits: Int, val sampleRate: Int, val refusal: Refusal? = null)
 
     private val _stream = MutableStateFlow<Stream?>(null)
     /** For the Output pages; null when nothing was opened for a device with the switch on. */
@@ -213,7 +238,7 @@ class BitPerfectController(context: Context) {
      */
     fun prepare(sampleRate: Int, sourceBits: Int, channels: Int): Boolean {
         pending = choose(sampleRate, sourceBits, channels)
-        refused = if (pending == null && wanted()) Stream(false, sourceBits, sampleRate) else null
+        refused = if (pending == null && wanted()) Stream(false, sourceBits, sampleRate, BitPerfect.refusal(sourceBits, channels)) else null
         // Already through the mixer, where one output serves stream after stream: the reason follows the stream
         if (pending == null && _stream.value?.bitPerfect == false) _stream.value = refused
         return pending != null

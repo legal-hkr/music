@@ -110,6 +110,7 @@ fun NowPlayingScreen(
     onQueue: () -> Unit,
     onEqualizer: () -> Unit,
     onOutputSettings: () -> Unit,
+    onOutput: () -> Unit,
     onPlaybackSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -135,7 +136,7 @@ fun NowPlayingScreen(
         }
         Spacer(Modifier.height(20.dp))
         Column(Modifier.padding(horizontal = 24.dp).padding(bottom = 16.dp)) {
-            Controls(track, details, gain, state, player, volumeBar, onGoToArtist, onGoToAlbum, onDetails, onQueue, onEqualizer, onOutputSettings, onPlaybackSettings)
+            Controls(track, details, gain, state, player, volumeBar, onGoToArtist, onGoToAlbum, onDetails, onQueue, onEqualizer, onOutputSettings, onOutput, onPlaybackSettings)
         }
     }
     }
@@ -155,6 +156,7 @@ private fun ColumnScope.Controls(
     onQueue: () -> Unit,
     onEqualizer: () -> Unit,
     onOutputSettings: () -> Unit,
+    onOutput: () -> Unit,
     onPlaybackSettings: () -> Unit,
 ) {
     // Title block and the track's actions
@@ -207,7 +209,7 @@ private fun ColumnScope.Controls(
     Spacer(Modifier.height(16.dp))
     // The output music plays on, or would play on before anything has (SPEC-output-and-grid §A2)
     val outputs by (LocalContext.current.applicationContext as MusicApplication).outputs.system.collectAsStateWithLifecycle()
-    BottomRow(volumeBar, outputs.current, onOutput = onOutputSettings, onQueue = onQueue, onEqualizer = onEqualizer)
+    BottomRow(volumeBar, outputs.current, onOutput = onOutput, onQueue = onQueue, onEqualizer = onEqualizer)
 }
 
 /** Slider with elapsed and total time; the label follows a drag, the seek happens on release. */
