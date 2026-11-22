@@ -686,6 +686,7 @@
     <string name="label_bit_perfect_output">Wyjście bit-perfect</string>
     <string name="desc_bit_perfect_on">Bit-perfect włączony</string>
     <string name="label_bit_perfect">Bit-perfect</string>
+    <string name="content_description_output">Wyjście: %1$s</string>
     <string name="label_bit_perfect_playing">Odtwarzanie bit-perfect</string>
     <string name="label_eq_bypassed">%s (pominięty: bit-perfect)</string>
     <string name="label_curve_not_applied">Nie zastosowano</string>

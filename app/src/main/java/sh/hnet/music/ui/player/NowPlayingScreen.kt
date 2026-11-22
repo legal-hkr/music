@@ -9,7 +9,6 @@ import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -75,12 +74,14 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
+import sh.hnet.music.MusicApplication
 import sh.hnet.music.R
 import sh.hnet.music.data.LibraryTrack
 import sh.hnet.music.data.Track
 import sh.hnet.music.playback.AppliedGain
 import sh.hnet.music.playback.PlayerConnection
 import sh.hnet.music.playback.PlayerState
+import sh.hnet.music.tags.AudioCodec
 import sh.hnet.music.ui.components.Cover
 import sh.hnet.music.ui.components.TooltipIconButton
 import sh.hnet.music.ui.components.formatDuration
@@ -116,38 +117,25 @@ fun NowPlayingScreen(
     // overlay outside the Scaffold wouldn't get otherwise (black text and icons in dark theme)
     val volumeBar = remember { VolumeBarState() }
     Surface(modifier.fillMaxSize().closesVolumeBar(volumeBar), color = MaterialTheme.colorScheme.surface) {
-    BoxWithConstraints(
+    // Portrait only, as the whole app (the activity is locked to portrait)
+    Column(
         Modifier
             .fillMaxSize()
             .statusBarsPadding()
             .navigationBarsPadding(),
     ) {
-        val landscape = maxWidth > maxHeight
-        Column(Modifier.fillMaxSize()) {
-            Row(Modifier.fillMaxWidth().height(64.dp).then(dragArea).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                TooltipIconButton(R.drawable.ic_keyboard_arrow_down, stringResource(R.string.content_description_close_now_playing), onClose)
-            }
-            if (landscape) {
-                Row(Modifier.fillMaxSize().padding(bottom = 16.dp), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                    Box(Modifier.weight(1f).fillMaxSize().then(dragArea), contentAlignment = Alignment.Center) {
-                        Cover(track, RoundedCornerShape(28.dp), Modifier.padding(start = 24.dp).aspectRatio(1f, matchHeightConstraintsFirst = true), player = true)
-                    }
-                    Column(Modifier.weight(1f).padding(end = 24.dp), verticalArrangement = Arrangement.Center) {
-                        Controls(track, details, gain, state, player, volumeBar, onGoToArtist, onGoToAlbum, onDetails, onQueue, onEqualizer, onOutputSettings, onPlaybackSettings)
-                    }
-                }
-            } else {
-                Box(
-                    Modifier.weight(1f).fillMaxWidth().heightIn(min = 200.dp).then(dragArea).padding(horizontal = 24.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Cover(track, RoundedCornerShape(28.dp), Modifier.aspectRatio(1f, matchHeightConstraintsFirst = true), player = true)
-                }
-                Spacer(Modifier.height(20.dp))
-                Column(Modifier.padding(horizontal = 24.dp).padding(bottom = 16.dp)) {
-                    Controls(track, details, gain, state, player, volumeBar, onGoToArtist, onGoToAlbum, onDetails, onQueue, onEqualizer, onOutputSettings, onPlaybackSettings)
-                }
-            }
+        Row(Modifier.fillMaxWidth().height(64.dp).then(dragArea).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            TooltipIconButton(R.drawable.ic_keyboard_arrow_down, stringResource(R.string.content_description_close_now_playing), onClose)
+        }
+        Box(
+            Modifier.weight(1f).fillMaxWidth().heightIn(min = 200.dp).then(dragArea).padding(horizontal = 24.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Cover(track, RoundedCornerShape(28.dp), Modifier.aspectRatio(1f, matchHeightConstraintsFirst = true), player = true)
+        }
+        Spacer(Modifier.height(20.dp))
+        Column(Modifier.padding(horizontal = 24.dp).padding(bottom = 16.dp)) {
+            Controls(track, details, gain, state, player, volumeBar, onGoToArtist, onGoToAlbum, onDetails, onQueue, onEqualizer, onOutputSettings, onPlaybackSettings)
         }
     }
     }
@@ -196,13 +184,17 @@ private fun ColumnScope.Controls(
         }
     }
     Spacer(Modifier.height(12.dp))
-    val bitPerfect by (LocalContext.current.applicationContext as sh.hnet.music.MusicApplication).bitPerfect.active.collectAsStateWithLifecycle()
+    val bitPerfect by (LocalContext.current.applicationContext as MusicApplication).bitPerfect.active.collectAsStateWithLifecycle()
     // Technical details: only here and on the details page (SPEC §2.5)
     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.heightIn(min = 32.dp)) {
         if (details != null) item { AssistChip(onClick = onDetails, label = { Text(techLabel(details)) }) }
         // Each chip opens what it is about: the file's details, the output's or the playback settings
         // Sent to the USB DAC unchanged: ReplayGain doesn't apply, so its chip gives way (SPEC §9.3)
-        if (bitPerfect) item { AssistChip(onClick = onOutputSettings, label = { Text(stringResource(R.string.label_bit_perfect)) }) }
+        // A DSD file goes out bit-perfect only as DoP (converted to PCM it is float, never bit-perfect): the chip says which
+        if (bitPerfect) item {
+            val label = if (details?.codec == AudioCodec.DSD) R.string.label_dop else R.string.label_bit_perfect
+            AssistChip(onClick = onOutputSettings, label = { Text(stringResource(label)) })
+        }
         // The gain actually applied, while ReplayGain is on (SPEC §9.3)
         if (gain != null && !bitPerfect) item {
             AssistChip(onClick = onPlaybackSettings, label = { Text(stringResource(R.string.label_replaygain_applied, decibels(gain.db))) })
@@ -213,7 +205,9 @@ private fun ColumnScope.Controls(
     Spacer(Modifier.height(16.dp))
     Transport(state, player)
     Spacer(Modifier.height(16.dp))
-    BottomRow(volumeBar, onQueue = onQueue, onEqualizer = onEqualizer)
+    // The output music plays on, or would play on before anything has (SPEC-output-and-grid §A2)
+    val outputs by (LocalContext.current.applicationContext as MusicApplication).outputs.system.collectAsStateWithLifecycle()
+    BottomRow(volumeBar, outputs.current, onOutput = onOutputSettings, onQueue = onQueue, onEqualizer = onEqualizer)
 }
 
 /** Slider with elapsed and total time; the label follows a drag, the seek happens on release. */
