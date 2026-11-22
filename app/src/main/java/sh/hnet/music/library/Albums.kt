@@ -73,9 +73,12 @@ object Albums {
                 .thenBy { it.displayTitle.lowercase() },
         )
         val first = ordered.first()
-        val albumArtists = first.albumArtists
+        // An album artist tag that only says "Various Artists" (as iTunes and MusicBrainz write it) names
+        // no artist: the album is a compilation shown as "Various artists", not an artist's own album.
+        // The album's key keeps the tag, so grouping doesn't change
+        val albumArtists = first.albumArtists.filterNot(::namesVarious)
         val leadArtists = ordered.mapNotNull { it.artists.firstOrNull() }.distinct()
-        val compilation = ordered.any { it.compilation } || leadArtists.size > 1
+        val compilation = ordered.any { it.compilation } || leadArtists.size > 1 || albumArtists.size < first.albumArtists.size
         val shown = when {
             albumArtists.isNotEmpty() -> albumArtists
             compilation -> emptyList()
@@ -120,14 +123,19 @@ object Albums {
         return albums.sortedWith(comparator)
     }
 
-    /** Fast-scroller label of an album in [order] (SPEC §5.5). */
+    /** Section label of an album in [order]: its header and the fast scroller's bubble (SPEC §5.5). */
     fun section(album: Album, order: AlbumSort, locale: Locale): String = when (order) {
         AlbumSort.TITLE -> Sections.letter(album.albumSort ?: withoutArticle(album.title), locale)
-        AlbumSort.ALBUM_ARTIST -> if (album.isVarious) Sections.OTHER else
+        AlbumSort.ALBUM_ARTIST -> if (album.isVarious) Sections.VARIOUS else
             Sections.letter(album.albumArtistSort ?: withoutArticle(album.shownArtists.joinToString(", ")), locale)
         AlbumSort.YEAR -> album.year?.toString() ?: Sections.OTHER
-        AlbumSort.RECENTLY_ADDED -> Sections.month(album.addedAt, locale)
+        AlbumSort.RECENTLY_ADDED -> Sections.added(album.addedAt, locale)
     }
+
+    private val VARIOUS_NAMES = setOf("various artists", "various", "va", "v.a.", "różni wykonawcy")
+
+    /** Whether an album artist tag names no artist but "Various artists". */
+    fun namesVarious(name: String): Boolean = name.trim().lowercase(Locale.ROOT) in VARIOUS_NAMES
 
     fun withoutArticle(text: String): String =
         if (text.length > 4 && text.startsWith("The ", ignoreCase = true)) text.substring(4) else text

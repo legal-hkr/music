@@ -73,6 +73,7 @@ import kotlinx.coroutines.CoroutineScope
 import sh.hnet.music.R
 import sh.hnet.music.library.Album
 import sh.hnet.music.library.AlbumSort
+import sh.hnet.music.library.SectionRow
 import sh.hnet.music.ui.components.Cover
 import sh.hnet.music.ui.components.EmptyState
 import sh.hnet.music.ui.components.FastScroller
@@ -157,7 +158,7 @@ fun LibraryScreen(
                     LibraryView.ARTISTS -> ArtistsView(viewModel, artistsList, onOpenArtist)
                     LibraryView.TRACKS -> {
                         val tracks by viewModel.tracks.collectAsStateWithLifecycle()
-                        tracks?.let { TrackList(viewModel, it, tracksList, navigation) }
+                        tracks?.let { TrackList(viewModel, it, tracksList, navigation, headers = true) }
                     }
                     LibraryView.PLAYLISTS -> PlaylistsView(viewModel, playlistsList, snackbars, messageScope, onOpenPlaylist)
                 }
@@ -245,7 +246,6 @@ private fun AlbumsView(viewModel: BrowseViewModel, state: LazyGridState, onOpenA
             state = state,
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp + LocalBottomOverlay.current),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxSize(),
         ) {
             item(key = "header", span = { GridItemSpan(maxLineSpan) }, contentType = "header") {
@@ -253,11 +253,24 @@ private fun AlbumsView(viewModel: BrowseViewModel, state: LazyGridState, onOpenA
                     SortChip(AlbumSort.entries, sort, { stringResource(it.label()) }, viewModel::setAlbumSort)
                 }
             }
-            gridItems(list, key = { it.key }, contentType = { "album" }) { album ->
-                AlbumTile(album, Modifier.animateItem()) { onOpenAlbum(album.key) }
+            // A section header takes a whole row; the gaps are the tiles' own 16 dp below, so a header
+            // sits 16 dp under the group before it and 8 dp over its own, as in the lists
+            gridItems(
+                sorted.rows,
+                key = { row -> if (row is SectionRow.Item) row.item.key else (row as SectionRow.Header).key() },
+                span = { row -> GridItemSpan(if (row is SectionRow.Header) maxLineSpan else 1) },
+                contentType = { row -> if (row is SectionRow.Item) "album" else "section" },
+            ) { row ->
+                when (row) {
+                    is SectionRow.Header -> SectionHeader(
+                        row.label,
+                        Modifier.animateItem().padding(top = if (row.start == 0) 16.dp else 0.dp, bottom = 8.dp),
+                    )
+                    is SectionRow.Item -> AlbumTile(row.item, Modifier.animateItem().padding(bottom = 16.dp)) { onOpenAlbum(row.item.key) }
+                }
             }
         }
-        FastScroller(state, sorted.sections, firstItem = 1, modifier = Modifier.align(Alignment.TopEnd))
+        FastScroller(state, scrollerLabels(sorted.rows), firstItem = 1, modifier = Modifier.align(Alignment.TopEnd), snapToSections = true)
     }
 }
 
@@ -279,11 +292,18 @@ private fun ArtistsView(viewModel: BrowseViewModel, state: LazyListState, onOpen
                     }
                 }
             }
-            items(sorted.items, key = { it.key }, contentType = { "artist" }) { artist ->
-                ArtistRow(artist) { onOpenArtist(artist.name) }
+            items(
+                sorted.rows,
+                key = { row -> if (row is SectionRow.Item) row.item.key else (row as SectionRow.Header).key() },
+                contentType = { row -> if (row is SectionRow.Item) "artist" else "section" },
+            ) { row ->
+                when (row) {
+                    is SectionRow.Header -> SectionHeader(row.label, Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp))
+                    is SectionRow.Item -> ArtistRow(row.item) { onOpenArtist(row.item.name) }
+                }
             }
         }
-        FastScroller(state, sorted.sections, firstItem = 1, modifier = Modifier.align(Alignment.TopEnd))
+        FastScroller(state, scrollerLabels(sorted.rows), firstItem = 1, modifier = Modifier.align(Alignment.TopEnd), snapToSections = true)
     }
 }
 

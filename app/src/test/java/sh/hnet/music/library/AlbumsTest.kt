@@ -70,6 +70,23 @@ class AlbumsTest {
         assertEquals(listOf("Daft Punk"), tagged.shownArtists)
         assertFalse(tagged.showsArtistOf(tagged.tracks[0]))
         assertTrue(tagged.showsArtistOf(tagged.tracks[1]))
+
+        // "Various Artists" in the album artist tag names no artist: a compilation, also without the flag
+        val namedVarious = Albums.group(listOf(
+            track("V/1.m4a", "Now 50", artists = listOf("A"), albumArtists = listOf("Various Artists"), number = 1),
+            track("V/2.m4a", "Now 50", artists = listOf("A"), albumArtists = listOf("Various Artists"), number = 2),
+        )).single()
+        assertTrue(namedVarious.compilation)
+        assertTrue(namedVarious.isVarious)
+        assertEquals(emptyList<String>(), namedVarious.albumArtists)
+        assertEquals(listOf("A"), Artists.build(namedVarious.tracks, listOf(namedVarious)).map { it.name })
+
+        // A compilation flag with a real album artist (a DJ's mix) keeps the artist
+        val mix = Albums.group(listOf(
+            track("M/1.flac", "Mix", artists = listOf("A"), albumArtists = listOf("DJ X"), compilation = true, number = 1),
+            track("M/2.flac", "Mix", artists = listOf("B"), albumArtists = listOf("DJ X"), compilation = true, number = 2),
+        )).single()
+        assertEquals(listOf("DJ X"), mix.shownArtists)
     }
 
     @Test
