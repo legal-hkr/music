@@ -79,6 +79,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import java.util.Locale
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -136,6 +137,9 @@ fun MusicApp(openNowPlaying: Int = 0, openPlaylist: Pair<Int, Long> = 0 to -1L) 
     val app = LocalContext.current.applicationContext as MusicApplication
     val library: LibraryViewModel = viewModel { LibraryViewModel(app) }
     val browse: BrowseViewModel = viewModel { BrowseViewModel(app) }
+    // The lists sort and name their sections in the app's language, also after it was changed (the model outlives the activity)
+    val listLocaleTag = stringResource(R.string.app_locale)
+    LaunchedEffect(listLocaleTag) { browse.setListLocale(Locale.forLanguageTag(listLocaleTag)) }
     val playerModel: PlayerViewModel = viewModel { PlayerViewModel(app) }
     val search: SearchViewModel = viewModel { SearchViewModel(app) }
     val playerState by playerModel.state.collectAsStateWithLifecycle()
@@ -185,6 +189,19 @@ fun MusicApp(openNowPlaying: Int = 0, openPlaylist: Pair<Int, Long> = 0 to -1L) 
         if (openNowPlaying > 0 && withTimeoutOrNull(OPEN_WAIT_MS) { snapshotFlow { hasQueueNow }.first { it } } != null) nowPlaying.animateTo(true)
     }
     LaunchedEffect(hasQueue) { if (!hasQueue) nowPlaying.snapTo(false) }
+    // The pages over now playing go with it: closed by an emptied queue, or not open after the activity was made again
+    // (they are saved, now playing isn't), they would otherwise be back the next time it opens
+    LaunchedEffect(Unit) {
+        snapshotFlow { nowPlaying.currentState || nowPlaying.targetState }.collect { open ->
+            if (!open) {
+                detailsOpen = false
+                equalizerOpen = false
+                settingsOpen = null
+                queueOpen = false
+                outputOpen = false
+            }
+        }
+    }
     val dragHeight = with(LocalDensity.current) { 600.dp.toPx() }
     var dragged by remember { mutableFloatStateOf(0f) }
     // Swipe down on the top bar or the cover closes now playing, following the finger
@@ -585,7 +602,6 @@ fun MusicApp(openNowPlaying: Int = 0, openPlaylist: Pair<Int, Long> = 0 to -1L) 
                     Box(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
                         CompositionLocalProvider(LocalBottomOverlay provides 0.dp) {
                             OutputPathScreen(
-                                track = currentTrack,
                                 details = currentDetails,
                                 gain = currentGain,
                                 onBack = { outputOpen = false },

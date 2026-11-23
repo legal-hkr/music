@@ -6,6 +6,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
 
 /** Section labels of the Library's lists: the headers between groups and the fast scroller's bubble (SPEC §5.5). */
 object Sections {
@@ -14,6 +15,9 @@ object Sections {
 
     /** Albums by "Various artists", last by album artist; the UI shows the app's name for them. */
     const val VARIOUS = "\u0001various"
+
+    /** The standalone month name's format per language, made once. */
+    private val monthNames = ConcurrentHashMap<Locale, DateTimeFormatter>()
 
     /** Letters a language files apart from the base letter (Ł after L, not with it). */
     private val OWN_LETTERS = mapOf("pl" to "ĄĆĘŁŃÓŚŹŻ")
@@ -47,7 +51,7 @@ object Sections {
         val date = Instant.ofEpochMilli(epochMillis).atZone(ZoneId.systemDefault()).toLocalDate()
         if (date.year != today.year) return date.year.toString()
         // The standalone form: "listopad", not the "listopada" of a date
-        val month = DateTimeFormatter.ofPattern("LLLL", locale).format(date)
+        val month = monthNames.getOrPut(locale) { DateTimeFormatter.ofPattern("LLLL", locale) }.format(date)
         return month.replaceFirstChar { it.titlecase(locale) }
     }
 
@@ -61,14 +65,15 @@ object Sections {
     fun <T> rows(items: List<T>, sections: List<String>, headers: Boolean): List<SectionRow<T>> {
         if (!headers) return items.mapIndexed { index, item -> SectionRow.Item(item, index, sections.getOrElse(index) { OTHER }) }
         val rows = ArrayList<SectionRow<T>>(items.size + 32)
-        val seen = HashSet<String>()
+        val seen = HashMap<String, Int>()
         var current: String? = null
         items.forEachIndexed { index, item ->
             val label = sections.getOrElse(index) { OTHER }
             if (label != current && (label == OTHER || label !in seen || current == null)) {
                 current = label
-                seen += label
-                rows += SectionRow.Header(label, index)
+                val occurrence = seen[label] ?: 0
+                seen[label] = occurrence + 1
+                rows += SectionRow.Header(label, index, occurrence)
             }
             rows += SectionRow.Item(item, index, current!!)
         }
@@ -80,8 +85,11 @@ object Sections {
 sealed interface SectionRow<out T> {
     val label: String
 
-    /** [start] is the index of the section's first item, which keeps the key unique. */
-    data class Header(override val label: String, val start: Int) : SectionRow<Nothing>
+    /**
+     * [start] is the index of the section's first item; [occurrence] counts the label's earlier headers ("#" may
+     * open a group at both ends), so label and occurrence make a key that stays when items come or go before it.
+     */
+    data class Header(override val label: String, val start: Int, val occurrence: Int = 0) : SectionRow<Nothing>
 
     data class Item<T>(val item: T, val index: Int, override val label: String) : SectionRow<T>
 }

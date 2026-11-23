@@ -25,10 +25,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-/**
- * The arithmetic of bit-perfect output (stage B1), pure and unit-tested: which of a device's formats
- * carries a stream unchanged, and the samples' way back from float to the integers they were.
- */
 /** Why a stream goes through the mixer although the USB device's bit-perfect switch is on. */
 enum class Refusal {
     /** The device lists no bit-perfect format for the stream's rate and depth. */
@@ -41,13 +37,11 @@ enum class Refusal {
     CHANNELS,
 }
 
+/**
+ * The arithmetic of bit-perfect output (stage B1), pure and unit-tested: which of a device's formats
+ * carries a stream unchanged, and the samples' way back from float to the integers they were.
+ */
 object BitPerfect {
-    /**
-     * The device format a stream of [sourceBits] integer samples at [sampleRate] goes out in
-     * unchanged: stereo, the same rate, the narrowest sample that holds every bit (16 in 24 or 32 is
-     * padding). Null when the device has none, or the stream isn't one we carry exactly: more than
-     * two channels, or 32-bit and float sources, which our float path can't hold bit for bit.
-     */
     /**
      * Why [choose] found no format for a stream: Music doesn't carry it exactly ([Refusal.CHANNELS],
      * [Refusal.DEPTH]) or the device doesn't take it ([Refusal.FORMAT]). The same checks, in the same order.
@@ -58,6 +52,12 @@ object BitPerfect {
         else -> Refusal.FORMAT
     }
 
+    /**
+     * The device format a stream of [sourceBits] integer samples at [sampleRate] goes out in
+     * unchanged: stereo, the same rate, the narrowest sample that holds every bit (16 in 24 or 32 is
+     * padding). Null when the device has none, or the stream isn't one we carry exactly: more than
+     * two channels, or 32-bit and float sources, which our float path can't hold bit for bit.
+     */
     fun choose(formats: List<OutputFormat>, sampleRate: Int, sourceBits: Int, channels: Int): OutputFormat? {
         if (channels !in 1..2 || sourceBits !in EXACT_BITS) return null
         return formats

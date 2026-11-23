@@ -53,8 +53,9 @@ class SectionsTest {
     fun `other names may open a group at both ends`() {
         val rows = Sections.rows(listOf("1", "a", "?"), listOf("#", "A", "#"), headers = true)
         assertEquals(listOf("#", "A", "#"), rows.filterIsInstance<SectionRow.Header>().map { it.label })
-        // Keys stay apart
+        // Keys stay apart: the second "#" is its second occurrence
         assertEquals(listOf(0, 1, 2), rows.filterIsInstance<SectionRow.Header>().map { it.start })
+        assertEquals(listOf(0, 0, 1), rows.filterIsInstance<SectionRow.Header>().map { it.occurrence })
     }
 
     @Test

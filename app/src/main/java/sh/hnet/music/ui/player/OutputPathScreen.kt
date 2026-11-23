@@ -46,7 +46,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import sh.hnet.music.MusicApplication
 import sh.hnet.music.R
-import sh.hnet.music.data.LibraryTrack
 import sh.hnet.music.data.Track
 import sh.hnet.music.playback.AppliedGain
 import sh.hnet.music.playback.AudioOutput
@@ -71,12 +70,11 @@ import sh.hnet.music.ui.settings.streamText
  * track and a new device while open (paused, the last stream, without a line saying so – owner's
  * decision); colour marks what changes the sound (§A5.2).
  *
- * @param track Null with an empty queue: only the device and the switcher show
+ * @param details Null with an empty queue: only the device and the switcher show
  * @param onOpenDevice The device's page in Settings › Output, by its key
  */
 @Composable
 fun OutputPathScreen(
-    track: LibraryTrack?,
     details: Track?,
     gain: AppliedGain?,
     onBack: () -> Unit,
@@ -88,14 +86,11 @@ fun OutputPathScreen(
     val devices by app.outputs.devices.collectAsStateWithLifecycle()
     val stream by app.bitPerfect.stream.collectAsStateWithLifecycle()
     val equalizer by app.equalizer.state.collectAsStateWithLifecycle()
-    // The settings come from DataStore a moment later than the rest: the page waits for them, so it slides in with its
-    // rows as they will stay
+    // The settings come from DataStore a moment later than the rest: the steps wait for them (the top bar doesn't), so
+    // they show as they will stay
     val gainRead by app.preferences.gain.collectAsStateWithLifecycle(null)
     val dsdPcmRateRead by app.preferences.dsdPcmRate.collectAsStateWithLifecycle(null)
     val dsdBoostRead by app.preferences.dsdBoost.collectAsStateWithLifecycle(null)
-    val gainSettings = gainRead ?: return
-    val dsdPcmRate = dsdPcmRateRead ?: return
-    val dsdBoost = dsdBoostRead ?: return
     val output = outputs.current
     SettingsPage(
         title = stringResource(R.string.title_output),
@@ -103,6 +98,9 @@ fun OutputPathScreen(
         onBack = onBack,
         topInsets = false,
     ) {
+        val gainSettings = gainRead ?: return@SettingsPage
+        val dsdPcmRate = dsdPcmRateRead ?: return@SettingsPage
+        val dsdBoost = dsdBoostRead ?: return@SettingsPage
         // One child of the page's column: its 16 dp gaps would break the timeline's line between the steps
         Column(Modifier.fillMaxWidth()) {
             val usbSwitchOn = output?.kind == OutputKind.USB && devices.deviceFor(output).bitPerfect
@@ -111,11 +109,14 @@ fun OutputPathScreen(
                     SoundPath.Input(
                         dsdRate = it.sampleRate.takeIf { _ -> it.codec == AudioCodec.DSD },
                         sampleRate = it.sampleRate,
+                        bits = it.bitsPerSample.takeIf { _ -> it.codec != AudioCodec.DSD },
+                        channels = it.channels,
                         usbSwitchOn = usbSwitchOn,
                         stream = stream,
                         gainMode = gainSettings.mode,
                         gain = gain,
-                        hasGainTags = track?.gainTags()?.let { tags -> listOf(tags.trackGainDb, tags.albumGainDb).any { db -> db != null } } == true,
+                        // The same file the gain was computed from (PlayerViewModel.gain reads it from details)
+                        hasGainTags = it.gainTags().let { tags -> tags.trackGainDb != null || tags.albumGainDb != null },
                         equalizerOn = equalizer.enabled,
                         equalizerChanges = SoundPath.changes(equalizer.current),
                         dsdPcmRate = dsdPcmRate,
@@ -297,7 +298,7 @@ private fun gainText(gain: SoundPath.Gain): String = when (gain) {
 @Composable
 private fun routeText(output: AudioOutput, route: SoundPath.Route): String = when (route) {
     is SoundPath.Route.BitPerfect -> stringResource(R.string.desc_bit_perfect_stream, streamText(route.bits, route.rate))
-    is SoundPath.Route.Dop -> stringResource(R.string.desc_path_dop, dsdName(route.dsdRate), sampleRateText(route.rate))
+    is SoundPath.Route.Dop -> stringResource(R.string.desc_path_dop, dsdName(route.dsdRate), sampleRateText(route.rate), pluralStringResource(R.plurals.label_bit_count, route.bits, route.bits))
     is SoundPath.Route.Mixer -> {
         val kind = when (output.kind) {
             OutputKind.USB -> stringResource(R.string.label_kind_usb)

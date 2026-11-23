@@ -3,14 +3,19 @@ package sh.hnet.music.ui.library
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import java.time.LocalDate
+import java.time.ZoneId
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -40,6 +45,27 @@ import sh.hnet.music.ui.components.PlayState
 /** The library views' data and the playback actions they start; one instance for the activity. */
 class BrowseViewModel(private val app: MusicApplication) : ViewModel() {
     private val repository = app.library
+
+    /**
+     * The app's language for sorting and the lists' headers – English or Polish, as the resources
+     * resolve it (not the system's, which may be one the app hasn't got). The shell sets it on every
+     * change of language: this model outlives the activity being made again.
+     */
+    private val listLocale = MutableStateFlow(Locale.forLanguageTag(app.getString(R.string.app_locale)))
+
+    fun setListLocale(locale: Locale) {
+        listLocale.value = locale
+    }
+
+    /** Today, again after every midnight: "Recently added" names this year's months and earlier years. */
+    private val today: Flow<LocalDate> = flow {
+        while (true) {
+            val now = LocalDate.now()
+            emit(now)
+            val midnight = now.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            delay((midnight - System.currentTimeMillis()).coerceAtLeast(1_000))
+        }
+    }.distinctUntilChanged()
     private val player = app.player
 
     /** The Library's views in the user's order (Settings › Library views). */
@@ -95,9 +121,8 @@ class BrowseViewModel(private val app: MusicApplication) : ViewModel() {
         .stateIn(viewModelScope, SharingStarted.Eagerly, TrackSort.TITLE)
 
     /** Sorted with their fast-scroller sections; null until the library has loaded. */
-    val albums: StateFlow<Sorted<Album>?> = combine(repository.albums, albumSort) { albums, sort ->
+    val albums: StateFlow<Sorted<Album>?> = combine(repository.albums, albumSort, listLocale, today) { albums, sort, locale, _ ->
         albums?.let {
-            val locale = Locale.getDefault()
             val sorted = Albums.sort(it, sort, locale)
             Sorted(sorted, sorted.map { album -> Albums.section(album, sort, locale) })
         }
@@ -116,14 +141,14 @@ class BrowseViewModel(private val app: MusicApplication) : ViewModel() {
      * own name – those who are only on compilations or others' albums stay out (they are still on
      * those albums' pages, in Search and on their own page).
      */
-    val artists: StateFlow<Sorted<Artist>?> = combine(repository.artists, artistsWithAlbumsOnly) { list, withAlbums ->
-        list?.let { all -> Artists.sort(if (withAlbums) all.filter { it.ownAlbums.isNotEmpty() } else all, Locale.getDefault()) }
+    val artists: StateFlow<Sorted<Artist>?> = combine(repository.artists, artistsWithAlbumsOnly, listLocale) { list, withAlbums, locale ->
+        list?.let { all -> Artists.sort(if (withAlbums) all.filter { it.ownAlbums.isNotEmpty() } else all, locale) }
     }
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val tracks: StateFlow<Sorted<LibraryTrack>?> = combine(repository.tracks, trackSort, repository.playCounts) { tracks, sort, counts ->
-        tracks?.let { Tracks.sort(it, sort, Locale.getDefault(), counts) }
+    val tracks: StateFlow<Sorted<LibraryTrack>?> = combine(repository.tracks, trackSort, repository.playCounts, listLocale, today) { tracks, sort, counts, locale, _ ->
+        tracks?.let { Tracks.sort(it, sort, locale, counts) }
     }.flowOn(Dispatchers.Default).stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val hasTracks: StateFlow<Boolean?> = repository.tracks
@@ -135,15 +160,15 @@ class BrowseViewModel(private val app: MusicApplication) : ViewModel() {
     fun artist(name: String): Flow<Artist?> = repository.artistsByKey.map { it[Artists.key(name)] }
 
     /** An artist's tracks in the Tracks view's order (the "Show all" page). */
-    fun artistTracks(name: String): Flow<Sorted<LibraryTrack>?> = combine(artist(name), trackSort, repository.playCounts) { artist, sort, counts ->
-        artist?.let { Tracks.sort(it.tracks, sort, Locale.getDefault(), counts) }
+    fun artistTracks(name: String): Flow<Sorted<LibraryTrack>?> = combine(artist(name), trackSort, repository.playCounts, listLocale) { artist, sort, counts, locale ->
+        artist?.let { Tracks.sort(it.tracks, sort, locale, counts) }
     }.flowOn(Dispatchers.Default)
 
     val playlistSort: StateFlow<PlaylistSort> = app.preferences.playlistSort
         .stateIn(viewModelScope, SharingStarted.Eagerly, PlaylistSort.RECENTLY_CHANGED)
 
-    val playlists: StateFlow<List<PlaylistSummary>?> = combine(app.playlists.playlists, playlistSort) { list, sort ->
-        list?.let { PlaylistRepository.sort(it, sort, Locale.getDefault()) }
+    val playlists: StateFlow<List<PlaylistSummary>?> = combine(app.playlists.playlists, playlistSort, listLocale) { list, sort, locale ->
+        list?.let { PlaylistRepository.sort(it, sort, locale) }
     }.flowOn(Dispatchers.Default).stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun setPlaylistSort(sort: PlaylistSort) {

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- The language the resources resolved to: the lists sort and name their sections in it -->
+    <string name="app_locale">en</string>
     <string name="app_name">Music</string>
 
     <!-- Navigation -->
@@ -651,7 +653,7 @@
     <string name="label_kind_wired">Wired</string>
     <string name="desc_path_mixer">%1$s, system mixer: 32 bit float, %2$s kHz</string>
     <string name="desc_path_mixer_plain">System mixer: 32 bit float, %1$s kHz</string>
-    <string name="desc_path_dop">USB, DoP: %1$s in %2$s kHz, 24 bit</string>
+    <string name="desc_path_dop">USB, DoP: %1$s in %2$s kHz, %3$s</string>
     <string name="msg_why_not_bit_perfect">This device doesn’t support %1$s, %2$s kHz in bit-perfect mode, so the file plays through the system mixer.</string>
     <string name="msg_why_not_dop">DoP needs %1$s kHz in bit-perfect mode, which this device doesn’t support, so DSD is converted to PCM.</string>
     <string name="msg_why_depth">Bit-perfect mode in Music covers 16- and 24-bit files only, so this file plays through the system mixer.</string>

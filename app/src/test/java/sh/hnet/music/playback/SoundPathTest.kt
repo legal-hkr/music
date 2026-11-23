@@ -15,7 +15,7 @@ import sh.hnet.music.playback.SoundPath.Why
 
 class SoundPathTest {
     private val pcm = SoundPath.Input(
-        dsdRate = null, sampleRate = 96_000, usbSwitchOn = false, stream = null,
+        dsdRate = null, sampleRate = 96_000, bits = 24, channels = 2, usbSwitchOn = false, stream = null,
         gainMode = ReplayGainMode.ALBUM, gain = AppliedGain(-3.4f, album = true), hasGainTags = true,
         equalizerOn = true, equalizerChanges = true, dsdPcmRate = 88_200, dsdBoost = true,
     )
@@ -45,10 +45,13 @@ class SoundPathTest {
 
     @Test
     fun `Music's own limits are told apart from the device's`() {
-        val depth = SoundPath.of(pcm.copy(usbSwitchOn = true, stream = Stream(false, 0, 96_000, Refusal.DEPTH)))
+        val depth = SoundPath.of(pcm.copy(bits = 32, usbSwitchOn = true, stream = Stream(false, 0, 96_000, Refusal.DEPTH)))
         assertEquals(Why.Depth, depth.why)
-        val channels = SoundPath.of(pcm.copy(usbSwitchOn = true, stream = Stream(false, 24, 96_000, Refusal.CHANNELS)))
+        val channels = SoundPath.of(pcm.copy(channels = 6, usbSwitchOn = true, stream = Stream(false, 24, 96_000, Refusal.CHANNELS)))
         assertEquals(Why.Channels, channels.why)
+        // A decoder's float output, where the file gives no depth
+        val decoded = SoundPath.of(pcm.copy(bits = null, usbSwitchOn = true, stream = Stream(false, 0, 96_000, Refusal.DEPTH)))
+        assertEquals(Why.Depth, decoded.why)
     }
 
     @Test
@@ -62,21 +65,48 @@ class SoundPathTest {
 
     @Test
     fun `DSD goes as DoP when bit-perfect, else converted to PCM with the reason`() {
-        val dop = SoundPath.of(pcm.copy(dsdRate = dsd64, sampleRate = dsd64, usbSwitchOn = true, stream = Stream(true, 24, 176_400)))
-        assertEquals(Route.Dop(dsd64, 176_400), dop.route)
+        val dop = SoundPath.of(pcm.copy(dsdRate = dsd64, sampleRate = dsd64, bits = null, usbSwitchOn = true, stream = Stream(true, 24, 176_400)))
+        assertEquals(Route.Dop(dsd64, 176_400, 24), dop.route)
         assertEquals(Dsd.AsDop, dop.dsd)
         assertFalse(dop.dsdChanges)
 
-        val converted = SoundPath.of(pcm.copy(dsdRate = dsd64, sampleRate = dsd64, usbSwitchOn = true, stream = Stream(false, 0, 88_200, Refusal.DEPTH)))
+        val converted = SoundPath.of(pcm.copy(dsdRate = dsd64, sampleRate = dsd64, bits = null, usbSwitchOn = true, stream = Stream(false, 0, 88_200, Refusal.DEPTH)))
         assertEquals(Route.Mixer(88_200), converted.route)
         assertEquals(Dsd.ToPcm(88_200, boost = true), converted.dsd)
         // DoP's reason, not the PCM's depth
         assertEquals(Why.NoDop(176_400), converted.why)
         assertTrue(converted.dsdChanges)
 
-        val bluetooth = SoundPath.of(pcm.copy(dsdRate = dsd64, sampleRate = dsd64, dsdBoost = false))
+        val bluetooth = SoundPath.of(pcm.copy(dsdRate = dsd64, sampleRate = dsd64, bits = null, dsdBoost = false))
         assertEquals(Dsd.ToPcm(88_200, boost = false), bluetooth.dsd)
         assertNull(bluetooth.why)
+    }
+
+    @Test
+    fun `multichannel DSD is told by its channels, not by the device`() {
+        val path = SoundPath.of(pcm.copy(dsdRate = dsd64, sampleRate = dsd64, bits = null, channels = 6, usbSwitchOn = true, stream = Stream(false, 0, 88_200, Refusal.CHANNELS)))
+        assertEquals(Why.Channels, path.why)
+    }
+
+    @Test
+    fun `a file Music can't carry exactly is never shown bit-perfect, whatever the controller last said`() {
+        // A 32-bit file right after a 24/96 one that went out bit-perfect
+        val wide = SoundPath.of(pcm.copy(bits = 32, usbSwitchOn = true, stream = Stream(true, 24, 96_000)))
+        assertEquals(Route.Mixer(96_000), wide.route)
+        assertEquals(Why.Depth, wide.why)
+        assertEquals(Gain.Tagged(-3.4f, album = true), wide.gain)
+        val surround = SoundPath.of(pcm.copy(channels = 6, usbSwitchOn = true, stream = Stream(true, 24, 96_000)))
+        assertEquals(Route.Mixer(96_000), surround.route)
+        assertEquals(Why.Channels, surround.why)
+    }
+
+    @Test
+    fun `a refusal about another stream says nothing`() {
+        // The controller already refused the next track (16 bit) while this 24-bit one plays through the mixer
+        assertNull(SoundPath.of(pcm.copy(usbSwitchOn = true, stream = Stream(false, 16, 96_000, Refusal.FORMAT))).why)
+        // A lossy file has no depth of its own: the decoder's counts
+        val lossy = SoundPath.of(pcm.copy(bits = null, usbSwitchOn = true, stream = Stream(false, 16, 96_000, Refusal.FORMAT)))
+        assertEquals(Why.Format(16, 96_000), lossy.why)
     }
 
     @Test

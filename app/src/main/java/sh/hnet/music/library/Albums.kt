@@ -98,7 +98,8 @@ object Albums {
             // A track with its own picture first: a folder image may be too large or fail to decode
             coverTrack = ordered.firstOrNull { it.hasEmbeddedCover } ?: ordered.firstOrNull { it.hasCover },
             albumSort = ordered.firstNotNullOfOrNull { it.albumSort },
-            albumArtistSort = ordered.firstNotNullOfOrNull { it.albumArtistSort },
+            // A compilation without album artists sorts as one group: Picard writes ALBUMARTISTSORT "Various Artists" too
+            albumArtistSort = if (shown.isEmpty()) null else ordered.firstNotNullOfOrNull { it.albumArtistSort },
         )
     }
 

@@ -93,8 +93,11 @@ fun <T> scrollerLabels(rows: List<SectionRow<T>>): List<String> {
     return remember(rows, various) { rows.map { if (it.label == Sections.VARIOUS) various else it.label } }
 }
 
-/** A key for a section header that no item's key can equal. */
-fun SectionRow.Header.key(): String = "\u0002section:$start"
+/** A key for a section header that no item's key can equal, the same while items come or go before it. */
+fun SectionRow.Header.key(): String = "\u0002section:$label:$occurrence"
+
+/** The count and sort row's key at a list's top: no item's key can equal it (an artist's key is its lower-case name). */
+const val LIST_HEADER_KEY = "\u0002list-header"
 
 fun TrackSort.label(): Int = when (this) {
     TrackSort.TITLE -> R.string.label_sort_title
@@ -128,7 +131,7 @@ fun TrackList(
     val rows = if (headers) sorted.rows else remember(sorted) { Sections.rows(sorted.items, sorted.sections, headers = false) }
     Box(modifier.fillMaxSize()) {
         LazyColumn(state = state, contentPadding = PaddingValues(bottom = 24.dp + LocalBottomOverlay.current), modifier = Modifier.fillMaxSize()) {
-            item(key = "header", contentType = "header") {
+            item(key = LIST_HEADER_KEY, contentType = "header") {
                 ListHeader(
                     pluralStringResource(R.plurals.label_track_count, sorted.items.size, formatCount(sorted.items.size)),
                     Modifier.padding(horizontal = 16.dp),

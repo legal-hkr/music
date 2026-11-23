@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- The language the resources resolved to: the lists sort and name their sections in it -->
+    <string name="app_locale">pl</string>
     <string name="app_name">Muzyka</string>
 
     <!-- Navigation -->
@@ -706,7 +708,7 @@
     <string name="label_kind_wired">Przewodowo</string>
     <string name="desc_path_mixer">%1$s, mikser systemowy: 32 bit float, %2$s kHz</string>
     <string name="desc_path_mixer_plain">Mikser systemowy: 32 bit float, %1$s kHz</string>
-    <string name="desc_path_dop">USB, DoP: %1$s w %2$s kHz, 24 bity</string>
+    <string name="desc_path_dop">USB, DoP: %1$s w %2$s kHz, %3$s</string>
     <string name="msg_why_not_bit_perfect">To urządzenie nie obsługuje formatu %1$s, %2$s kHz w trybie bit-perfect, więc plik jest odtwarzany przez mikser systemowy.</string>
     <string name="msg_why_not_dop">DoP wymaga częstotliwości %1$s kHz w trybie bit-perfect, której to urządzenie nie obsługuje, więc DSD jest konwertowane na PCM.</string>
     <string name="msg_why_depth">Tryb bit-perfect w aplikacji obejmuje tylko pliki 16- i 24-bitowe, więc ten plik jest odtwarzany przez mikser systemowy.</string>

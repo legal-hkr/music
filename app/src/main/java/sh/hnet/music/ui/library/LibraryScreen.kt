@@ -248,7 +248,7 @@ private fun AlbumsView(viewModel: BrowseViewModel, state: LazyGridState, onOpenA
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxSize(),
         ) {
-            item(key = "header", span = { GridItemSpan(maxLineSpan) }, contentType = "header") {
+            item(key = LIST_HEADER_KEY, span = { GridItemSpan(maxLineSpan) }, contentType = "header") {
                 ListHeader(pluralStringResource(R.plurals.label_album_count, list.size, formatCount(list.size))) {
                     SortChip(AlbumSort.entries, sort, { stringResource(it.label()) }, viewModel::setAlbumSort)
                 }
@@ -281,7 +281,7 @@ private fun ArtistsView(viewModel: BrowseViewModel, state: LazyListState, onOpen
     val sorted = artists ?: return
     Box(Modifier.fillMaxSize()) {
         LazyColumn(state = state, contentPadding = PaddingValues(bottom = 24.dp + LocalBottomOverlay.current), modifier = Modifier.fillMaxSize()) {
-            item(key = "header", contentType = "header") {
+            item(key = LIST_HEADER_KEY, contentType = "header") {
                 ListHeader(
                     pluralStringResource(R.plurals.label_artist_count, sorted.items.size, formatCount(sorted.items.size)),
                     Modifier.padding(horizontal = 16.dp),
