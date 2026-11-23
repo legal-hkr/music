@@ -75,7 +75,7 @@ object Sections {
                 seen[label] = occurrence + 1
                 rows += SectionRow.Header(label, index, occurrence)
             }
-            rows += SectionRow.Item(item, index, current!!)
+            rows += SectionRow.Item(item, index, current)
         }
         return rows
     }
