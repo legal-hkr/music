@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- The language the resources resolved to: the lists sort and name their sections in it -->
+    <string name="app_locale">en</string>
     <string name="app_name">Music</string>
 
     <!-- Navigation -->
@@ -629,6 +631,34 @@
     <string name="label_bit_perfect_output">Bit-perfect output</string>
     <string name="desc_bit_perfect_on">Bit-perfect on</string>
     <string name="label_bit_perfect">Bit-perfect</string>
+    <string name="content_description_output">Output: %1$s</string>
+    <string name="label_dop" translatable="false">DoP</string>
+
+    <!-- Output details on now playing (SPEC-output-and-grid §A4–§A6) -->
+    <string name="title_step_file">File</string>
+    <string name="title_step_in_music">In Music</string>
+    <string name="title_step_to_device">To the device</string>
+    <string name="label_stage_dsd" translatable="false">DSD</string>
+    <string name="label_stage_volume">Volume</string>
+    <string name="label_skipped_bit_perfect">Skipped (bit-perfect)</string>
+    <string name="label_gain_album">%1$s dB (album)</string>
+    <string name="label_gain_track">%1$s dB (track)</string>
+    <string name="label_gain_no_tags">%1$s dB (no tags)</string>
+    <string name="label_no_gain_tags">No tags in the file</string>
+    <string name="label_dsd_as_dop">Sent as DoP</string>
+    <string name="label_dsd_to_pcm">Converted to PCM: %1$s kHz</string>
+    <string name="label_dsd_to_pcm_boost">Converted to PCM: %1$s kHz, +6 dB</string>
+    <string name="label_volume_system">System volume</string>
+    <string name="label_volume_device">Set on the device</string>
+    <string name="label_kind_wired">Wired</string>
+    <string name="desc_path_mixer">%1$s, system mixer: 32 bit float, %2$s kHz</string>
+    <string name="desc_path_mixer_plain">System mixer: 32 bit float, %1$s kHz</string>
+    <string name="desc_path_dop">USB, DoP: %1$s in %2$s kHz, %3$s</string>
+    <string name="msg_why_not_bit_perfect">This device doesn’t support %1$s, %2$s kHz in bit-perfect mode, so the file plays through the system mixer.</string>
+    <string name="msg_why_not_dop">DoP needs %1$s kHz in bit-perfect mode, which this device doesn’t support, so DSD is converted to PCM.</string>
+    <string name="msg_why_depth">Bit-perfect mode in Music covers 16- and 24-bit files only, so this file plays through the system mixer.</string>
+    <string name="msg_why_channels">Bit-perfect mode in Music covers mono and stereo files only, so this file plays through the system mixer.</string>
+    <string name="msg_system_may_convert">The system may convert the audio further for this device.</string>
     <string name="label_bit_perfect_playing">Playing bit-perfect</string>
     <string name="label_eq_bypassed">%s (bypassed: bit-perfect)</string>
     <string name="label_curve_not_applied">Not applied</string>

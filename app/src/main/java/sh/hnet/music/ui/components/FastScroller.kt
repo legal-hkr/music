@@ -7,10 +7,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.shape.CircleShape
@@ -44,11 +50,16 @@ private val THUMB_HEIGHT = 48.dp
 private val TOUCH_WIDTH = 48.dp
 private val BUBBLE_SIZE = 64.dp
 
-/** Fast scroller over a [LazyListState]; data items start at [firstItem] (after headers). */
+/**
+ * Fast scroller over a [LazyListState]: [sections] has a label for every item from [firstItem] on
+ * (section headers included). With [snapToSections] a drag moves the list only to the start of the
+ * section the bubble shows – its header –, never inside it.
+ */
 @Composable
-fun FastScroller(state: LazyListState, sections: List<String>, firstItem: Int, modifier: Modifier = Modifier) = FastScroller(
+fun FastScroller(state: LazyListState, sections: List<String>, firstItem: Int, modifier: Modifier = Modifier, snapToSections: Boolean = false) = FastScroller(
     itemCount = sections.size,
     sections = sections,
+    snapToSections = snapToSections,
     firstVisible = { (state.firstVisibleItemIndex - firstItem).coerceAtLeast(0) },
     visibleCount = { state.layoutInfo.visibleItemsInfo.size },
     isScrolling = { state.isScrollInProgress },
@@ -57,9 +68,10 @@ fun FastScroller(state: LazyListState, sections: List<String>, firstItem: Int, m
 )
 
 @Composable
-fun FastScroller(state: LazyGridState, sections: List<String>, firstItem: Int, modifier: Modifier = Modifier) = FastScroller(
+fun FastScroller(state: LazyGridState, sections: List<String>, firstItem: Int, modifier: Modifier = Modifier, snapToSections: Boolean = false) = FastScroller(
     itemCount = sections.size,
     sections = sections,
+    snapToSections = snapToSections,
     firstVisible = { (state.firstVisibleItemIndex - firstItem).coerceAtLeast(0) },
     visibleCount = { state.layoutInfo.visibleItemsInfo.size },
     isScrolling = { state.isScrollInProgress },
@@ -76,6 +88,7 @@ fun FastScroller(state: LazyGridState, sections: List<String>, firstItem: Int, m
 private fun FastScroller(
     itemCount: Int,
     sections: List<String>,
+    snapToSections: Boolean,
     firstVisible: () -> Int,
     visibleCount: () -> Int,
     isScrolling: () -> Boolean,
@@ -93,6 +106,8 @@ private fun FastScroller(
     }
     // Read by the gesture when it happens, not captured when it started
     val count by rememberUpdatedState(itemCount)
+    val labels by rememberUpdatedState(sections)
+    val snap by rememberUpdatedState(snapToSections)
     val scrollToState by rememberUpdatedState(scrollTo)
 
     BoxWithConstraints(modifier.fillMaxHeight().padding(bottom = LocalBottomOverlay.current).clearAndSetSemantics {}) {
@@ -111,29 +126,34 @@ private fun FastScroller(
             exit = fadeOut(),
             modifier = Modifier.align(Alignment.TopEnd).offset { IntOffset(0, thumbY) },
         ) {
-            Box(Modifier.size(TOUCH_WIDTH + BUBBLE_SIZE + 24.dp, THUMB_HEIGHT)) {
-                if (dragging) {
+            Row(Modifier.height(THUMB_HEIGHT), verticalAlignment = Alignment.CenterVertically) {
+                val label = sections.getOrElse(index) { "" }
+                // A list without labels (Most played) scrolls without a bubble
+                if (dragging && label.isNotEmpty()) {
+                    // A letter fits the round bubble; a month or "Various artists" widens it toward the start,
+                    // its bottom end corner still pointing at the thumb
                     Box(
                         Modifier
-                            .align(Alignment.CenterStart)
-                            .size(BUBBLE_SIZE)
+                            .requiredHeight(BUBBLE_SIZE)
+                            .widthIn(min = BUBBLE_SIZE)
                             .offset(y = (THUMB_HEIGHT - BUBBLE_SIZE) / 2)
                             .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp, bottomEnd = 6.dp, bottomStart = 32.dp))
-                            .background(MaterialTheme.colorScheme.primaryContainer),
+                            .background(MaterialTheme.colorScheme.primaryContainer)
+                            .padding(horizontal = 16.dp),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
-                            sections.getOrElse(index) { "" },
+                            label,
                             style = MaterialTheme.typography.headlineSmall,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                             textAlign = TextAlign.Center,
                             maxLines = 1,
                         )
                     }
+                    Spacer(Modifier.width(24.dp))
                 }
                 Box(
                     Modifier
-                        .align(Alignment.CenterEnd)
                         .size(TOUCH_WIDTH, THUMB_HEIGHT)
                         .pointerInput(Unit) {
                             var job: Job? = null
@@ -147,7 +167,9 @@ private fun FastScroller(
                             ) { change, amount ->
                                 change.consume()
                                 dragFraction = (dragFraction + amount / trackPxNow).coerceIn(0f, 1f)
-                                val target = (dragFraction * (count - 1)).roundToInt()
+                                var target = (dragFraction * (count - 1)).roundToInt()
+                                // Back to the section's first row, its header: the list stands still while the bubble's label stays
+                                if (snap) while (target > 0 && labels.getOrNull(target - 1) == labels.getOrNull(target)) target--
                                 job?.cancel()
                                 job = scope.launch { scrollToState(target) }
                             }

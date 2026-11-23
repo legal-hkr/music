@@ -74,8 +74,11 @@ import androidx.media3.common.Player
 import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
 import sh.hnet.music.R
+import sh.hnet.music.playback.AudioOutput
 import sh.hnet.music.playback.PlayerConnection
 import sh.hnet.music.playback.PlayerState
+import sh.hnet.music.ui.settings.outputIcon
+import sh.hnet.music.ui.settings.outputName
 
 private val MODE_BUTTON = 48.dp
 
@@ -301,10 +304,18 @@ fun Modifier.closesVolumeBar(state: VolumeBarState): Modifier = composed {
 
 /**
  * Volume (start) and Queue (end); Volume grows into the volume bar (§4), which closes on Back, a tap
- * outside it, or 5 s after the last touch.
+ * outside it, or 5 s after the last touch. The output music plays on is a button of that bar
+ * (owner's decision 23.11.2026, over SPEC-output-and-grid §A2: the row keeps its symmetry).
  */
 @Composable
-fun BottomRow(bar: VolumeBarState, onQueue: () -> Unit, onEqualizer: () -> Unit, modifier: Modifier = Modifier) {
+fun BottomRow(
+    bar: VolumeBarState,
+    output: AudioOutput?,
+    onOutput: () -> Unit,
+    onQueue: () -> Unit,
+    onEqualizer: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val volume = rememberMediaVolume()
     val open = bar.open
     BackHandler(enabled = open) { bar.open = false }
@@ -329,15 +340,25 @@ fun BottomRow(bar: VolumeBarState, onQueue: () -> Unit, onEqualizer: () -> Unit,
                     }
                 }
             } else {
-                VolumeBar(volume, onTouch = { bar.touched++ }, onEqualizer = { bar.open = false; onEqualizer() }, modifier = shared.onGloballyPositioned { bar.bounds = it.boundsInRoot() })
+                VolumeBar(
+                    volume,
+                    output,
+                    onTouch = { bar.touched++ },
+                    onOutput = { bar.open = false; onOutput() },
+                    onEqualizer = { bar.open = false; onEqualizer() },
+                    modifier = shared.onGloballyPositioned { bar.bounds = it.boundsInRoot() },
+                )
             }
         }
     }
 }
 
-/** The pill (§4.2): mute, the volume slider, and the equalizer button (SPEC-equalizer §2.2). */
+/**
+ * The pill (§4.2): mute, the volume slider, the output music plays on – the device's kind as its icon,
+ * its name for TalkBack; opens the output details – and the equalizer button (SPEC-equalizer §2.2).
+ */
 @Composable
-private fun VolumeBar(volume: MediaVolume, onTouch: () -> Unit, onEqualizer: () -> Unit, modifier: Modifier) {
+private fun VolumeBar(volume: MediaVolume, output: AudioOutput?, onTouch: () -> Unit, onOutput: () -> Unit, onEqualizer: () -> Unit, modifier: Modifier) {
     Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = CircleShape, modifier = modifier.fillMaxWidth().height(56.dp)) {
         Row(Modifier.padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
             if (!volume.fixed) {
@@ -372,6 +393,11 @@ private fun VolumeBar(volume: MediaVolume, onTouch: () -> Unit, onEqualizer: () 
                         stateDescription = if (volume.fixed) fixedReason else percent
                     },
             )
+            if (output != null) {
+                IconButton(onClick = onOutput, modifier = Modifier.size(48.dp)) {
+                    Icon(painterResource(outputIcon(output.kind)), contentDescription = stringResource(R.string.content_description_output, outputName(output)))
+                }
+            }
             IconButton(onClick = onEqualizer, modifier = Modifier.size(48.dp)) {
                 Icon(painterResource(R.drawable.ic_equalizer), contentDescription = stringResource(R.string.title_equalizer))
             }

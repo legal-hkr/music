@@ -1,7 +1,8 @@
-Muzyka odtwarza pliki z wybranych folderów i nic więcej. Nie ma uprawnienia dostępu do internetu, nie prosi o dostęp do pamięci ani multimediów i nie zbiera żadnych danych: biblioteka, playlisty i ustawienia pozostają w telefonie.
+Muzyka odtwarza pliki z wybranych folderów i nic więcej. Nie ma uprawnienia dostępu do Internetu, nie prosi o dostęp do pamięci ani multimediów i nie zbiera żadnych danych: biblioteka, playlisty i ustawienia pozostają w telefonie.
 
 Biblioteka:
 - Albumy, wykonawcy, utwory i playlisty, w wybranej kolejności
+- Nagłówki sekcji zgodne z sortowaniem: litery, lata albo miesiące
 - Kompilacje i albumy wielopłytowe poprawnie pogrupowane
 - Wyszukiwanie w całej bibliotece, także bez znaków diakrytycznych
 - Nowe i zmienione pliki wykrywane przy każdym uruchomieniu; bardzo krótkie pliki można pominąć
@@ -13,6 +14,7 @@ Odtwarzanie:
 - Korektor parametryczny z własnymi presetami i importem plików AutoEq (Equalizer APO)
 - Osobny preset korektora dla każdego wyjścia – głośnika, słuchawek, urządzenia Bluetooth, przetwornika USB – stosowany automatycznie po przełączeniu na to wyjście
 - Wyjście bit-perfect dla przetworników USB, włączane osobno dla każdego z nich: dźwięk bez zmian, z częstotliwością próbkowania pliku, a DSD bez konwersji (DoP), jeśli przetwornik to obsługuje
+- Droga dźwięku w jednym miejscu: plik, zmiany wprowadzane przez aplikację i to, co trafia do urządzenia
 - Kolejka z możliwością przestawiania utworów, pokazująca na bieżąco odtwarzanie losowe i powtarzanie, zachowywana między uruchomieniami
 - Szczegóły techniczne pliku i jego tagi na ekranie odtwarzania
 

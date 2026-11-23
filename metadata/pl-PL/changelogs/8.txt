@@ -1,0 +1,9 @@
+v0.3.4
+
+Nowości:
+- Nagłówki sekcji w Albumach, Wykonawcach i Utworach zgodne z sortowaniem: litery, lata, a przy „Ostatnio dodane” miesiące tego roku
+- Aktywne wyjście na pasku głośności; dotknięcie pokazuje drogę dźwięku: plik, zmiany wprowadzane przez aplikację, to, co trafia do urządzenia, i dlaczego dźwięk mimo bit-perfect przechodzi przez mikser (GH #4)
+
+Zmiany:
+- Szybkie przewijanie zatrzymuje się na nagłówkach sekcji
+- Albumy „Various Artists” są pokazywane jako „Różni wykonawcy”

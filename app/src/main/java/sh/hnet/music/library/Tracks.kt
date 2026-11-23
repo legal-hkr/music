@@ -8,8 +8,13 @@ import sh.hnet.music.data.LibraryTrack
 /** The Tracks sorts; Most played last (owner's decision), Title the default. */
 enum class TrackSort { TITLE, ARTIST, ALBUM, RECENTLY_ADDED, MOST_PLAYED }
 
-/** A sorted list with its fast-scroller labels, one per item, computed together off the main thread. */
-data class Sorted<T>(val items: List<T>, val sections: List<String>)
+/**
+ * A sorted list with its section labels, one per item, and its [rows] – the items with a header
+ * before each section when [headers] – computed together off the main thread.
+ */
+data class Sorted<T>(val items: List<T>, val sections: List<String>, val headers: Boolean = true) {
+    val rows: List<SectionRow<T>> = Sections.rows(items, sections, headers)
+}
 
 object Tracks {
     private fun collator(locale: Locale) = Collator.getInstance(locale).apply { strength = Collator.SECONDARY }
@@ -43,11 +48,12 @@ object Tracks {
                 TrackSort.TITLE -> Sections.letter(titleKey(track), locale)
                 TrackSort.ARTIST -> Sections.letter(artistKey(track), locale)
                 TrackSort.ALBUM -> Sections.letter(albumKey(track), locale)
-                TrackSort.RECENTLY_ADDED -> Sections.month(track.lastModified, locale)
-                // Counts aren't shown anywhere (owner's decision), so the scroller has no labels to give
-                TrackSort.MOST_PLAYED -> Sections.OTHER
+                TrackSort.RECENTLY_ADDED -> Sections.added(track.lastModified, locale)
+                // Counts aren't shown anywhere (owner's decision), so the scroller has no labels to give: no bubble
+                TrackSort.MOST_PLAYED -> ""
             }
         }
-        return Sorted(sorted, sections)
+        // Most played is a ranking, not groups: no headers
+        return Sorted(sorted, sections, headers = order != TrackSort.MOST_PLAYED)
     }
 }

@@ -55,7 +55,8 @@ object Artists {
             if (album.albumArtists.size == 1) album.albumArtistSort?.let { sortTags.putIfAbsent(key(album.albumArtists[0]), it) }
         }
         for (track in tracks) {
-            for (name in track.artists) {
+            // Names equal but for case or spaces are one artist: the track once (a second copy made its key twice on "Show all")
+            for (name in track.artists.distinctBy(::key)) {
                 val k = key(name)
                 if (k.isEmpty()) continue
                 names.putIfAbsent(k, name.trim())
