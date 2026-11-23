@@ -1,0 +1,9 @@
+v0.3.4
+
+New:
+- Section headers in Albums, Artists and Tracks that follow the sort order: letters, years, or this year’s months for Recently added
+- The output in use in the volume bar; a tap shows the path of the sound: the file, what Music does to it, what the device receives and why a bit-perfect USB DAC goes through the system mixer (GH #4)
+
+Changes:
+- The fast scroller stops at section headers
+- Albums by “Various Artists” are shown under “Various artists”

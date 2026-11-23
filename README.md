@@ -2,7 +2,7 @@
 
 A private, offline music player for Android with DSD, bit-perfect USB output and a parametric equalizer.
 
-**Current version**: v0.3.3
+**Current version**: v0.3.4
 
 Source code and releases: [git.hnet.sh/hkr/music](https://git.hnet.sh/hkr/music)
 
@@ -10,7 +10,7 @@ Bug reports and feature requests: [github.com/legal-hkr/music](https://github.co
 
 ## Overview
 
-Music plays the audio files in the folders you choose and nothing else. It has no internet permission, doesn’t ask for access to your storage or media, and keeps nothing about you: the library, playlists and settings stay on the device. It is built for people who keep their own collection – FLAC, hi-res and DSD included – and want a player that respects it.
+Music plays the audio files in the folders you choose and nothing else. It has no Internet permission, doesn’t ask for access to your storage or media, and keeps nothing about you: the library, playlists and settings stay on the device. It is built for people who keep their own collection – FLAC, hi-res and DSD included – and want a player that respects it.
 
 ## Screenshots
 
@@ -21,10 +21,10 @@ Music plays the audio files in the folders you choose and nothing else. It has n
 ### Library
 
 - **Your folders only**: Add the folders with your music through Android’s folder picker; Music sees nothing else on the phone
-- **Albums, artists, tracks and playlists**: Four views in the order you choose, opening on the one you pick or the last one used; albums group by album and album artist, with compilations and multi-disc albums grouped properly
+- **Albums, artists, tracks and playlists**: Four views in the order you choose, opening on the one you pick or the last one used; albums group by album and album artist, with compilations and multi-disc albums grouped properly. Albums, artists and tracks have section headers that follow the sort order: letters, years, or this year’s months for Recently added
 - **Search**: Albums, artists, tracks and playlists at once, ignoring diacritics
 - **Scanning**: New and changed files are picked up on every start, or on demand; very short files (sounds, voice notes) can be left out
-- **Covers**: The picture embedded in each file, or else a cover image in the album’s folder (`cover`, `folder`, `front` or `album` as JPEG, PNG or WebP; for CD1/Disc 2 folders, the one above)
+- **Covers**: The cover embedded in each file, or else an image named `cover`, `folder`, `front` or `album` (JPEG, PNG or WebP) from the track’s folder, or from the album folder when the discs are in subfolders such as `CD1` or `Disc 2`
 - **Play counts**: Tracks you listen to at least halfway are counted, for a Most played sort and an artist’s most played tracks – a number per track, nothing more. Counting can be switched off and the counts reset
 
 ### Playback
@@ -34,8 +34,9 @@ Music plays the audio files in the folders you choose and nothing else. It has n
 - **Equalizer**: Parametric, up to 20 peak and shelf filters with a pre-amp and a response curve; your own presets, built-in ones, and import and export of Equalizer APO text (the format AutoEq publishes)
 - **Output devices**: Music remembers the outputs it has played on – the speaker, wired and Bluetooth headphones, USB DACs – and each can have its own equalizer preset, applied when playback switches to it. Bluetooth devices are told apart by name, so no extra permission is needed
 - **Bit-perfect output**: With a USB DAC, the audio goes out unchanged at each file’s own sample rate, bypassing the system mixer; switched on for each DAC separately, and the Output page shows what the connected device accepts
+- **Sound path**: The output button in the volume bar opens a page that shows the path of the sound: the file, what Music does to it (DSD conversion or DoP, ReplayGain, the equalizer, the volume) and what the device receives, and, when a USB DAC with bit-perfect output on goes through the system mixer, the reason why
 - **Queue**: Reorder, remove with Undo, save as a playlist; the queue shows shuffle and repeat as they play and is kept across restarts
-- **Now playing**: Cover, technical details of the file, the ReplayGain applied or bit-perfect output, seek bar, volume, the equalizer and the track’s tags
+- **Now playing**: Cover, technical details of the file, the ReplayGain applied or bit-perfect output, seek bar, volume with the output in use, the equalizer and the track’s tags
 
 ### Playlists
 
