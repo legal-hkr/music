@@ -42,7 +42,8 @@ class ReplayGainRenderersFactory(context: Context, private val sink: ReplayGainS
         out: ArrayList<Renderer>,
     ) {
         // First: ALAC goes to Music's own decoder even on phones with one of their own (owner's decision 27.11.2026,
-        // GH #8 – one decoder tested bit for bit everywhere); the track selector takes the first renderer that handles a format
+        // GH #8 – one decoder tested bit for bit everywhere); the track selector takes the renderer with the best support,
+        // and of equals (the phone's ALAC decoder handles it too) the first
         out.add(AlacRenderer(eventHandler, eventListener, sink))
         out.add(ReplayGainRenderer(context, codecAdapterFactory, mediaCodecSelector, enableDecoderFallback, eventHandler, eventListener, sink))
     }

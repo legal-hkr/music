@@ -309,13 +309,15 @@ class EqualizerTest {
     }
 
     @Test
-    fun `a built-in preset this version doesn't have gives way to Flat`() {
+    fun `a built-in preset this version doesn't have is dropped, as a restore drops it`() {
         val gone = PresetRef(builtIn = "audeze_isine_10")
         val mine = PresetRef(own = "Mine")
         val state = EqualizerState(enabled = true).savedAsNew("Mine", 1, EqSettings(preampDb = -3f))
             .copy(other = gone, assigned = mapOf("usb:DAC" to gone, "speaker" to mine), edits = mapOf(gone.id to EqSettings(preampDb = -9f)))
         val clean = state.withoutMissingBuiltIns()
+        // The slot gets Flat, the device follows the slot again, a device on its own preset keeps it
         assertEquals(PresetRef.FLAT, clean.other)
+        assertEquals(setOf("speaker"), clean.assigned.keys)
         assertEquals(PresetRef.FLAT, clean.refFor("usb:DAC"))
         assertEquals(mine, clean.refFor("speaker"))
         assertTrue(clean.edits.isEmpty())

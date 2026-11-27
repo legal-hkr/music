@@ -20,6 +20,9 @@ object PlatformDecoders {
     /** Of the formats asked about, those none of [decoderTypes] (the phone's decoders' MIME types, lower case) takes. */
     fun missing(decoderTypes: Set<String>): Set<AudioCodec> = OPTIONAL.filterValues { it.lowercase() !in decoderTypes }.keys
 
+    /** Whether [decoderTypes] can be a real phone's: every Android device has an MP3 decoder (CDD). */
+    fun isPlausible(decoderTypes: Set<String>): Boolean = "audio/mpeg" in decoderTypes
+
     /** The MIME types the phone's decoders take, lower case. */
     fun phoneDecoderTypes(): Set<String> = MediaCodecList(MediaCodecList.REGULAR_CODECS).codecInfos
         .filter { !it.isEncoder }

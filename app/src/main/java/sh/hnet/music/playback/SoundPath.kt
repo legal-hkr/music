@@ -77,7 +77,7 @@ object SoundPath {
         /** The equalizer is heard and its values do something. */
         val equalizerChanges: Boolean,
     ) {
-        /** Whether a stage of "In Music" changes the sound, for the step's colour (§A5.2). */
+        /** Whether a stage of "In Music" changes the sound, for the step's color (§A5.2). */
         val gainChanges: Boolean get() = when (gain) {
             is Gain.PreAmp -> gain.db != 0f
             is Gain.Tagged -> gain.db != 0f
@@ -87,7 +87,7 @@ object SoundPath {
         val dsdChanges: Boolean get() = dsd is Dsd.ToPcm
         val volumeChanges: Boolean get() = volume == Volume.SYSTEM
 
-        /** Whether In Music changes the sound at all: its node's colour. */
+        /** Whether In Music changes the sound at all: its node's color. */
         val changes: Boolean get() = dsdChanges || gainChanges || equalizerChanges || volumeChanges
     }
 

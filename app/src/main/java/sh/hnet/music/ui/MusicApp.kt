@@ -168,9 +168,9 @@ fun MusicApp(openNowPlaying: Int = 0, openPlaylist: Pair<Int, Long> = 0 to -1L) 
     val nowPlaying = remember { SeekableTransitionState(false) }
     val nowPlayingTransition = rememberTransition(nowPlaying, label = "nowPlaying")
     var detailsOpen by rememberSaveable { mutableStateOf(false) }
-    // The equalizer over now playing, from the volume bar (SPEC-equalizer §2.2)
+    // The equalizer over now playing, from the output page's Equalizer step or a device's page
     var equalizerOpen by rememberSaveable { mutableStateOf(false) }
-    // Opened from a device's page rather than the volume bar
+    // Opened from a device's page rather than the output page
     var equalizerForDevice by rememberSaveable { mutableStateOf(false) }
     // A settings page shown over now playing: "output" or "playback" (from a chip), PLAYBACK_AT_DSD (the output page's DSD step), DEVICE_PAGE + key
     var settingsOpen by rememberSaveable { mutableStateOf<String?>(null) }
@@ -285,10 +285,10 @@ fun MusicApp(openNowPlaying: Int = 0, openPlaylist: Pair<Int, Long> = 0 to -1L) 
         // Only while the app is on screen: one collected in the background would show when the app came back
         lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
             playerModel.player.problems.collectLatest { problem ->
-            val title = problem.title.orEmpty().htmlEncode()
-            val template = if (problem.kind == PlaybackProblem.Kind.NO_DECODER && problem.format == null) noDecoderUnknown else problemTexts.getValue(problem.kind)
-            val text = AnnotatedString.fromHtml(if (problem.kind == PlaybackProblem.Kind.NO_DECODER) template.format(title, problem.format) else template.format(title)).text
-            snackbars.showSnackbar(text, duration = SnackbarDuration.Short)
+                val title = problem.title.orEmpty().htmlEncode()
+                val template = if (problem.kind == PlaybackProblem.Kind.NO_DECODER && problem.format == null) noDecoderUnknown else problemTexts.getValue(problem.kind)
+                val text = AnnotatedString.fromHtml(if (problem.kind == PlaybackProblem.Kind.NO_DECODER) template.format(title, problem.format) else template.format(title)).text
+                snackbars.showSnackbar(text, duration = SnackbarDuration.Short)
             }
         }
     }
@@ -611,7 +611,7 @@ fun MusicApp(openNowPlaying: Int = 0, openPlaylist: Pair<Int, Long> = 0 to -1L) 
             ) {
                 TrackDetailsScreen(playerModel, onBack = { detailsOpen = false })
             }
-            // Under the equalizer's and the settings' pages: a device's page and its equalizer open over it
+            // Under the equalizer's and the settings' pages: Playback, the equalizer and a USB device's page open over it
             AnimatedVisibility(
                 visible = outputOpen,
                 enter = slideInHorizontally(spatial) { shift } + fadeIn(effects),

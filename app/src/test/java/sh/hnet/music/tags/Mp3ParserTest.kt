@@ -127,6 +127,11 @@ class Mp3ParserTest {
         // Two Layer II frames by chance in junk, then the real MP3: not taken for MP2 (GH #8 would hide the file)
         val chance = frames(2) + ByteArray(500) { 0x11 } + plainFrames(6)
         assertEquals(AudioCodec.MP3, TagParser.parse(ByteArraySource(chance))?.properties?.codec)
+        // Three are not enough either: Media3's extractor wants four in a row
+        val three = frames(3) + ByteArray(500) { 0x11 } + plainFrames(6)
+        assertEquals(AudioCodec.MP3, TagParser.parse(ByteArraySource(three))?.properties?.codec)
+        // A short file whose frames run to its end is still MP2
+        assertEquals(AudioCodec.MP2, TagParser.parse(ByteArraySource(frames(2)))?.properties?.codec)
     }
 
     @Test

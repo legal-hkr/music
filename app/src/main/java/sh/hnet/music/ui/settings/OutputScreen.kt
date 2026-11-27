@@ -182,7 +182,7 @@ fun OutputScreen(onBack: () -> Unit, onOpenDevice: (String) -> Unit, topInsets: 
     }
 }
 
-/** The device playing now is highlighted as a selected row, its icon without the tonal box that would vanish in it. */
+/** The device playing now is highlighted as a selected row; its icon in the same circle as the others' (the owner, 27.11.2026: the circle shows on the highlight, the old square box didn't). */
 @Composable
 private fun DeviceRow(device: Device, view: OutputsView, shapes: ListItemShapes, onClick: () -> Unit) {
     val isCurrent = device.key == view.current?.key
@@ -193,10 +193,7 @@ private fun DeviceRow(device: Device, view: OutputsView, shapes: ListItemShapes,
         shapes = shapes,
         // The highlight is the only sign of the device playing now: it keeps M3's selected colors (settingsRowColors' are the others' since 27 Nov 2026)
         colors = ListItemDefaults.segmentedColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-        leadingContent = {
-            if (isCurrent) Icon(painterResource(outputIcon(device.kind)), contentDescription = null, modifier = Modifier.padding(horizontal = 8.dp))
-            else RowIcon(outputIcon(device.kind))
-        },
+        leadingContent = { RowIcon(outputIcon(device.kind)) },
         trailingContent = { Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = null) },
         supportingContent = {
             Column {

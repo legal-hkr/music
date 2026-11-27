@@ -5,8 +5,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,7 +18,8 @@ import sh.hnet.music.R
 @Composable
 fun WidgetConfigActions(confirm: String, enabled: Boolean, onCancel: () -> Unit, onConfirm: () -> Unit) {
     Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
-        TextButton(onClick = onCancel) { Text(stringResource(R.string.button_cancel)) }
+        // Outlined and filled, as a dialog's pair (the owner, 27.11.2026, as the family's M3 decision 6)
+        OutlinedButton(onClick = onCancel) { Text(stringResource(R.string.button_cancel)) }
         Button(onClick = onConfirm, enabled = enabled) { Text(confirm) }
     }
 }

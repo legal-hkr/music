@@ -67,9 +67,9 @@ interface TrackDao {
     @Query("DELETE FROM play_count WHERE documentUri IN (:uris)")
     suspend fun deletePlayCounts(uris: List<String>)
 
-    /** The phone's decoders changed: files skipped for want of one are read again by the next scan. */
-    @Query("DELETE FROM skipped_file WHERE reason = 'NO_DECODER'")
-    suspend fun forgetNoDecoder()
+    /** Files skipped for want of a decoder: read again when the phone's decoders change. */
+    @Query("SELECT documentUri FROM skipped_file WHERE reason = 'NO_DECODER'")
+    suspend fun urisSkippedForDecoder(): List<String>
 
     /** Tracks in the given formats (AudioCodec names). */
     @Query("SELECT documentUri FROM track WHERE codec IN (:codecs)")
@@ -140,7 +140,7 @@ interface TrackDao {
      * Which of [uris] are in the index (visible or behind a folder that lost access), or wait for a decoder (GH #8):
      * a playlist entry of such a file waits for it rather than being matched to another file.
      */
-    @Query("SELECT documentUri FROM track WHERE documentUri IN (:uris) UNION SELECT documentUri FROM skipped_file WHERE reason = 'NO_DECODER' AND documentUri IN (:uris)")
+    @Query("SELECT documentUri FROM (SELECT documentUri FROM track UNION ALL SELECT documentUri FROM skipped_file WHERE reason = 'NO_DECODER') WHERE documentUri IN (:uris)")
     suspend fun existing(uris: List<String>): List<String>
 
     @Query("SELECT * FROM track WHERE documentUri = :documentUri")

@@ -1,6 +1,8 @@
 package sh.hnet.music.playback
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import sh.hnet.music.tags.AudioCodec
 
@@ -14,5 +16,8 @@ class PlatformDecodersTest {
         assertEquals(emptySet<AudioCodec>(), PlatformDecoders.missing(aosp + "audio/mpeg-l1" + "audio/mpeg-l2"))
         // Never the required ones, whatever the phone says
         assertEquals(setOf(AudioCodec.MP1, AudioCodec.MP2), PlatformDecoders.missing(emptySet()))
+        // A list without the MP3 decoder every Android device has is no answer
+        assertTrue(PlatformDecoders.isPlausible(aosp))
+        assertFalse(PlatformDecoders.isPlausible(emptySet()))
     }
 }

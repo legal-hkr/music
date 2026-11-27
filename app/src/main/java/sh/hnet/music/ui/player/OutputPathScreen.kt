@@ -67,7 +67,7 @@ import sh.hnet.music.ui.settings.streamText
  * playing, as the equalizer's (owner's decision 23.11.2026, over the SPEC's sheet), with the device
  * playing now under the title. Follows a new
  * track and a new device while open (paused, the last stream, without a line saying so – owner's
- * decision); colour marks what changes the sound (§A5.2).
+ * decision); color marks what changes the sound (§A5.2).
  *
  * @param details Null with an empty queue: only the device and the switcher show
  * @param onOpenDevice A USB device's page in Settings › Output, by its key (without its Equalizer group)
@@ -207,7 +207,7 @@ fun OutputPathScreen(
     }
 }
 
-/** The node's colours: the file and the device always, In Music by whether anything changes the sound. */
+/** The node's colors: the file and the device always, In Music by whether anything changes the sound. */
 private enum class NodeLook { END, CHANGES, NEUTRAL }
 
 /**
@@ -259,7 +259,7 @@ private fun Node(@DrawableRes icon: Int, look: NodeLook) {
 }
 
 /**
- * A stage of In Music: its icon coloured when it changes the sound (§A5.2), its name and state. With
+ * A stage of In Music: its icon colored when it changes the sound (§A5.2), its name and state. With
  * [onClick] it leads to the stage's settings, with a chevron as the device's row (owner's decision 27.11.2026).
  */
 @Composable

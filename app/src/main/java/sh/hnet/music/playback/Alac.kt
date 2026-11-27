@@ -31,7 +31,7 @@ class AlacConfig private constructor(
 ) {
     /**
      * The channels the decoder outputs: as many as the stream has, but 7 for four – ALAC's 4.0 (C L R Cs) has no
-     * place in Android's four (FL FR BL BR), so it goes out as 5.1 + back centre with three silent channels.
+     * place in Android's four (FL FR BL BR), so it goes out as 5.1 + back center with three silent channels.
      */
     val outputChannels: Int get() = if (channels == 4) 7 else channels
 

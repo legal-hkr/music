@@ -393,9 +393,13 @@ private fun VolumeBar(volume: MediaVolume, output: AudioOutput?, onTouch: () -> 
                         stateDescription = if (volume.fixed) fixedReason else percent
                     },
             )
-            if (output != null) {
-                IconButton(onClick = onOutput, modifier = Modifier.size(48.dp)) {
+            // Always there: it is the way to the output page and, from it, to the equalizer; while Android names no
+            // output (it may, for a moment) a generic icon
+            IconButton(onClick = onOutput, modifier = Modifier.size(48.dp)) {
+                if (output != null) {
                     Icon(painterResource(outputIcon(output.kind)), contentDescription = stringResource(R.string.content_description_output, outputName(output)))
+                } else {
+                    Icon(painterResource(R.drawable.ic_devices), contentDescription = stringResource(R.string.title_output))
                 }
             }
         }

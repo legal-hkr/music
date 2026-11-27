@@ -24,7 +24,10 @@ data class PlaybackProblem(val kind: Kind, val title: String?, val format: Strin
         /** The file is damaged or incomplete. */
         DAMAGED,
 
-        /** The audio output wouldn't open or take the sound: playback stops there, the next track would fail the same way. */
+        /**
+         * The audio output wouldn't open or take the sound: playback stops there, as the next tracks would most likely
+         * fail the same way (failing again on the same track, it counts as that file's and is skipped).
+         */
         OUTPUT,
 
         /** Anything else (a decoder that failed to start, say). */

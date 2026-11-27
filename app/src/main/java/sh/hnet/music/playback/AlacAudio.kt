@@ -19,7 +19,8 @@ import androidx.media3.exoplayer.source.MediaSource
 
 /**
  * ALAC through Music's own decoder ([AlacDecoder]) as a Media3 renderer, into the same ReplayGainSink as the phone's
- * decoders: the gain, the equalizer and bit-perfect output work as for FLAC (16- and 24-bit integer PCM out).
+ * decoders: the gain, the equalizer and bit-perfect output work as for FLAC (integer PCM out: 16, packed 24 – 20-bit
+ * samples too – or 32 bits). Between ALAC and another format the renderer changes, so that join isn't gapless.
  */
 internal class AlacRenderer(
     handler: Handler?,
@@ -96,6 +97,8 @@ internal class AlacMediaDecoder(val config: AlacConfig, maxInputSize: Int) :
     override fun createUnexpectedDecodeException(error: Throwable) = AlacDecoderException("Unexpected decode error", error)
 
     override fun decode(inputBuffer: DecoderInputBuffer, outputBuffer: SimpleDecoderOutputBuffer, reset: Boolean): AlacDecoderException? {
+        // After a flush (a seek) earlier damage doesn't count
+        if (reset) damagedInARow = 0
         val input = inputBuffer.data ?: return AlacDecoderException("No input")
         val output = outputBuffer.init(inputBuffer.timeUs, outputSize)
         try {

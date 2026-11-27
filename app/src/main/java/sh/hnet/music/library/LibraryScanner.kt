@@ -137,18 +137,20 @@ class LibraryScanner(
     }
 
     /**
-     * Formats this phone can't decode (PlatformDecoders): when that set differs from the last scan's (the first
-     * scan with this check, a system update), files skipped for want of a decoder are read again, and so are tracks
-     * the index has in a format now without one ([recheck]) – read, not moved by the stored codec, so the current
-     * parser decides. [read] skips them with [missingDecoders]. The stamp is written only after a scan that listed
-     * every folder ([pendingStamp]): a folder that couldn't be listed keeps its tracks, and gets its turn next time.
+     * Formats this phone can't decode (PlatformDecoders): when that set differs from the stamp (the first scan with
+     * this check, a system update), files skipped for want of a decoder and tracks the index has in a format now
+     * without one are read again ([recheck]) – read, not moved by what is stored, so the current parser decides, and
+     * only in the folders this scan lists: a folder that can't be listed keeps its tracks and skipped files as they
+     * are. [read] skips with [missingDecoders]. The stamp is written only after a scan that listed every folder
+     * ([pendingStamp]), so such a folder gets its turn next time.
      */
     private suspend fun checkDecoders() {
         recheck = emptySet()
         pendingStamp = null
         val before = stamps.getString(MISSING_DECODERS, null)
-        // A phone whose codec list can't be read (a broken vendor build) keeps the last scan's answer and the library as it is
-        val types = runCatching { PlatformDecoders.phoneDecoderTypes() }.getOrNull()
+        // A codec list that can't be read, or lacks the MP3 decoder every Android device has (a broken vendor build), is no
+        // answer: the last stamped one stays, and the library as it is
+        val types = runCatching { PlatformDecoders.phoneDecoderTypes() }.getOrNull()?.takeIf { PlatformDecoders.isPlausible(it) }
         if (types == null) {
             missingDecoders = before.orEmpty().split(',').mapNotNullTo(HashSet()) { name -> AudioCodec.entries.firstOrNull { it.name == name } }
             return
@@ -159,8 +161,7 @@ class LibraryScanner(
         val stamp = names.joinToString(",")
         if (before == stamp) return
         pendingStamp = stamp
-        tracks.forgetNoDecoder()
-        if (names.isNotEmpty()) recheck = tracks.urisOfCodecs(names).toHashSet()
+        recheck = (tracks.urisSkippedForDecoder() + if (names.isEmpty()) emptyList() else tracks.urisOfCodecs(names)).toHashSet()
     }
 
     /** False when the folder couldn't be listed; its tracks stay as they were. */

@@ -57,6 +57,9 @@ class PlaybackService : MediaSessionService() {
     @Volatile private var countPlays = true
     /** Queue positions that failed with nothing playing in between: skipping stops when the next one is among them. */
     private val failed = HashSet<Int>()
+
+    /** The queue position that last failed for the output; failing so again there makes it the file's problem. */
+    private var outputFailedAt = C.INDEX_UNSET
     /** The last Clear queue, until its Undo or the next one. */
     private var cleared: ClearedQueue? = null
 
@@ -119,6 +122,7 @@ class PlaybackService : MediaSessionService() {
                 if (reason != Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED) return
                 // Positions mean other tracks now, and a changed queue is another try
                 failed.clear()
+                outputFailedAt = C.INDEX_UNSET
                 if (player.shuffleModeEnabled && player.mediaItemCount > 0 && (player.shuffleOrder as? QueueShuffleOrder)?.fresh == true) shuffleFromCurrent(player)
             }
 
@@ -146,15 +150,21 @@ class PlaybackService : MediaSessionService() {
 
             // A file that can't be played (gone, unreadable) is skipped rather than stopping the queue
             override fun onPlayerError(error: PlaybackException) {
-                // The output, not the file: every next track would fail the same way, so it stops here
+                // The output rather than the file, most likely: the next tracks would fail the same way, so it stops here.
+                // The same track failing so again when tried again is the file's doing (an odd rate, many channels): skipped
                 if (PlaybackProblem.isOutputError(error.errorCode)) {
-                    player.pause()
-                    report(PlaybackProblem(PlaybackProblem.Kind.OUTPUT, player.currentMediaItem?.mediaMetadata?.title?.toString()))
-                    return
+                    val index = player.currentMediaItemIndex
+                    if (outputFailedAt != index) {
+                        outputFailedAt = index
+                        player.pause()
+                        report(PlaybackProblem(PlaybackProblem.Kind.OUTPUT, player.currentMediaItem?.mediaMetadata?.title?.toString()))
+                        return
+                    }
                 }
                 // Access to the folder lost: SAF says so with a SecurityException, which Media3 reports as an unspecified IO error
                 val noAccess = generateSequence<Throwable>(error) { it.cause }.any { it is SecurityException }
-                skipFailed(player, if (noAccess) PlaybackProblem.Kind.NO_ACCESS else PlaybackProblem.kindOf(error.errorCode))
+                val kind = PlaybackProblem.kindOf(error.errorCode).takeUnless { it == PlaybackProblem.Kind.OUTPUT } ?: PlaybackProblem.Kind.FAILED
+                skipFailed(player, if (noAccess) PlaybackProblem.Kind.NO_ACCESS else kind)
             }
         })
         scope.launch {
@@ -225,7 +235,10 @@ class PlaybackService : MediaSessionService() {
                 if (!player.isPlaying) continue
                 // A track that really plays ends a run of failures (not the moment a skipped one starts: a file
                 // without a decoder is "playing" until its tracks are known)
-                if (player.currentPosition >= TICK_MS) failed.clear()
+                if (player.currentPosition >= TICK_MS) {
+                    failed.clear()
+                    outputFailedAt = C.INDEX_UNSET
+                }
                 counter.check()
                 if (++tick % (SAVE_EVERY_MS / TICK_MS) == 0L) scheduleSave()
             }
@@ -240,6 +253,14 @@ class PlaybackService : MediaSessionService() {
     private fun skipFailed(player: ExoPlayer, kind: PlaybackProblem.Kind, format: String? = null) {
         val title = player.currentMediaItem?.mediaMetadata?.title?.toString()
         val first = failed.add(player.currentMediaItemIndex)
+        // Read before the pause below changes it: Play pressed again on a track stopped at
+        val tried = player.playWhenReady
+        // A file gone or behind a lost folder while nothing plays (a queue restored at start before the SD card is
+        // mounted): said and stayed at, not walked through to the queue's end, which would be saved as its place
+        if (!tried && (kind == PlaybackProblem.Kind.MISSING || kind == PlaybackProblem.Kind.NO_ACCESS)) {
+            if (first) report(PlaybackProblem(kind, title, format))
+            return
+        }
         val next = player.nextMediaItemIndex
         if (next != C.INDEX_UNSET && next !in failed) {
             report(PlaybackProblem(kind, title, format))
@@ -251,7 +272,7 @@ class PlaybackService : MediaSessionService() {
         // Without a decoder the player would go on through silence
         if (kind == PlaybackProblem.Kind.NO_DECODER) player.pause()
         // Said again when it is tried again (Play), not when the output reopens under a track already stopped at
-        if (!first && !player.playWhenReady) return
+        if (!first && !tried) return
         val everything = player.mediaItemCount > 1 && failed.size >= player.mediaItemCount
         report(if (everything) PlaybackProblem(PlaybackProblem.Kind.NOTHING_PLAYS, null) else PlaybackProblem(kind, title, format))
     }

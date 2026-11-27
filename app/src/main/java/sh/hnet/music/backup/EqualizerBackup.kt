@@ -101,7 +101,7 @@ object EqualizerBackup {
      * The state a backup holds, replacing everything (no merging, as playlists). Values are brought
      * into range, filters of a type this version doesn't know are left out, presets with a name
      * already taken get " (2)". A reference to a preset that isn't there (a built-in one of a later
-     * version) keeps the values in use, as unsaved settings.
+     * version, or one this version dropped, as Audeze iSine 10) keeps the values in use, as unsaved settings.
      *
      * With [output] (a backup that knows devices), every device gets its own preset back and the
      * Other devices slot its own; a reference to a preset that isn't there leaves the device on the

@@ -92,13 +92,14 @@ data class EqualizerState(
     }
 
     /**
-     * A built-in preset this version doesn't have (Audeze iSine 10, removed 27.11.2026) gives way to Flat wherever it
-     * was chosen, its changes not saved with it: otherwise the page would call its devices' values "Unsaved settings".
+     * A built-in preset this version doesn't have (Audeze iSine 10, removed 27.11.2026), as a backup's restore treats a
+     * preset that isn't there: a device on it follows the Other devices slot again, the slot on it gets Flat, and its
+     * changes not saved go with it. Otherwise the page would call those devices' values "Unsaved settings".
      */
     fun withoutMissingBuiltIns(): EqualizerState {
-        fun known(ref: PresetRef) = if (ref.builtIn != null && BuiltInPresets.byId(ref.builtIn) == null) PresetRef.FLAT else ref
-        if ((assigned.values + other).all { known(it) == it }) return this
-        return copy(other = known(other), assigned = assigned.mapValues { known(it.value) }).tidy()
+        fun missing(ref: PresetRef) = ref.builtIn != null && BuiltInPresets.byId(ref.builtIn) == null
+        if ((assigned.values + other).none(::missing)) return this
+        return copy(other = if (missing(other)) PresetRef.FLAT else other, assigned = assigned.filterValues { !missing(it) }).tidy()
     }
 
     /** The device playing now (or, while unknown, the slot) uses [new]. */
