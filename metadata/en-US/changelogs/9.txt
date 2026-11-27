@@ -1,0 +1,10 @@
+v0.3.5
+
+New:
+- Apple Lossless (ALAC) plays on every phone, decoded by the app itself (GH #8)
+- Unplayable tracks are skipped with a message; files in formats the phone doesn’t support are listed as skipped
+
+Changes:
+- On the Output page, the ReplayGain, DSD and equalizer steps open their settings; the equalizer button is no longer in the volume bar
+- Buttons, dialogs and list icons now look like Android’s own
+- The built-in Audeze iSine 10 equalizer preset has been removed

@@ -1,0 +1,10 @@
+v0.3.5
+
+Nowości:
+- Apple Lossless (ALAC) na każdym telefonie dzięki własnemu dekoderowi (GH #8)
+- Odtwarzacz pomija z komunikatem utwory, których nie może odtworzyć; pliki nieobsługiwane przez telefon trafiają do pominiętych
+
+Zmiany:
+- Na stronie „Wyjście” kroki ReplayGain, DSD i korektora prowadzą do swoich ustawień; przycisku korektora nie ma już na pasku głośności
+- Przyciski, okna dialogowe i ikony na listach wyglądają jak w Androidzie
+- Usunięto wbudowany preset korektora Audeze iSine 10

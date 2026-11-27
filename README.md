@@ -2,7 +2,7 @@
 
 A private, offline music player for Android with DSD, bit-perfect USB output and a parametric equalizer.
 
-**Current version**: v0.3.4
+**Current version**: v0.3.5
 
 Source code and releases: [git.hnet.sh/hkr/music](https://git.hnet.sh/hkr/music)
 
@@ -34,9 +34,9 @@ Music plays the audio files in the folders you choose and nothing else. It has n
 - **Equalizer**: Parametric, up to 20 peak and shelf filters with a pre-amp and a response curve; your own presets, and import and export of Equalizer APO text (the format AutoEq publishes)
 - **Output devices**: Music remembers the outputs it has played on – the speaker, wired and Bluetooth headphones, USB DACs – and each can have its own equalizer preset, applied when playback switches to it. Bluetooth devices are told apart by name, so no extra permission is needed
 - **Bit-perfect output**: With a USB DAC, the audio goes out unchanged at each file’s own sample rate, bypassing the system mixer; switched on for each DAC separately, and the Output page shows what the connected device accepts
-- **Sound path**: The output button in the volume bar opens a page that shows the path of the sound: the file, what Music does to it (DSD conversion or DoP, ReplayGain, the equalizer, the volume) and what the device receives, and, when a USB DAC with bit-perfect output on goes through the system mixer, the reason why; the ReplayGain, DSD and equalizer steps lead to their settings
+- **Sound path**: The output button in the volume bar opens a page that shows the path of the sound: the file, what Music does to it (DSD conversion or DoP, ReplayGain, the equalizer, the volume) and what the device receives, and, when a USB DAC with bit-perfect output on goes through the system mixer, the reason why. The ReplayGain, DSD and equalizer steps open their settings
 - **Queue**: Reorder, remove with Undo, save as a playlist; the queue shows shuffle and repeat as they play and is kept across restarts
-- **Now playing**: Cover, technical details of the file, the ReplayGain applied or bit-perfect output, seek bar, volume with the output in use and the path of the sound, and the track’s tags
+- **Now playing**: Cover, technical details of the file, the ReplayGain applied or bit-perfect output, seek bar, volume with the output in use (which opens the sound path), and the track’s tags
 
 ### Playlists
 
@@ -85,7 +85,7 @@ Development happens on [git.hnet.sh](https://git.hnet.sh/hkr/music), where the r
 - **Data**: Room, DataStore; files through the Storage Access Framework
 - **Tags**: Its own parser for FLAC, Ogg, MP3, MP4 and DSD tags
 - **Widgets**: Classic app widgets (RemoteViews), no extra libraries
-- **Audio**: Its own ReplayGain, equalizer and DSD stages in the player’s audio path; bit-perfect output through Android’s preferred mixer attributes
+- **Audio**: Its own ALAC decoder, ReplayGain, equalizer and DSD stages in the player’s audio path; bit-perfect output through Android’s preferred mixer attributes
 
 ## License
 

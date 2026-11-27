@@ -18,8 +18,8 @@ android {
         applicationId = "sh.hnet.music"
         minSdk = 34
         targetSdk = 37
-        versionCode = 8
-        versionName = "v0.3.4"
+        versionCode = 9
+        versionName = "v0.3.5"
     }
 
     buildTypes {
