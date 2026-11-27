@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -30,6 +31,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -218,25 +220,29 @@ fun AlbumRow(album: Album, onClick: () -> Unit) {
     }
 }
 
+/** Pressed, an action button of a row turns a little squarer, as Dialer's (the owner, 27 Nov 2026: separate pills, 16 dp at 56 dp high). */
+val PRESSED_ACTION_SHAPE = RoundedCornerShape(16.dp)
+
 /** Play and Shuffle side by side, medium buttons (SPEC §4.3, §6.2). */
 @Composable
 fun PlayButtons(onPlay: () -> Unit, onShuffle: () -> Unit, addLabel: String? = null, onAddToPlaylist: (() -> Unit)? = null) {
     val height = ButtonDefaults.MediumContainerHeight
+    val pressedSquarer = ButtonDefaults.shapes(shape = CircleShape, pressedShape = PRESSED_ACTION_SHAPE)
     Row(
         Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Button(onClick = onPlay, modifier = Modifier.weight(1f).height(height), contentPadding = ButtonDefaults.contentPaddingFor(height)) {
+        Button(onClick = onPlay, modifier = Modifier.weight(1f).height(height), shapes = pressedSquarer, contentPadding = ButtonDefaults.contentPaddingFor(height)) {
             Icon(painterResource(R.drawable.ic_play_arrow), contentDescription = null, modifier = Modifier.size(ButtonDefaults.iconSizeFor(height)))
             Text(stringResource(R.string.button_play), style = ButtonDefaults.textStyleFor(height), modifier = Modifier.padding(start = 8.dp))
         }
-        FilledTonalButton(onClick = onShuffle, modifier = Modifier.weight(1f).height(height), contentPadding = ButtonDefaults.contentPaddingFor(height)) {
+        FilledTonalButton(onClick = onShuffle, modifier = Modifier.weight(1f).height(height), shapes = pressedSquarer, contentPadding = ButtonDefaults.contentPaddingFor(height)) {
             Icon(painterResource(R.drawable.ic_shuffle), contentDescription = null, modifier = Modifier.size(ButtonDefaults.iconSizeFor(height)))
             Text(stringResource(R.string.button_shuffle), style = ButtonDefaults.textStyleFor(height), modifier = Modifier.padding(start = 8.dp))
         }
         // Add the whole album / the artist's tracks to a playlist (SPEC-playlists §7.1)
         if (onAddToPlaylist != null) {
-            FilledTonalIconButton(onClick = onAddToPlaylist, modifier = Modifier.size(height)) {
+            FilledTonalIconButton(onClick = onAddToPlaylist, shapes = IconButtonDefaults.shapes(shape = CircleShape, pressedShape = PRESSED_ACTION_SHAPE), modifier = Modifier.size(height)) {
                 Icon(painterResource(R.drawable.ic_playlist_add), contentDescription = addLabel)
             }
         }

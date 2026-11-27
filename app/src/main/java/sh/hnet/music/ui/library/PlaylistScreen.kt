@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuGroup
@@ -32,6 +33,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -412,6 +414,7 @@ private fun Actions(
     onDelete: () -> Unit,
 ) {
     val height = ButtonDefaults.MediumContainerHeight
+    val pressedSquarer = ButtonDefaults.shapes(shape = CircleShape, pressedShape = PRESSED_ACTION_SHAPE)
     val noTracks = stringResource(R.string.desc_no_tracks_to_play)
     val disabled = Modifier.semantics { if (!playable) stateDescription = noTracks }
     var menuOpen by remember { mutableStateOf(false) }
@@ -420,17 +423,17 @@ private fun Actions(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Button(onClick = onPlay, enabled = playable, modifier = Modifier.weight(1f).height(height).then(disabled), contentPadding = ButtonDefaults.contentPaddingFor(height)) {
+        Button(onClick = onPlay, enabled = playable, modifier = Modifier.weight(1f).height(height).then(disabled), shapes = pressedSquarer, contentPadding = ButtonDefaults.contentPaddingFor(height)) {
             Icon(painterResource(R.drawable.ic_play_arrow), contentDescription = null, modifier = Modifier.size(ButtonDefaults.iconSizeFor(height)))
             Text(stringResource(R.string.button_play), style = ButtonDefaults.textStyleFor(height), modifier = Modifier.padding(start = 8.dp))
         }
-        FilledTonalButton(onClick = onShuffle, enabled = playable, modifier = Modifier.weight(1f).height(height).then(disabled), contentPadding = ButtonDefaults.contentPaddingFor(height)) {
+        FilledTonalButton(onClick = onShuffle, enabled = playable, modifier = Modifier.weight(1f).height(height).then(disabled), shapes = pressedSquarer, contentPadding = ButtonDefaults.contentPaddingFor(height)) {
             Icon(painterResource(R.drawable.ic_shuffle), contentDescription = null, modifier = Modifier.size(ButtonDefaults.iconSizeFor(height)))
             Text(stringResource(R.string.button_shuffle), style = ButtonDefaults.textStyleFor(height), modifier = Modifier.padding(start = 8.dp))
         }
         Box {
             val label = stringResource(R.string.content_description_playlist_actions)
-            FilledTonalIconButton(onClick = { menuOpen = true }, modifier = Modifier.size(height)) {
+            FilledTonalIconButton(onClick = { menuOpen = true }, shapes = IconButtonDefaults.shapes(shape = CircleShape, pressedShape = PRESSED_ACTION_SHAPE), modifier = Modifier.size(height)) {
                 Icon(painterResource(R.drawable.ic_more_horiz), contentDescription = label)
             }
             // Rename | Remove missing tracks (only while some are missing) | Delete (§5.2); Starred: no Rename, no Delete

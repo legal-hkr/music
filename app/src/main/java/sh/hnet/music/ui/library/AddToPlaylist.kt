@@ -2,8 +2,6 @@
 
 package sh.hnet.music.ui.library
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -14,11 +12,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuGroup
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.DropdownMenuPopup
@@ -39,7 +35,6 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -51,7 +46,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.onSizeChanged
@@ -80,7 +74,10 @@ import sh.hnet.music.R
 import sh.hnet.music.data.LibraryTrack
 import sh.hnet.music.library.PlaylistRepository
 import sh.hnet.music.library.PlaylistSummary
+import sh.hnet.music.ui.components.DialogConfirmButton
+import sh.hnet.music.ui.components.DialogDismissButton
 import sh.hnet.music.ui.components.NameDialog
+import sh.hnet.music.ui.components.RowIcon
 import sh.hnet.music.ui.components.boldNamesResource
 import sh.hnet.music.ui.components.formatCount
 
@@ -215,9 +212,7 @@ private fun AddToPlaylistSheet(
                     onClick = onNew,
                     colors = colors,
                     leadingContent = {
-                        Box(Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.secondaryContainer), contentAlignment = Alignment.Center) {
-                            Icon(painterResource(R.drawable.ic_add), contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
-                        }
+                        RowIcon(R.drawable.ic_add)
                     },
                 ) { Text(stringResource(R.string.button_new_playlist)) }
             }
@@ -312,14 +307,12 @@ private fun SaveQueueDialog(
                 }
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.button_cancel)) } },
+        dismissButton = { DialogDismissButton(onClick = onDismiss) { Text(stringResource(R.string.button_cancel)) } },
         confirmButton = {
             if (target == null) {
-                TextButton(onClick = confirm) { Text(stringResource(R.string.button_save)) }
+                DialogConfirmButton(onClick = confirm) { Text(stringResource(R.string.button_save)) }
             } else {
-                TextButton(onClick = confirm, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
-                    Text(stringResource(R.string.button_replace))
-                }
+                DialogConfirmButton(onClick = confirm, destructive = true) { Text(stringResource(R.string.button_replace)) }
             }
         },
     )

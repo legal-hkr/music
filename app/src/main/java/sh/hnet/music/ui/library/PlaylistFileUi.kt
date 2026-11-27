@@ -23,7 +23,6 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,6 +48,8 @@ import sh.hnet.music.R
 import sh.hnet.music.library.PlaylistFiles
 import sh.hnet.music.library.PlaylistFormat
 import sh.hnet.music.library.PlaylistTransfer
+import sh.hnet.music.ui.components.DialogConfirmButton
+import sh.hnet.music.ui.components.DialogDismissButton
 import sh.hnet.music.ui.components.SingleChoiceDialog
 
 /** The picker's types for Import (§9.1): the playlist types plus the generic ones files often arrive with. */
@@ -108,14 +109,14 @@ fun ErrorDetailsDialog(error: ErrorDetails, onDismiss: () -> Unit) {
             }
         },
         dismissButton = {
-            TextButton(onClick = {
+            DialogDismissButton(onClick = {
                 scope.launch {
                     clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(null, error.message + "\n" + error.details)))
                     Toast.makeText(context, copied, Toast.LENGTH_SHORT).show()
                 }
             }) { Text(stringResource(R.string.button_copy)) }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.button_close)) } },
+        confirmButton = { DialogConfirmButton(onClick = onDismiss) { Text(stringResource(R.string.button_close)) } },
     )
 }
 

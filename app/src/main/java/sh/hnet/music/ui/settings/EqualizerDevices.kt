@@ -33,6 +33,7 @@ import sh.hnet.music.equalizer.PresetRef
 import sh.hnet.music.output.Device
 import sh.hnet.music.ui.components.RowIcon
 import sh.hnet.music.ui.components.SettingsGroup
+import sh.hnet.music.ui.components.settingsRowColors
 
 /**
  * The devices the equalizer's pages name, in list order (SPEC-output §2.1): the remembered ones,
@@ -123,6 +124,7 @@ fun AppliesToSheet(
                             onCheckedChange = { onDevice(choice.device.key, it) },
                             enabled = choice.enabled,
                             shapes = shapes,
+                            colors = settingsRowColors(),
                             leadingContent = { RowIcon(outputIcon(choice.device.kind)) },
                             trailingContent = { Checkbox(checked = choice.uses, onCheckedChange = null, enabled = choice.enabled) },
                             supportingContent = choice.line?.let { { Text(it) } },
@@ -142,6 +144,7 @@ fun AppliesToSheet(
                         // Another preset has to take the slot: it is never empty
                         enabled = !held,
                         shapes = shapes,
+                        colors = settingsRowColors(),
                         leadingContent = { RowIcon(R.drawable.ic_devices) },
                         trailingContent = { Checkbox(checked = held, onCheckedChange = null, enabled = !held) },
                         supportingContent = { Text(otherLine) },

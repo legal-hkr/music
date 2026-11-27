@@ -18,9 +18,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -74,6 +72,7 @@ import sh.hnet.music.backup.BackupCheck
 import sh.hnet.music.backup.BackupManager
 import sh.hnet.music.ui.components.AppLogo
 import sh.hnet.music.ui.components.FormPage
+import sh.hnet.music.ui.components.RowIcon
 import sh.hnet.music.ui.components.SettingsGroup
 import sh.hnet.music.ui.components.settingsRowColors
 import sh.hnet.music.ui.settings.BACKUP_MIME_TYPES
@@ -255,12 +254,7 @@ private fun ChoiceRow(shapes: ListItemShapes, title: Int, supporting: Int, @Draw
 fun PlaylistsReadyCard(count: Int, modifier: Modifier = Modifier) {
     Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surfaceContainer, modifier = modifier.fillMaxWidth()) {
         Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.secondaryContainer),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(painterResource(R.drawable.ic_playlist_play), contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
-            }
+            RowIcon(R.drawable.ic_playlist_play)
             Column(Modifier.semantics(mergeDescendants = true) {}) {
                 Text(stringResource(R.string.title_playlists_ready, count), style = MaterialTheme.typography.titleMedium)
                 Text(stringResource(R.string.msg_playlists_ready), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -418,12 +412,7 @@ private fun BackupFileCard(name: String, valid: BackupCheck.Valid, enabled: Bool
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
         ) {
-            Box(
-                Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.secondaryContainer),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(painterResource(R.drawable.ic_description), contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
-            }
+            RowIcon(R.drawable.ic_description)
             Column(Modifier.weight(1f).clearAndSetSemantics { contentDescription = "$name, $summary" }) {
                 Text(name, style = MaterialTheme.typography.bodyLarge)
                 Text(summary, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)

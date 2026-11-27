@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.ListItemShapes
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
@@ -189,7 +191,8 @@ private fun DeviceRow(device: Device, view: OutputsView, shapes: ListItemShapes,
         selected = isCurrent,
         onClick = onClick,
         shapes = shapes,
-        colors = settingsRowColors(),
+        // The highlight is the only sign of the device playing now: it keeps M3's selected colors (settingsRowColors' are the others' since 27 Nov 2026)
+        colors = ListItemDefaults.segmentedColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         leadingContent = {
             if (isCurrent) Icon(painterResource(outputIcon(device.kind)), contentDescription = null, modifier = Modifier.padding(horizontal = 8.dp))
             else RowIcon(outputIcon(device.kind))

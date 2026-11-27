@@ -103,7 +103,17 @@ fun PresetSheet(
     onDelete: (String) -> Unit,
 ) {
     val container = MaterialTheme.colorScheme.surfaceContainerLow
-    val colors = ListItemDefaults.colors(containerColor = container)
+    // The chosen preset keeps the others' colors and shape, as the settings' rows (the owner, 27 Nov 2026): its radio shows the choice, M3's secondaryContainer card only said it again
+    val colors = ListItemDefaults.colors(containerColor = container).let {
+        it.copy(
+            selectedContainerColor = it.containerColor,
+            selectedContentColor = it.contentColor,
+            selectedLeadingContentColor = it.leadingContentColor,
+            selectedTrailingContentColor = it.trailingContentColor,
+            selectedOverlineContentColor = it.overlineContentColor,
+            selectedSupportingContentColor = it.supportingContentColor,
+        )
+    }
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden), containerColor = container) {
         Column(Modifier.verticalScroll(rememberScrollState()).padding(bottom = 8.dp)) {
             Text(
@@ -175,9 +185,11 @@ private fun PresetRow(
     onClick: () -> Unit,
     menu: (@Composable () -> Unit)? = null,
 ) {
+    val shapes = ListItemDefaults.shapes()
     ListItem(
         selected = selected,
         onClick = onClick,
+        shapes = shapes.copy(selectedShape = shapes.shape),
         colors = colors,
         leadingContent = { RadioButton(selected = selected, onClick = null) },
         trailingContent = menu,

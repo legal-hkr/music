@@ -14,7 +14,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import sh.hnet.music.R
 import sh.hnet.music.equalizer.BuiltInPresets
+import sh.hnet.music.ui.components.DialogConfirmButton
 import sh.hnet.music.ui.components.SettingsGroup
 import sh.hnet.music.ui.components.SettingsLinkRow
 import sh.hnet.music.ui.components.SettingsPage
@@ -101,7 +101,7 @@ fun LicensesScreen(onBack: () -> Unit) {
                     Text(licenseText, style = MaterialTheme.typography.bodySmall)
                 }
             },
-            confirmButton = { TextButton(onClick = { showing = false }) { Text(stringResource(R.string.button_close)) } },
+            confirmButton = { DialogConfirmButton(onClick = { showing = false }) { Text(stringResource(R.string.button_close)) } },
         )
     }
 }

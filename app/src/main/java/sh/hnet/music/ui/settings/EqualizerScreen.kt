@@ -5,10 +5,8 @@ package sh.hnet.music.ui.settings
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -100,6 +98,7 @@ import sh.hnet.music.playback.FilterType
 import sh.hnet.music.ui.components.DestructiveButton
 import sh.hnet.music.ui.components.LocalBottomOverlay
 import sh.hnet.music.ui.components.RowIcon
+import sh.hnet.music.ui.components.RowIconCircle
 import sh.hnet.music.ui.components.SettingsDescription
 import sh.hnet.music.ui.components.SettingsGroup
 import sh.hnet.music.ui.components.SettingsNavigationRow
@@ -535,14 +534,11 @@ private fun ValueSlider(position: Float, range: ClosedFloatingPointRange<Float> 
     )
 }
 
-/** A filter's number in the tonal box rows keep their icons in. */
+/** A filter's number in the circle rows keep their icons in. */
 @Composable
 private fun FilterNumber(number: Int) {
-    Box(
-        Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.secondaryContainer),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(number.toString(), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSecondaryContainer)
+    RowIconCircle {
+        Text(number.toString(), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
     }
 }
 

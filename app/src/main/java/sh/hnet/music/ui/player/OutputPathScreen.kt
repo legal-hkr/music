@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
@@ -266,7 +265,8 @@ private fun Stage(shapes: ListItemShapes, @DrawableRes icon: Int, name: String, 
 
 @Composable
 private fun IconBox(@DrawableRes icon: Int, container: Color, content: Color) {
-    Box(Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(container), contentAlignment = Alignment.Center) {
+    // A circle as the rows' RowIcon (the owner, 27 Nov 2026); its colors say whether the stage changes the sound
+    Box(Modifier.size(40.dp).clip(CircleShape).background(container), contentAlignment = Alignment.Center) {
         Icon(painterResource(icon), contentDescription = null, tint = content)
     }
 }
