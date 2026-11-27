@@ -44,12 +44,13 @@ class EqualizerTest {
     }
 
     @Test
-    fun `the iSine 10 preset peaks at 0 dB with its pre-amp`() {
-        val settings = BuiltInPresets.AUDEZE_ISINE_10.settings
-        assertEquals(0.0f, Equalizer.peakDb(settings), 0.11f)
-        // Without the pre-amp the peak is what the pre-amp takes away
-        assertEquals(6.3f, Equalizer.peakDb(settings.copy(preampDb = 0f)), 0.11f)
-        assertEquals(-6.3f, Equalizer.safePreamp(settings.copy(preampDb = 0f)), 0.11f)
+    fun `the safe pre-amp brings a correction's peak to 0 dB`() {
+        val raw = TestPresets.CORRECTION.copy(preampDb = 0f)
+        val peak = Equalizer.peakDb(raw)
+        assertTrue(peak > 0f)
+        // The safe pre-amp is what the peak asks for, and with it the peak is gone
+        assertEquals(-peak, Equalizer.safePreamp(raw), 0.11f)
+        assertEquals(0f, Equalizer.peakDb(raw.copy(preampDb = Equalizer.safePreamp(raw))), 0.11f)
     }
 
     @Test
@@ -86,7 +87,7 @@ class EqualizerTest {
 
     @Test
     fun `the audio path gives the response the curve shows`() {
-        val settings = BuiltInPresets.AUDEZE_ISINE_10.settings
+        val settings = TestPresets.CORRECTION
         for (frequency in doubleArrayOf(60.0, 320.0, 1000.0, 1492.0, 3000.0, 8000.0)) {
             val expected = Equalizer.response(settings, doubleArrayOf(frequency))[0]
             assertTrue("at $frequency Hz", abs(measured(settings, frequency) - expected) < 0.05)
@@ -123,18 +124,18 @@ class EqualizerTest {
 
     @Test
     fun `state changes keep the values in range and tell modified from saved`() {
-        var state = EqualizerState().withBuiltIn(BuiltInPresets.AUDEZE_ISINE_10)
+        var state = EqualizerState().savedAsNew("Headphones", 1, TestPresets.CORRECTION)
         assertFalse(state.modified)
         assertEquals(null, state.applied)
         state = state.copy(enabled = true).withPreamp(-40f)
         assertEquals(-20f, state.current.preampDb, 0f)
         assertTrue(state.modified)
         assertEquals(state.current, state.applied)
-        state = state.withPreamp(-6.3f)
+        state = state.withPreamp(-6f)
         assertFalse(state.modified)
         val removed = state.withoutFilter(1)
-        assertEquals(9, removed.current.filters.size)
-        assertEquals(listOf(66, 105, 320, 962), state.sortedByFrequency().current.filters.take(4).map { it.frequencyHz })
+        assertEquals(5, removed.current.filters.size)
+        assertEquals(listOf(105, 320, 962, 1500), state.sortedByFrequency().current.filters.take(4).map { it.frequencyHz })
         var full = EqualizerState()
         repeat(30) { full = full.withNewFilter() }
         assertEquals(Equalizer.MAX_FILTERS, full.current.filters.size)
@@ -142,7 +143,7 @@ class EqualizerTest {
 
     @Test
     fun `own presets are saved, renamed and deleted, and built-in ones can't be saved over`() {
-        var state = EqualizerState().withBuiltIn(BuiltInPresets.AUDEZE_ISINE_10).withPreamp(-8f)
+        var state = EqualizerState().withBuiltIn(BuiltInPresets.FLAT).withPreamp(-8f)
         assertTrue(state.modified)
         // Save does nothing on a built-in preset
         assertEquals(state, state.saved(1))
@@ -181,23 +182,23 @@ class EqualizerTest {
     fun `each device uses its own preset or the Other devices one, and the one playing now is heard`() {
         val buds = "bluetooth:Buds"
         val dac = "usb:DAC"
-        val isine = PresetRef(builtIn = BuiltInPresets.AUDEZE_ISINE_10.id)
+        val headphones = PresetRef(own = "Headphones")
         // Before a device is known the slot stands for it: what an earlier version's one preset becomes
-        var state = EqualizerState(enabled = true).withBuiltIn(BuiltInPresets.AUDEZE_ISINE_10)
-        assertEquals(isine, state.other)
+        var state = EqualizerState(enabled = true).savedAsNew("Headphones", 1, TestPresets.CORRECTION)
+        assertEquals(headphones, state.other)
         state = state.withDevice(buds)
-        assertEquals(isine, state.preset)
+        assertEquals(headphones, state.preset)
         // A choice is the device's playing now; the slot and other devices keep theirs
         state = state.withBuiltIn(BuiltInPresets.FLAT)
         assertEquals(PresetRef.FLAT, state.refFor(buds))
-        assertEquals(isine, state.refFor(dac))
+        assertEquals(headphones, state.refFor(dac))
         assertEquals(EqSettings(), state.applied)
         state = state.withDevice(dac)
-        assertEquals(BuiltInPresets.AUDEZE_ISINE_10.settings, state.applied)
+        assertEquals(TestPresets.CORRECTION, state.applied)
 
         // Ticked in Applies to: moved from its previous preset; unticked: back on the slot's
-        state = state.assigned(buds, isine)
-        assertEquals(setOf(buds), state.usedBy(isine))
+        state = state.assigned(buds, headphones)
+        assertEquals(setOf(buds), state.usedBy(headphones))
         assertEquals(emptySet<String>(), state.usedBy(PresetRef.FLAT))
         state = state.unassigned(buds).withOther(PresetRef.FLAT)
         assertEquals(PresetRef.FLAT, state.refFor(buds))
@@ -210,7 +211,7 @@ class EqualizerTest {
     fun `changes not saved yet stay with their preset for every device using it`() {
         val buds = "bluetooth:Buds"
         val dac = "usb:DAC"
-        var state = EqualizerState().withDevice(buds).withBuiltIn(BuiltInPresets.AUDEZE_ISINE_10).assigned(dac, PresetRef(builtIn = BuiltInPresets.AUDEZE_ISINE_10.id))
+        var state = EqualizerState().withDevice(buds).savedAsNew("Headphones", 1, TestPresets.CORRECTION).assigned(dac, PresetRef(own = "Headphones"))
         state = state.withPreamp(-9f)
         assertTrue(state.modified)
         // The other device hears them too, and they outlive this device's choice of another preset
@@ -252,7 +253,7 @@ class EqualizerTest {
 
     @Test
     fun `an earlier version's equalizer becomes the Other devices preset and Restore defaults clears every device`() {
-        val old = LegacyEqualizerState(enabled = true, preset = PresetRef(builtIn = BuiltInPresets.AUDEZE_ISINE_10.id), current = BuiltInPresets.AUDEZE_ISINE_10.settings.copy(preampDb = -7f)).migrated()
+        val old = LegacyEqualizerState(enabled = true, preset = PresetRef.FLAT, current = EqSettings(preampDb = -7f)).migrated()
         assertTrue(old.assigned.isEmpty())
         assertTrue(old.modified)
         assertEquals(-7f, old.withDevice("speaker").applied!!.preampDb, 0f)
@@ -260,7 +261,7 @@ class EqualizerTest {
         val unsaved = LegacyEqualizerState(preset = null, current = EqSettings(preampDb = -2f)).migrated()
         assertEquals(null, unsaved.preset)
         assertEquals(-2f, unsaved.current.preampDb, 0f)
-        val reset = old.withDevice("speaker").withBuiltIn(BuiltInPresets.AUDEZE_ISINE_10).savedAsNew("Mine", 1).restoredDefaults()
+        val reset = old.withDevice("speaker").withBuiltIn(BuiltInPresets.FLAT).savedAsNew("Mine", 1).restoredDefaults()
         assertFalse(reset.enabled)
         assertEquals(PresetRef.FLAT, reset.preset)
         assertEquals(1, reset.presets.size)
@@ -275,7 +276,7 @@ class EqualizerTest {
         val undone = before.withPreamp(-9f).undone(before)
         assertEquals(before, undone)
         // Another preset chosen for the device, then undone
-        val chosen = before.withBuiltIn(BuiltInPresets.AUDEZE_ISINE_10)
+        val chosen = before.withBuiltIn(BuiltInPresets.FLAT)
         assertEquals(setOf("speaker"), chosen.assigned.keys)
         assertEquals(before, chosen.undone(before))
         // After a change of output there is nothing of this device's to put back
@@ -291,19 +292,35 @@ class EqualizerTest {
     @Test
     fun `forgetting a device and Undo give back its preset with the changes not saved yet`() {
         val dac = "usb:DAC"
-        val isine = PresetRef(builtIn = BuiltInPresets.AUDEZE_ISINE_10.id)
-        // The device's own built-in preset with changes, which can't be saved into it
-        val before = EqualizerState().withDevice(dac).withBuiltIn(BuiltInPresets.AUDEZE_ISINE_10).withPreamp(-9f).withDevice("speaker")
+        val headphones = PresetRef(own = "Headphones")
+        // The device's own preset with changes not saved yet
+        val before = EqualizerState().withDevice(dac).savedAsNew("Headphones", 1, TestPresets.CORRECTION).withPreamp(-9f).withDevice("speaker")
         val forgotten = before.unassigned(dac)
         assertTrue(forgotten.edits.isEmpty())
         val back = forgotten.restoredDevice(dac, before)
-        assertEquals(isine, back.refFor(dac))
-        assertEquals(-9f, back.valuesOf(isine).preampDb, 0f)
+        assertEquals(headphones, back.refFor(dac))
+        assertEquals(-9f, back.valuesOf(headphones).preampDb, 0f)
         // Unsaved settings come back too
         val unsaved = EqualizerState().withDevice(dac).savedAsNew("Mine", 1, EqSettings(preampDb = -2f)).withoutPreset("Mine").withDevice("speaker")
         assertEquals(-2f, unsaved.unassigned(dac).restoredDevice(dac, unsaved).withDevice(dac).current.preampDb, 0f)
         // Something else chosen for it meanwhile: left alone
         val other = forgotten.assigned(dac, PresetRef.FLAT)
         assertEquals(other, other.restoredDevice(dac, before))
+    }
+
+    @Test
+    fun `a built-in preset this version doesn't have gives way to Flat`() {
+        val gone = PresetRef(builtIn = "audeze_isine_10")
+        val mine = PresetRef(own = "Mine")
+        val state = EqualizerState(enabled = true).savedAsNew("Mine", 1, EqSettings(preampDb = -3f))
+            .copy(other = gone, assigned = mapOf("usb:DAC" to gone, "speaker" to mine), edits = mapOf(gone.id to EqSettings(preampDb = -9f)))
+        val clean = state.withoutMissingBuiltIns()
+        assertEquals(PresetRef.FLAT, clean.other)
+        assertEquals(PresetRef.FLAT, clean.refFor("usb:DAC"))
+        assertEquals(mine, clean.refFor("speaker"))
+        assertTrue(clean.edits.isEmpty())
+        assertEquals(EqSettings(), clean.withDevice("usb:DAC").current)
+        // Nothing to do: the same state
+        assertEquals(clean, clean.withoutMissingBuiltIns())
     }
 }

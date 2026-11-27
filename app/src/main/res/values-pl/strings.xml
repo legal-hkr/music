@@ -588,8 +588,6 @@
     </plurals>
     <string name="label_flat">Płaski</string>
     <string name="msg_changes_discarded">Odrzucono zmiany</string>
-    <string name="title_preset_sources">Presety korektora</string>
-    <string name="desc_preset_source_isine_10">Na podstawie pomiarów oratory1990, w wersji opublikowanej przez Atrium Audio (atriumaudio.net)</string>
     <string name="title_your_presets">Własne</string>
     <string name="title_builtin_presets">Wbudowane</string>
     <string name="label_new_preset">Nowy preset</string>

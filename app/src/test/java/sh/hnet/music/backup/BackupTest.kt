@@ -4,7 +4,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import sh.hnet.music.equalizer.BuiltInPresets
 import sh.hnet.music.equalizer.EqualizerState
 import sh.hnet.music.equalizer.PresetRef
 import sh.hnet.music.output.DevicesState
@@ -74,7 +73,7 @@ class BackupTest {
     @Test
     fun `the equalizer travels in a backup and comes back within its limits`() {
         val mine = EqSettings(-3f, listOf(EqFilter(type = FilterType.LOW_SHELF, frequencyHz = 105, gainDb = 6.3f, q = 0.7f), EqFilter(enabled = false)))
-        val state = EqualizerState(enabled = true).withBuiltIn(BuiltInPresets.AUDEZE_ISINE_10).savedAsNew("Mine", 1_000, mine).withPreamp(-4f)
+        val state = EqualizerState(enabled = true).savedAsNew("Mine", 1_000, mine).withPreamp(-4f)
         val key = { name: String -> name.trim().lowercase() }
         val file = BackupFile(
             appVersion = "0.2.0", appVersionCode = 2, createdAt = "2026-11-10T10:00:00Z",
@@ -92,13 +91,13 @@ class BackupTest {
                 presetRef = BackupPresetRef(builtIn = "from_the_future"),
                 current = BackupEqValues(-99f, listOf(BackupEqFilter(type = "NOTCH"), BackupEqFilter(frequencyHz = 5, gainDb = 40f, q = 0f))),
             ),
-            listOf(BackupEqPreset("Evening"), BackupEqPreset("evening"), BackupEqPreset("Audeze iSine 10"), BackupEqPreset(" ")),
+            listOf(BackupEqPreset("Evening"), BackupEqPreset("evening"), BackupEqPreset(" ")),
             5, key,
         )
         assertEquals(null, odd.preset)
         assertEquals(-20f, odd.current.preampDb, 0f)
         assertEquals(listOf(EqFilter(frequencyHz = 20, gainDb = 20f, q = 0.1f)), odd.current.filters)
-        assertEquals(listOf("Evening", "evening (2)", "Audeze iSine 10 (2)"), odd.presets.map { it.name })
+        assertEquals(listOf("Evening", "evening (2)"), odd.presets.map { it.name })
         assertEquals(5L, odd.presets.first().changedAt)
     }
 
@@ -116,10 +115,11 @@ class BackupTest {
         val buds = AudioOutput(OutputKind.BLUETOOTH, "Beoplay EX")
         val speaker = AudioOutput(OutputKind.SPEAKER, "")
         val devices = DevicesState().played(speaker, 1_000).played(buds, 2_000).played(dac, 3_000).withBitPerfect(dac, true)
-        val isine = PresetRef(builtIn = BuiltInPresets.AUDEZE_ISINE_10.id)
+        val evening = PresetRef(own = "Evening")
         val state = EqualizerState(enabled = true)
             .withDevice(buds.key).savedAsNew("Mine", 1_000, EqSettings(preampDb = -3f)).withPreamp(-4f)
-            .assigned(dac.key, isine).withOther(isine)
+            .withDevice(dac.key).savedAsNew("Evening", 2_000, EqSettings(preampDb = -1f))
+            .withOther(evening).withDevice(buds.key)
         val file = BackupFile(
             appVersion = "0.3.0", appVersionCode = 4, createdAt = "2026-11-12T10:00:00Z",
             settings = BackupSettings(equalizer = EqualizerBackup.settings(state), output = EqualizerBackup.devices(devices, state)),
@@ -131,7 +131,7 @@ class BackupTest {
         // Which device plays now is no part of a backup
         assertEquals(state.withDevice(null), restored)
         assertEquals(-4f, restored.withDevice(buds.key).applied!!.preampDb, 0f)
-        assertEquals(isine, restored.refFor(speaker.key))
+        assertEquals(evening, restored.refFor(speaker.key))
 
         // A preset that isn't there leaves the device on the slot's preset and the slot on Flat; an unknown kind is left out
         val odd = BackupOutput(listOf(BackupDevice("USB", "DAC", bitPerfect = true, presetRef = BackupPresetRef(own = "Gone")), BackupDevice("HOLOGRAM", "X"), BackupDevice("BLUETOOTH", "Buds", bitPerfect = true)))

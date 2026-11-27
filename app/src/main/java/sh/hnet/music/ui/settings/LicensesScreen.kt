@@ -2,9 +2,6 @@
 
 package sh.hnet.music.ui.settings
 
-import android.content.ActivityNotFoundException
-import android.content.Intent
-import android.widget.Toast
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -21,16 +18,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import sh.hnet.music.R
-import sh.hnet.music.equalizer.BuiltInPresets
 import sh.hnet.music.ui.components.DialogConfirmButton
 import sh.hnet.music.ui.components.SettingsGroup
-import sh.hnet.music.ui.components.SettingsLinkRow
 import sh.hnet.music.ui.components.SettingsPage
 import sh.hnet.music.ui.components.settingsRowColors
 
@@ -52,12 +45,8 @@ private val COMPONENTS = listOf(
     "Apple Lossless Audio Codec (ALAC)",
 )
 
-/** Where the built-in Audeze iSine 10 preset's values were published; handed to the browser (the app has no network). */
-private const val ISINE_10_SOURCE = "atriumaudio.net/eq/audeze-isine-10"
-
 /**
- * Settings › About › Licenses (SPEC §11.6): each component and its license, the text on tap; then
- * where the built-in equalizer presets come from, with a link to the source (owner's decision).
+ * Settings › About › Licenses (SPEC §11.6): each component and its license, the text on tap.
  */
 @Composable
 fun LicensesScreen(onBack: () -> Unit) {
@@ -65,8 +54,6 @@ fun LicensesScreen(onBack: () -> Unit) {
     val licenseText = remember(resources) { resources.openRawResource(R.raw.apache_license_2_0).bufferedReader().use { it.readText() } }
     var showing by rememberSaveable { mutableStateOf(false) }
     val license = stringResource(R.string.label_apache_license)
-    val context = LocalContext.current
-    val noBrowser = stringResource(R.string.msg_no_browser)
     SettingsPage(title = stringResource(R.string.label_licenses), onBack = onBack) {
         SettingsGroup {
             COMPONENTS.forEach { name ->
@@ -78,17 +65,6 @@ fun LicensesScreen(onBack: () -> Unit) {
                         supportingContent = { Text(license) },
                     ) {
                         Text(name)
-                    }
-                }
-            }
-        }
-        SettingsGroup(stringResource(R.string.title_preset_sources)) {
-            row { shapes ->
-                SettingsLinkRow(shapes, R.drawable.ic_equalizer, BuiltInPresets.AUDEZE_ISINE_10.name.orEmpty(), stringResource(R.string.desc_preset_source_isine_10)) {
-                    try {
-                        context.startActivity(Intent(Intent.ACTION_VIEW, "https://$ISINE_10_SOURCE".toUri()))
-                    } catch (_: ActivityNotFoundException) {
-                        Toast.makeText(context, noBrowser, Toast.LENGTH_SHORT).show()
                     }
                 }
             }

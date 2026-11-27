@@ -4,7 +4,6 @@ import kotlinx.serialization.Serializable
 import sh.hnet.music.playback.EqFilter
 import sh.hnet.music.playback.EqSettings
 import sh.hnet.music.playback.Equalizer
-import sh.hnet.music.playback.FilterType
 
 /** A preset shipped with the app; [name] null for Flat, whose name comes from the resources. */
 class BuiltInPreset(val id: String, val name: String?, val maker: String?, val settings: EqSettings)
@@ -13,28 +12,8 @@ object BuiltInPresets {
     /** No filters, pre-amp 0: where the equalizer starts and what Restore defaults selects. */
     val FLAT = BuiltInPreset("flat", null, null, EqSettings())
 
-    /** From measurements by oratory1990 (see the open-source licenses page). */
-    val AUDEZE_ISINE_10 = BuiltInPreset(
-        "audeze_isine_10", "Audeze iSine 10", "Audeze",
-        EqSettings(
-            preampDb = -6.3f,
-            filters = listOf(
-                EqFilter(type = FilterType.LOW_SHELF, frequencyHz = 105, gainDb = 6.3f, q = 0.70f),
-                EqFilter(type = FilterType.PEAK, frequencyHz = 1492, gainDb = -7.7f, q = 2.39f),
-                EqFilter(type = FilterType.PEAK, frequencyHz = 2987, gainDb = 7.9f, q = 0.64f),
-                EqFilter(type = FilterType.PEAK, frequencyHz = 962, gainDb = -6.0f, q = 1.06f),
-                EqFilter(type = FilterType.PEAK, frequencyHz = 320, gainDb = -1.6f, q = 0.52f),
-                EqFilter(type = FilterType.HIGH_SHELF, frequencyHz = 10000, gainDb = -3.6f, q = 0.70f),
-                EqFilter(type = FilterType.PEAK, frequencyHz = 5667, gainDb = 2.6f, q = 4.13f),
-                EqFilter(type = FilterType.PEAK, frequencyHz = 3371, gainDb = -1.3f, q = 5.04f),
-                EqFilter(type = FilterType.PEAK, frequencyHz = 66, gainDb = 0.3f, q = 1.85f),
-                EqFilter(type = FilterType.PEAK, frequencyHz = 2397, gainDb = 0.6f, q = 4.30f),
-            ),
-        ),
-    )
-
-    /** Flat first, then the shipped presets. */
-    val all = listOf(FLAT, AUDEZE_ISINE_10)
+    /** The presets shipped with the app: Flat only, since the Audeze iSine 10 one went (owner's decision 27.11.2026). */
+    val all = listOf(FLAT)
 
     fun byId(id: String?): BuiltInPreset? = all.firstOrNull { it.id == id }
 }
@@ -110,6 +89,16 @@ data class EqualizerState(
         ref.isUnsaved -> copy(unsaved = values)
         values == saved -> copy(edits = edits - ref.id)
         else -> copy(edits = edits + (ref.id to values))
+    }
+
+    /**
+     * A built-in preset this version doesn't have (Audeze iSine 10, removed 27.11.2026) gives way to Flat wherever it
+     * was chosen, its changes not saved with it: otherwise the page would call its devices' values "Unsaved settings".
+     */
+    fun withoutMissingBuiltIns(): EqualizerState {
+        fun known(ref: PresetRef) = if (ref.builtIn != null && BuiltInPresets.byId(ref.builtIn) == null) PresetRef.FLAT else ref
+        if ((assigned.values + other).all { known(it) == it }) return this
+        return copy(other = known(other), assigned = assigned.mapValues { known(it.value) }).tidy()
     }
 
     /** The device playing now (or, while unknown, the slot) uses [new]. */

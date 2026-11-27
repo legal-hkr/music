@@ -1,5 +1,7 @@
 package sh.hnet.music.playback
 
+import androidx.media3.common.Format
+import androidx.media3.decoder.SimpleDecoderOutputBuffer
 import java.nio.ByteBuffer
 import java.security.MessageDigest
 import java.util.Random
@@ -80,7 +82,7 @@ class AlacDecoderTest {
 
     @Test
     fun `damaged frames are an error, never a crash`() {
-        val random = java.util.Random(1)
+        val random = Random(1)
         for (v in vectors) {
             val mp4 = Mp4(javaClass.getResourceAsStream("/alac/${v.name}.m4a")!!.readBytes())
             val config = AlacConfig.parse(mp4.cookie)
@@ -126,7 +128,7 @@ class AlacDecoderTest {
     fun `through Media3's decoder the output is the same`() {
         val v = vectors.first { it.name == "s24_stereo_96k" }
         val mp4 = Mp4(javaClass.getResourceAsStream("/alac/${v.name}.m4a")!!.readBytes())
-        val decoder = AlacMediaDecoder(AlacConfig.parse(mp4.cookie), androidx.media3.common.Format.NO_VALUE)
+        val decoder = AlacMediaDecoder(AlacConfig.parse(mp4.cookie), Format.NO_VALUE)
         val digest = MessageDigest.getInstance("SHA-256")
         try {
             for ((index, sample) in mp4.samples.withIndex()) {
@@ -154,7 +156,7 @@ class AlacDecoderTest {
     fun `through Media3, a damaged frame plays as silence and a run of them is an error`() {
         val mp4 = Mp4(javaClass.getResourceAsStream("/alac/s16_stereo_44k.m4a")!!.readBytes())
         val config = AlacConfig.parse(mp4.cookie)
-        val decoder = AlacMediaDecoder(config, androidx.media3.common.Format.NO_VALUE)
+        val decoder = AlacMediaDecoder(config, Format.NO_VALUE)
         val junk = ByteArray(40) { 0x7f }
         fun queue(bytes: ByteArray) {
             val input = decoder.dequeueInputBuffer()!!
@@ -182,7 +184,7 @@ class AlacDecoderTest {
         }
     }
 
-    private fun AlacMediaDecoder.next(): androidx.media3.decoder.SimpleDecoderOutputBuffer {
+    private fun AlacMediaDecoder.next(): SimpleDecoderOutputBuffer {
         while (true) {
             dequeueOutputBuffer()?.let { return it }
             Thread.sleep(1)

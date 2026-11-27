@@ -43,8 +43,9 @@ class EqualizerStore(private val file: File, private val scope: CoroutineScope) 
     private fun load(): EqualizerState = try {
         if (file.exists()) {
             val text = file.readText()
-            if ("assigned" in json.parseToJsonElement(text).jsonObject) json.decodeFromString(EqualizerState.serializer(), text)
+            val state = if ("assigned" in json.parseToJsonElement(text).jsonObject) json.decodeFromString(EqualizerState.serializer(), text)
             else json.decodeFromString(LegacyEqualizerState.serializer(), text).migrated()
+            state.withoutMissingBuiltIns()
         } else {
             EqualizerState()
         }

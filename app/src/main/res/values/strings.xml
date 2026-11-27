@@ -537,8 +537,6 @@
     </plurals>
     <string name="label_flat">Flat</string>
     <string name="msg_changes_discarded">Changes discarded</string>
-    <string name="title_preset_sources">Equalizer presets</string>
-    <string name="desc_preset_source_isine_10">Based on measurements by oratory1990, as published by Atrium Audio (atriumaudio.net)</string>
     <string name="title_your_presets">Your own</string>
     <string name="title_builtin_presets">Built-in</string>
     <string name="label_new_preset">New preset</string>

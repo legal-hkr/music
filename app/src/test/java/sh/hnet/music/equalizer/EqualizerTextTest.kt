@@ -38,11 +38,11 @@ class EqualizerTextTest {
 
     @Test
     fun `what is written reads back the same, name and switched-off filters included`() {
-        BuiltInPresets.all.forEach { preset ->
-            val settings = preset.settings.copy(filters = preset.settings.filters.mapIndexed { i, f -> f.copy(enabled = i % 2 == 0) })
-            val parsed = EqualizerText.parse(EqualizerText.write("Audeze iSine 10", settings))!!
+        listOf(EqSettings(), TestPresets.CORRECTION).forEach { preset ->
+            val settings = preset.copy(filters = preset.filters.mapIndexed { i, f -> f.copy(enabled = i % 2 == 0) })
+            val parsed = EqualizerText.parse(EqualizerText.write("Planar IEM 10", settings))!!
             assertEquals(settings, parsed.settings)
-            assertEquals("Audeze iSine 10", parsed.name)
+            assertEquals("Planar IEM 10", parsed.name)
         }
     }
 
@@ -82,7 +82,7 @@ class EqualizerTextTest {
     @Test
     fun `file and preset names`() {
         val date = GregorianCalendar(2026, 10, 10, 14, 30, 5).time
-        assertEquals("music_eq_audeze_isine_10_20261110_143005.txt", EqualizerText.fileName("Audeze iSine 10", date))
+        assertEquals("music_eq_planar_iem_10_20261110_143005.txt", EqualizerText.fileName("Planar IEM 10", date))
         assertEquals("music_eq_słuchawki_2_20261110_143005.txt", EqualizerText.fileName("  Słuchawki / (2) ", date))
         assertEquals("music_eq_preset_20261110_143005.txt", EqualizerText.fileName("???", date))
         val plain = EqualizerText.parse("Preamp: 0 dB")!!
