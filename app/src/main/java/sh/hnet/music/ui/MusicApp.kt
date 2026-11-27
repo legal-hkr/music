@@ -644,8 +644,8 @@ fun MusicApp(openNowPlaying: Int = 0, openPlaylist: Pair<Int, Long> = 0 to -1L) 
                             else if (shown != null && shown.startsWith(DEVICE_PAGE)) DeviceScreen(
                                 shown.removePrefix(DEVICE_PAGE),
                                 onBack = { leaveSettings() },
-                                // The equalizer's page lies under this one
-                                onOpenEqualizer = { settingsOpen = null; equalizerForDevice = true; equalizerOpen = true },
+                                // The equalizer's page lies under this one; from the output page, whose Equalizer step leads there, none
+                                onOpenEqualizer = if (deviceFromPlayer) null else ({ settingsOpen = null; equalizerForDevice = true; equalizerOpen = true }),
                                 snackbars = snackbars,
                                 messageScope = scope,
                                 topInsets = false,

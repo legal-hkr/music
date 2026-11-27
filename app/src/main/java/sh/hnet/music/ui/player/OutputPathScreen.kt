@@ -70,7 +70,7 @@ import sh.hnet.music.ui.settings.streamText
  * decision); colour marks what changes the sound (§A5.2).
  *
  * @param details Null with an empty queue: only the device and the switcher show
- * @param onOpenDevice The device's page in Settings › Output, by its key
+ * @param onOpenDevice A USB device's page in Settings › Output, by its key (without its Equalizer group)
  */
 @Composable
 fun OutputPathScreen(
@@ -166,12 +166,16 @@ fun OutputPathScreen(
             if (output != null) {
                 Step(outputIcon(output.kind), stringResource(R.string.title_step_to_device), NodeLook.END, last = true) {
                     SettingsGroup {
+                        // Only a USB device's page has more to show here – the bit-perfect switch and formats (owner's decision 27.11.2026)
+                        val usb = output.kind == OutputKind.USB
                         row { shapes ->
                             SegmentedListItem(
-                                onClick = { onOpenDevice(output.key) },
+                                onClick = { if (usb) onOpenDevice(output.key) },
                                 shapes = shapes,
                                 colors = settingsRowColors(),
-                                trailingContent = { Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = null) },
+                                trailingContent = if (usb) {
+                                    { Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = null) }
+                                } else null,
                                 supportingContent = path?.let { { Text(routeText(output, it.route)) } },
                             ) {
                                 Text(outputName(output))

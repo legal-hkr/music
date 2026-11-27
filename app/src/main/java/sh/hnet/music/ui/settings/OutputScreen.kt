@@ -213,13 +213,15 @@ private fun DeviceRow(device: Device, view: OutputsView, shapes: ListItemShapes,
  * A device's page (SPEC-output §5–§7): for a USB device its bit-perfect switch, what is being sent
  * and the formats it takes; for every device its equalizer preset; Forget for one not connected.
  *
+ * @param onOpenEqualizer Null: no Equalizer group – opened from the output page over now playing,
+ *   whose Equalizer step already shows the preset and leads there (owner's decision 27.11.2026)
  * @param messageScope outlives the page, for the snackbar with Undo
  */
 @Composable
 fun DeviceScreen(
     key: String,
     onBack: () -> Unit,
-    onOpenEqualizer: () -> Unit,
+    onOpenEqualizer: (() -> Unit)?,
     snackbars: SnackbarHostState,
     messageScope: CoroutineScope,
     topInsets: Boolean = true,
@@ -283,7 +285,7 @@ fun DeviceScreen(
                 }
             }
         }
-        SettingsGroup(stringResource(R.string.title_equalizer)) {
+        if (onOpenEqualizer != null) SettingsGroup(stringResource(R.string.title_equalizer)) {
             row { shapes ->
                 val preset = presetName(view.equalizer, view.equalizer.refFor(key))
                 val supporting = when {
