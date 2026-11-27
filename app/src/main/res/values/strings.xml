@@ -61,6 +61,7 @@
     <string name="msg_skipped_dsd">This DSD file isn’t supported (DST compression, for example).</string>
     <string name="msg_skipped_format">This format isn’t supported.</string>
     <string name="msg_skipped_drm">Copy-protected files can’t be played.</string>
+    <string name="msg_skipped_no_decoder">This format isn’t supported on this phone.</string>
     <string name="msg_skipped_damaged">The file is damaged or incomplete.</string>
     <string name="msg_skipped_unreadable">Music couldn’t open this file.</string>
     <string name="msg_no_skipped_files">Every file in this folder plays.</string>
@@ -697,4 +698,13 @@
     <string name="desc_widget_most_played">Covers of your most played albums</string>
     <string name="content_description_widget_most_played">Most played albums: %s</string>
     <string name="content_description_widget_no_albums">Most played albums. Opens Music</string>
+    <!-- A track the player couldn't play and skipped (or stopped at); %1$s the track's title, %2$s the format's name (ALAC, MP2) -->
+    <string name="error_play_no_decoder"><![CDATA[Couldn’t play <b>%1$s</b>: %2$s isn’t supported on this phone.]]></string>
+    <string name="error_play_no_decoder_unknown"><![CDATA[Couldn’t play <b>%1$s</b>: its format isn’t supported on this phone.]]></string>
+    <string name="error_play_missing"><![CDATA[Couldn’t play <b>%1$s</b>: the file no longer exists.]]></string>
+    <string name="error_play_no_access"><![CDATA[Couldn’t play <b>%1$s</b>: the app no longer has access to the file’s folder.]]></string>
+    <string name="error_play_damaged"><![CDATA[Couldn’t play <b>%1$s</b>: the file is damaged or incomplete.]]></string>
+    <string name="error_play_output"><![CDATA[Couldn’t play <b>%1$s</b>: the audio output isn’t responding.]]></string>
+    <string name="error_play_failed"><![CDATA[Couldn’t play <b>%1$s</b>.]]></string>
+    <string name="error_play_nothing">Couldn’t play any track in the queue.</string>
 </resources>

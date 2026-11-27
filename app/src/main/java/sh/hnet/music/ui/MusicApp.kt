@@ -71,7 +71,10 @@ import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.text.htmlEncode
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
@@ -81,6 +84,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import java.util.Locale
 import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -89,6 +93,7 @@ import sh.hnet.music.R
 import sh.hnet.music.about.WhatsNew
 import sh.hnet.music.data.LibraryTrack
 import sh.hnet.music.library.Albums
+import sh.hnet.music.playback.PlaybackProblem
 import sh.hnet.music.ui.components.LocalBottomOverlay
 import sh.hnet.music.ui.components.TrackNavigation
 import sh.hnet.music.ui.components.formatCount
@@ -270,6 +275,21 @@ fun MusicApp(openNowPlaying: Int = 0, openPlaylist: Pair<Int, Long> = 0 to -1L) 
             while (settings.size > 1) settings.removeAt(settings.lastIndex)
             settings.add(Screen.SettingsAbout)
             settings.add(Screen.SettingsWhatsNew)
+        }
+    }
+    // Tracks the service couldn't play: it skipped them (or stopped at the last one); a newer one replaces the shown one
+    val problemTexts = PlaybackProblem.Kind.entries.associateWith { stringResource(it.message()) }
+    val noDecoderUnknown = stringResource(R.string.error_play_no_decoder_unknown)
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    LaunchedEffect(playerModel, lifecycle) {
+        // Only while the app is on screen: one collected in the background would show when the app came back
+        lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            playerModel.player.problems.collectLatest { problem ->
+            val title = problem.title.orEmpty().htmlEncode()
+            val template = if (problem.kind == PlaybackProblem.Kind.NO_DECODER && problem.format == null) noDecoderUnknown else problemTexts.getValue(problem.kind)
+            val text = AnnotatedString.fromHtml(if (problem.kind == PlaybackProblem.Kind.NO_DECODER) template.format(title, problem.format) else template.format(title)).text
+            snackbars.showSnackbar(text, duration = SnackbarDuration.Short)
+            }
         }
     }
     LibraryMessages(library) { message ->
@@ -684,3 +704,14 @@ private const val DEVICE_PAGE = "device:"
 
 /** Settings › Playback over now playing, opened at its DSD group (the output page's DSD step). */
 private const val PLAYBACK_AT_DSD = "playback:dsd"
+
+/** The snackbar's sentence for each kind of failed track (the title in bold; NO_DECODER also names the format). */
+private fun PlaybackProblem.Kind.message(): Int = when (this) {
+    PlaybackProblem.Kind.NO_DECODER -> R.string.error_play_no_decoder
+    PlaybackProblem.Kind.MISSING -> R.string.error_play_missing
+    PlaybackProblem.Kind.NO_ACCESS -> R.string.error_play_no_access
+    PlaybackProblem.Kind.DAMAGED -> R.string.error_play_damaged
+    PlaybackProblem.Kind.OUTPUT -> R.string.error_play_output
+    PlaybackProblem.Kind.FAILED -> R.string.error_play_failed
+    PlaybackProblem.Kind.NOTHING_PLAYS -> R.string.error_play_nothing
+}

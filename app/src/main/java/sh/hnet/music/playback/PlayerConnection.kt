@@ -9,9 +9,16 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionError
+import androidx.media3.session.SessionResult
 import androidx.media3.session.SessionToken
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import sh.hnet.music.data.LibraryTrack
 
@@ -61,6 +68,18 @@ class PlayerConnection(private val context: Context) {
 
     private val _queue = MutableStateFlow(QueueSnapshot())
     val queue: StateFlow<QueueSnapshot> = _queue.asStateFlow()
+
+    private val _problems = MutableSharedFlow<PlaybackProblem>(extraBufferCapacity = 8)
+    /** Tracks the service couldn't play; only while someone collects (the app on screen), nothing is kept for later. */
+    val problems: SharedFlow<PlaybackProblem> = _problems.asSharedFlow()
+
+    private val controllerListener = object : MediaController.Listener {
+        override fun onCustomCommand(controller: MediaController, command: SessionCommand, args: Bundle): ListenableFuture<SessionResult> {
+            if (command.customAction != PlaybackProblem.ACTION) return Futures.immediateFuture(SessionResult(SessionError.ERROR_NOT_SUPPORTED))
+            PlaybackProblem.from(args)?.let { _problems.tryEmit(it) }
+            return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+        }
+    }
 
     private val listener = object : Player.Listener {
         override fun onEvents(player: Player, events: Player.Events) {
@@ -120,7 +139,7 @@ class PlayerConnection(private val context: Context) {
         if (connecting) return
         connecting = true
         val token = SessionToken(context, ComponentName(context, PlaybackService::class.java))
-        val future = MediaController.Builder(context, token).buildAsync()
+        val future = MediaController.Builder(context, token).setListener(controllerListener).buildAsync()
         future.addListener({
             connecting = false
             val connected = runCatching { future.get() }.getOrNull() ?: run { pending.clear(); return@addListener }

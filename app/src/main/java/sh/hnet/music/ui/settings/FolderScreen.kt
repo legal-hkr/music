@@ -51,12 +51,14 @@ private fun SkippedFile.extension() = relativePath.substringAfterLast('.', "").l
 private fun SkippedFile.group(): SkipGroup = when (reason) {
     SkipReason.PROTECTED -> SkipGroup.DRM
     SkipReason.UNREADABLE -> SkipGroup.UNREADABLE
+    SkipReason.NO_DECODER -> SkipGroup.NOT_SUPPORTED
     SkipReason.UNSUPPORTED -> if (extension() in READABLE) SkipGroup.UNREADABLE else SkipGroup.NOT_SUPPORTED
 }
 
 private fun SkippedFile.message(): Int = when {
     reason == SkipReason.PROTECTED -> R.string.msg_skipped_drm
     reason == SkipReason.UNREADABLE -> R.string.msg_skipped_unreadable
+    reason == SkipReason.NO_DECODER -> R.string.msg_skipped_no_decoder
     extension() in READABLE -> R.string.msg_skipped_damaged
     extension() in DSD -> R.string.msg_skipped_dsd
     else -> R.string.msg_skipped_format

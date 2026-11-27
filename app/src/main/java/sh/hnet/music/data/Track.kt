@@ -86,6 +86,9 @@ enum class SkipReason {
 
     /** Couldn't be opened. */
     UNREADABLE,
+
+    /** Read, but this phone has no decoder for its format (MP1, MP2 – PlatformDecoders); read again when that changes. */
+    NO_DECODER,
 }
 
 /** A file that looked like audio but isn't in the library; kept so unchanged ones aren't read again. */

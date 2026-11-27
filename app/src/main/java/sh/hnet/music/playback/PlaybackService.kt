@@ -8,6 +8,7 @@ import androidx.media3.common.C
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
+import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
@@ -54,8 +55,8 @@ class PlaybackService : MediaSessionService() {
     @Volatile private var dsdPcmRate = DSD_PCM_RATES.first()
     @Volatile private var dsdBoost = true
     @Volatile private var countPlays = true
-    /** Files that failed one after another with nothing playing in between. */
-    private var failedInARow = 0
+    /** Queue positions that failed with nothing playing in between: skipping stops when the next one is among them. */
+    private val failed = HashSet<Int>()
     /** The last Clear queue, until its Undo or the next one. */
     private var cleared: ClearedQueue? = null
 
@@ -115,12 +116,19 @@ class PlaybackService : MediaSessionService() {
             // A new queue while shuffle is on (Shuffle on an album, or anything played shuffled):
             // shuffled from its first track the moment it is the player's
             override fun onTimelineChanged(timeline: Timeline, reason: Int) {
-                if (reason == Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED && player.shuffleModeEnabled && player.mediaItemCount > 0 &&
-                    (player.shuffleOrder as? QueueShuffleOrder)?.fresh == true
-                ) shuffleFromCurrent(player)
+                if (reason != Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED) return
+                // Positions mean other tracks now, and a changed queue is another try
+                failed.clear()
+                if (player.shuffleModeEnabled && player.mediaItemCount > 0 && (player.shuffleOrder as? QueueShuffleOrder)?.fresh == true) shuffleFromCurrent(player)
             }
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                if (isPlaying) failedInARow = 0
+
+            // A file whose audio no decoder on this phone takes: Media3 plays it as silence, with no error. It is
+            // skipped as a failed one (owner's decision 27.11.2026: nothing plays silently, nothing is skipped silently)
+            override fun onTracksChanged(tracks: Tracks) = skipIfSilent(player, tracks)
+
+            // Play on a track stopped at for want of a decoder: tried again, and said again, rather than silence
+            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                if (playWhenReady) skipIfSilent(player, player.currentTracks)
             }
 
             override fun onEvents(player: Player, events: Player.Events) {
@@ -136,15 +144,17 @@ class PlaybackService : MediaSessionService() {
                 if (events.contains(Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED)) gainSink.shuffle = player.shuffleModeEnabled
             }
 
-            // A file that can't be played (gone, unreadable) is skipped rather than stopping the queue –
-            // but not round and round when nothing in it plays (repeat all over unreadable files)
+            // A file that can't be played (gone, unreadable) is skipped rather than stopping the queue
             override fun onPlayerError(error: PlaybackException) {
-                failedInARow++
-                if (failedInARow < player.mediaItemCount && player.hasNextMediaItem()) {
-                    player.seekToNextMediaItem()
-                    player.prepare()
-                    player.play()
+                // The output, not the file: every next track would fail the same way, so it stops here
+                if (PlaybackProblem.isOutputError(error.errorCode)) {
+                    player.pause()
+                    report(PlaybackProblem(PlaybackProblem.Kind.OUTPUT, player.currentMediaItem?.mediaMetadata?.title?.toString()))
+                    return
                 }
+                // Access to the folder lost: SAF says so with a SecurityException, which Media3 reports as an unspecified IO error
+                val noAccess = generateSequence<Throwable>(error) { it.cause }.any { it is SecurityException }
+                skipFailed(player, if (noAccess) PlaybackProblem.Kind.NO_ACCESS else PlaybackProblem.kindOf(error.errorCode))
             }
         })
         scope.launch {
@@ -213,10 +223,57 @@ class PlaybackService : MediaSessionService() {
             while (true) {
                 delay(TICK_MS)
                 if (!player.isPlaying) continue
+                // A track that really plays ends a run of failures (not the moment a skipped one starts: a file
+                // without a decoder is "playing" until its tracks are known)
+                if (player.currentPosition >= TICK_MS) failed.clear()
                 counter.check()
                 if (++tick % (SAVE_EVERY_MS / TICK_MS) == 0L) scheduleSave()
             }
         }
+    }
+
+    /**
+     * The current track failed ([kind]): the next one plays, and Music's controller is told, so the app shows it.
+     * Not round and round when nothing in the queue plays (repeat all over unreadable files): it stops when the next
+     * track already failed since something last played, and says so when that is every track.
+     */
+    private fun skipFailed(player: ExoPlayer, kind: PlaybackProblem.Kind, format: String? = null) {
+        val title = player.currentMediaItem?.mediaMetadata?.title?.toString()
+        val first = failed.add(player.currentMediaItemIndex)
+        val next = player.nextMediaItemIndex
+        if (next != C.INDEX_UNSET && next !in failed) {
+            report(PlaybackProblem(kind, title, format))
+            // playWhenReady stays as it was: a queue restored paused (a failed file at start) stays paused
+            player.seekToNextMediaItem()
+            player.prepare()
+            return
+        }
+        // Without a decoder the player would go on through silence
+        if (kind == PlaybackProblem.Kind.NO_DECODER) player.pause()
+        // Said again when it is tried again (Play), not when the output reopens under a track already stopped at
+        if (!first && !player.playWhenReady) return
+        val everything = player.mediaItemCount > 1 && failed.size >= player.mediaItemCount
+        report(if (everything) PlaybackProblem(PlaybackProblem.Kind.NOTHING_PLAYS, null) else PlaybackProblem(kind, title, format))
+    }
+
+    /**
+     * A file whose audio no decoder on this phone takes (or that has no audio at all): Media3 plays it as silence,
+     * with no error. It is skipped as a failed one (owner's decision 27.11.2026: nothing plays silently, nothing is
+     * skipped silently). Tracks.EMPTY (no groups) is a track not prepared yet.
+     */
+    private fun skipIfSilent(player: ExoPlayer, tracks: Tracks) {
+        if (tracks.isEmpty || tracks.isTypeSelected(C.TRACK_TYPE_AUDIO)) return
+        val format = tracks.groups.firstOrNull { it.type == C.TRACK_TYPE_AUDIO }?.getTrackFormat(0)
+        skipFailed(player, PlaybackProblem.Kind.NO_DECODER, PlaybackProblem.formatName(format?.sampleMimeType))
+    }
+
+    /** To Music's own controllers only: a notification or a car's controller has no use for it. */
+    private fun report(problem: PlaybackProblem) {
+        val current = session ?: return
+        val args = problem.toBundle()
+        current.connectedControllers
+            .filter { it.packageName == packageName && !current.isMediaNotificationController(it) }
+            .forEach { current.sendCustomCommand(it, PlaybackProblem.COMMAND, args) }
     }
 
     /** The queue as it stands; null when empty. Main thread (reads the player). */

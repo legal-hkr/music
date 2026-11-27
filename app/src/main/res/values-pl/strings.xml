@@ -71,6 +71,7 @@
     <string name="msg_skipped_dsd">Ten plik DSD nie jest obsługiwany (np. kompresja DST).</string>
     <string name="msg_skipped_format">Ten format nie jest obsługiwany.</string>
     <string name="msg_skipped_drm">Plików z zabezpieczeniem przed kopiowaniem nie da się odtworzyć.</string>
+    <string name="msg_skipped_no_decoder">Ten telefon nie obsługuje tego formatu.</string>
     <string name="msg_skipped_damaged">Plik jest uszkodzony albo niekompletny.</string>
     <string name="msg_skipped_unreadable">Nie udało się otworzyć tego pliku.</string>
     <string name="msg_no_skipped_files">Wszystkie pliki z tego folderu dają się odtworzyć.</string>
@@ -752,4 +753,13 @@
     <string name="desc_widget_most_played">Okładki najczęściej odtwarzanych albumów</string>
     <string name="content_description_widget_most_played">Najczęściej odtwarzane albumy: %s</string>
     <string name="content_description_widget_no_albums">Najczęściej odtwarzane albumy. Otwiera aplikację</string>
+    <!-- A track the player couldn't play and skipped (or stopped at); %1$s the track's title, %2$s the format's name (ALAC, MP2) -->
+    <string name="error_play_no_decoder"><![CDATA[Nie udało się odtworzyć utworu <b>%1$s</b>: ten telefon nie obsługuje formatu %2$s.]]></string>
+    <string name="error_play_no_decoder_unknown"><![CDATA[Nie udało się odtworzyć utworu <b>%1$s</b>: ten telefon nie obsługuje formatu tego pliku.]]></string>
+    <string name="error_play_missing"><![CDATA[Nie udało się odtworzyć utworu <b>%1$s</b>: plik już nie istnieje.]]></string>
+    <string name="error_play_no_access"><![CDATA[Nie udało się odtworzyć utworu <b>%1$s</b>: aplikacja nie ma już dostępu do folderu z tym plikiem.]]></string>
+    <string name="error_play_damaged"><![CDATA[Nie udało się odtworzyć utworu <b>%1$s</b>: plik jest uszkodzony albo niekompletny.]]></string>
+    <string name="error_play_output"><![CDATA[Nie udało się odtworzyć utworu <b>%1$s</b>: wyjście dźwięku nie odpowiada.]]></string>
+    <string name="error_play_failed"><![CDATA[Nie udało się odtworzyć utworu <b>%1$s</b>.]]></string>
+    <string name="error_play_nothing">Nie udało się odtworzyć żadnego utworu z kolejki.</string>
 </resources>

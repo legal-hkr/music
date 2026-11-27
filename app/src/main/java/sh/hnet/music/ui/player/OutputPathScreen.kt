@@ -114,7 +114,8 @@ fun OutputPathScreen(
                     SoundPath.Input(
                         dsdRate = it.sampleRate.takeIf { _ -> it.codec == AudioCodec.DSD },
                         sampleRate = it.sampleRate,
-                        bits = it.bitsPerSample.takeIf { _ -> it.codec != AudioCodec.DSD },
+                        // Music's ALAC decoder hands 20-bit samples on as 24-bit ones (the low bits zero), carried exactly
+                        bits = it.bitsPerSample.takeIf { _ -> it.codec != AudioCodec.DSD }?.let { b -> if (it.codec == AudioCodec.ALAC && b == 20) 24 else b },
                         channels = it.channels,
                         usbSwitchOn = usbSwitchOn,
                         stream = stream,

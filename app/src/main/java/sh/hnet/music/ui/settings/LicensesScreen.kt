@@ -48,6 +48,8 @@ private val COMPONENTS = listOf(
     "JSpecify",
     "JetBrains Java Annotations",
     "Material Symbols",
+    // Music's ALAC decoder (playback/Alac.kt) follows Apple's reference decoder
+    "Apple Lossless Audio Codec (ALAC)",
 )
 
 /** Where the built-in Audeze iSine 10 preset's values were published; handed to the browser (the app has no network). */

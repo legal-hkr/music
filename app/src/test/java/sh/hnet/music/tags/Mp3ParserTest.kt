@@ -119,6 +119,17 @@ class Mp3ParserTest {
     }
 
     @Test
+    fun layerTwoNeedsFourFramesInARow() {
+        // MPEG 1 Layer II, 128 kbps, 44.1 kHz: also 417 bytes per frame
+        val layer2 = byteArrayOf(0xFF.toByte(), 0xFD.toByte(), 0x80.toByte(), 0x00)
+        fun frames(count: Int) = bytes { repeat(count) { bytes(layer2); zeros(frameLength - 4) } }
+        assertEquals(AudioCodec.MP2, TagParser.parse(ByteArraySource(frames(6)))?.properties?.codec)
+        // Two Layer II frames by chance in junk, then the real MP3: not taken for MP2 (GH #8 would hide the file)
+        val chance = frames(2) + ByteArray(500) { 0x11 } + plainFrames(6)
+        assertEquals(AudioCodec.MP3, TagParser.parse(ByteArraySource(chance))?.properties?.codec)
+    }
+
+    @Test
     fun noiseIsNotAudio() {
         val noise = ByteArray(20_000) { (it * 31 + 7).toByte() }
         assertNull(TagParser.parse(ByteArraySource(noise)))

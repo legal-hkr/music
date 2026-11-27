@@ -41,6 +41,9 @@ class ReplayGainRenderersFactory(context: Context, private val sink: ReplayGainS
         eventListener: AudioRendererEventListener,
         out: ArrayList<Renderer>,
     ) {
+        // First: ALAC goes to Music's own decoder even on phones with one of their own (owner's decision 27.11.2026,
+        // GH #8 – one decoder tested bit for bit everywhere); the track selector takes the first renderer that handles a format
+        out.add(AlacRenderer(eventHandler, eventListener, sink))
         out.add(ReplayGainRenderer(context, codecAdapterFactory, mediaCodecSelector, enableDecoderFallback, eventHandler, eventListener, sink))
     }
 
@@ -57,9 +60,8 @@ class ReplayGainRenderersFactory(context: Context, private val sink: ReplayGainS
 }
 
 /**
- * Tells the sink which track's samples come next. A stream (one queue item) is identified by its
- * offset: noted when the decoder starts reading it, applied when its first sample reaches the output
- * (the decoder reads ahead, so the two moments differ by everything still buffered).
+ * Media3's renderer over the phone's decoders, telling the sink which track each stream is
+ * (ReplayGainSink.noteStream) as the decoder starts reading it.
  */
 private class ReplayGainRenderer(
     context: Context,
@@ -70,33 +72,27 @@ private class ReplayGainRenderer(
     listener: AudioRendererEventListener,
     private val gainSink: ReplayGainSink,
 ) : MediaCodecAudioRenderer(context, codecAdapterFactory, selector, fallback, handler, listener, gainSink) {
-    private val streams = HashMap<Long, TrackGain?>()
-
     override fun onStreamChanged(formats: Array<out Format>, startPositionUs: Long, offsetUs: Long, mediaPeriodId: MediaSource.MediaPeriodId) {
         // Before super: the first stream's output starts inside it
-        streams[offsetUs] = trackGain(timeline, mediaPeriodId)
+        gainSink.noteStream(this, offsetUs, trackGain(timeline, mediaPeriodId))
         super.onStreamChanged(formats, startPositionUs, offsetUs, mediaPeriodId)
     }
 
-    override fun onOutputStreamOffsetUsChanged(outputStreamOffsetUs: Long) {
-        super.onOutputStreamOffsetUsChanged(outputStreamOffsetUs)
-        gainSink.startTrack(streams.remove(outputStreamOffsetUs))
-    }
-
     override fun onDisabled() {
-        streams.clear()
+        gainSink.forgetStreams(this)
         super.onDisabled()
     }
+}
 
-    private fun trackGain(timeline: Timeline, id: MediaSource.MediaPeriodId): TrackGain? {
-        if (timeline.getIndexOfPeriod(id.periodUid) == C.INDEX_UNSET) return null
-        val windowIndex = timeline.getPeriodByUid(id.periodUid, Timeline.Period()).windowIndex
-        fun item(index: Int): MediaItem? = if (index in 0 until timeline.windowCount) timeline.getWindow(index, Timeline.Window()).mediaItem else null
-        val current = item(windowIndex) ?: return null
-        // Neighbors in queue order; with shuffle on the album never counts as playing in order
-        val inOrder = albumInOrder(false, { i -> item(i)?.albumKey }, windowIndex, timeline.windowCount)
-        return TrackGain(current.gainTags(), inOrder)
-    }
+/** What decides the gain of the queue item [id] plays: its tags and whether its album plays in order. */
+internal fun trackGain(timeline: Timeline, id: MediaSource.MediaPeriodId): TrackGain? {
+    if (timeline.getIndexOfPeriod(id.periodUid) == C.INDEX_UNSET) return null
+    val windowIndex = timeline.getPeriodByUid(id.periodUid, Timeline.Period()).windowIndex
+    fun item(index: Int): MediaItem? = if (index in 0 until timeline.windowCount) timeline.getWindow(index, Timeline.Window()).mediaItem else null
+    val current = item(windowIndex) ?: return null
+    // Neighbors in queue order; with shuffle on the album never counts as playing in order
+    val inOrder = albumInOrder(false, { i -> item(i)?.albumKey }, windowIndex, timeline.windowCount)
+    return TrackGain(current.gainTags(), inOrder)
 }
 
 /** What decides a track's gain besides the settings. */
@@ -135,7 +131,34 @@ class ReplayGainSink(sink: AudioSink, private val bitPerfect: BitPerfectControll
     private var exact = false
     private var sampleRate = 0
 
-    /** Called on the playback thread as a track's first sample is about to be written. */
+    /**
+     * Which track each stream is, by its offset: noted by a renderer as its decoder starts reading the stream, taken
+     * when the stream's first sample reaches the output (the decoder reads ahead, so the two moments differ by
+     * everything still buffered). Both audio renderers (the phone's decoders, Music's ALAC) share this sink.
+     * Playback thread only.
+     */
+    private val streams = HashMap<Long, Pair<Any, TrackGain?>>()
+
+    fun noteStream(renderer: Any, offsetUs: Long, gain: TrackGain?) {
+        streams[offsetUs] = renderer to gain
+    }
+
+    /** A renderer disabled: its streams won't be output. */
+    fun forgetStreams(renderer: Any) {
+        streams.values.removeAll { it.first === renderer }
+    }
+
+    /**
+     * Both renderers say here when output moves to their next stream. Media3 1.11 never passes TIME_UNSET (no stream);
+     * should it, the gain stays: every stream's start sets its own.
+     */
+    override fun setOutputStreamOffsetUs(outputStreamOffsetUs: Long) {
+        super.setOutputStreamOffsetUs(outputStreamOffsetUs)
+        if (outputStreamOffsetUs == C.TIME_UNSET) return
+        startTrack(streams.remove(outputStreamOffsetUs)?.second)
+    }
+
+    /** The gain of the track whose samples come next. Playback thread. */
     fun startTrack(next: TrackGain?) {
         track = next
         update()

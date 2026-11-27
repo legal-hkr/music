@@ -31,6 +31,7 @@ import sh.hnet.music.data.SkipReason
 import sh.hnet.music.data.SkippedFile
 import sh.hnet.music.data.Track
 import sh.hnet.music.data.TrackDao
+import sh.hnet.music.playback.PlatformDecoders
 import sh.hnet.music.tags.AudioCodec
 import sh.hnet.music.tags.FileChannelSource
 import sh.hnet.music.tags.TagParser
@@ -58,6 +59,15 @@ class LibraryScanner(
     /** Folders the app can't read (no grant, volume missing); their tracks are kept. */
     private val _unavailable = MutableStateFlow<Set<String>>(emptySet())
     val unavailable: StateFlow<Set<String>> = _unavailable.asStateFlow()
+
+    /** Formats this phone has no decoder for, as of this scan's start (checkDecoders). */
+    @Volatile private var missingDecoders = emptySet<AudioCodec>()
+
+    /** Indexed tracks in a format that just lost its decoder: this scan reads them again (checkDecoders). */
+    private var recheck = emptySet<String>()
+
+    /** The missing decoders' stamp to keep once this scan has listed every folder; null when nothing changed. */
+    private var pendingStamp: String? = null
 
     /** Folders whose last listing failed although the grant was there (e.g. an SD card taken out). */
     private var listingFailed = emptySet<String>()
@@ -99,18 +109,20 @@ class LibraryScanner(
     private suspend fun scanAll() = withContext(Dispatchers.IO) {
         val all = folders.all()
         _progress.value = all.associate { it.treeUri to FolderScan() }
-        // A parser that reads more formats than the one that last scanned: files skipped as
-        // unsupported are forgotten, so this scan reads them again (unchanged skipped files aren't)
-        if (stamps.getInt(PARSER_VERSION, 1) < CURRENT_PARSER) {
-            tracks.forgetUnsupported()
-            stamps.edit { putInt(PARSER_VERSION, CURRENT_PARSER) }
-        }
         val failed = mutableSetOf<String>()
         try {
+            // A parser that reads more formats than the one that last scanned: files skipped as
+            // unsupported are forgotten, so this scan reads them again (unchanged skipped files aren't)
+            if (stamps.getInt(PARSER_VERSION, 1) < CURRENT_PARSER) {
+                tracks.forgetUnsupported()
+                stamps.edit { putInt(PARSER_VERSION, CURRENT_PARSER) }
+            }
+            checkDecoders()
             for (folder in all) {
                 if (!scanFolder(folder, all)) failed += folder.treeUri
                 _progress.update { it - folder.treeUri }
             }
+            if (failed.isEmpty()) pendingStamp?.let { stamp -> stamps.edit { putString(MISSING_DECODERS, stamp) } }
             // Only a scan of something: no stamp means no folder was ever scanned (the first run)
             if (all.isNotEmpty()) {
                 val now = System.currentTimeMillis()
@@ -122,6 +134,33 @@ class LibraryScanner(
             listingFailed = failed.filterTo(HashSet()) { LibraryFolders.isGranted(resolver, it) }
             _unavailable.value = failed
         }
+    }
+
+    /**
+     * Formats this phone can't decode (PlatformDecoders): when that set differs from the last scan's (the first
+     * scan with this check, a system update), files skipped for want of a decoder are read again, and so are tracks
+     * the index has in a format now without one ([recheck]) – read, not moved by the stored codec, so the current
+     * parser decides. [read] skips them with [missingDecoders]. The stamp is written only after a scan that listed
+     * every folder ([pendingStamp]): a folder that couldn't be listed keeps its tracks, and gets its turn next time.
+     */
+    private suspend fun checkDecoders() {
+        recheck = emptySet()
+        pendingStamp = null
+        val before = stamps.getString(MISSING_DECODERS, null)
+        // A phone whose codec list can't be read (a broken vendor build) keeps the last scan's answer and the library as it is
+        val types = runCatching { PlatformDecoders.phoneDecoderTypes() }.getOrNull()
+        if (types == null) {
+            missingDecoders = before.orEmpty().split(',').mapNotNullTo(HashSet()) { name -> AudioCodec.entries.firstOrNull { it.name == name } }
+            return
+        }
+        val missing = PlatformDecoders.missing(types)
+        missingDecoders = missing
+        val names = missing.map { it.name }.sorted()
+        val stamp = names.joinToString(",")
+        if (before == stamp) return
+        pendingStamp = stamp
+        tracks.forgetNoDecoder()
+        if (names.isNotEmpty()) recheck = tracks.urisOfCodecs(names).toHashSet()
     }
 
     /** False when the folder couldn't be listed; its tracks stay as they were. */
@@ -144,7 +183,7 @@ class LibraryScanner(
         val coverOf = { file: ScannedFile -> FolderCovers.forTrack(file.relativePath, images)?.let(FolderCover::of) }
 
         val known = (tracks.trackStates(uri) + tracks.skippedStates(uri)).associateBy { it.documentUri }
-        val toRead = files.filter { known[it.documentUri]?.matches(it) != true }
+        val toRead = files.filter { known[it.documentUri]?.matches(it) != true || it.documentUri in recheck }
         val present = files.mapTo(HashSet()) { it.documentUri }
         val gone = known.keys.filter { it !in present }
         if (gone.isNotEmpty()) tracks.removeFiles(gone)
@@ -190,6 +229,7 @@ class LibraryScanner(
         return when (parsed?.properties?.codec) {
             null, AudioCodec.UNKNOWN -> SkippedFile.from(file, SkipReason.UNSUPPORTED)
             AudioCodec.PROTECTED -> SkippedFile.from(file, SkipReason.PROTECTED)
+            in missingDecoders -> SkippedFile.from(file, SkipReason.NO_DECODER)
             else -> Track.from(file, parsed, folderCover)
         }
     }
@@ -198,6 +238,8 @@ class LibraryScanner(
         const val PARALLEL_READS = 4
         private const val LAST_SCAN = "last_scan"
         private const val PARSER_VERSION = "parser_version"
+        /** The formats the phone lacked a decoder for at the last scan, comma-separated AudioCodec names. */
+        private const val MISSING_DECODERS = "missing_decoders"
 
         /** Raised whenever the parser learns a format: 2 = DSD (DSF, DSDIFF). */
         private const val CURRENT_PARSER = 2

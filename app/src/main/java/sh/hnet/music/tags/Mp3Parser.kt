@@ -29,12 +29,21 @@ internal object Mp3Parser {
         return null
     }
 
-    /** A sync word can occur by chance; the next frame must follow with the same layout. */
+    /**
+     * A sync word can occur by chance; the next frame must follow with the same layout. Layers I and II need three
+     * more, as Media3's extractor asks: such a file may go to the skipped ones for want of a decoder (GH #8), so a
+     * chance sync in junk mustn't make a playable MP3 look like one.
+     */
     private fun confirmed(r: SourceReader, frame: MpegFrame, next: Long, end: Long): Boolean {
-        if (next + 4 > end) return true
-        r.seek(next)
-        val following = MpegFrame.parse(r.u32be()) ?: return false
-        return following.layer == frame.layer && following.sampleRate == frame.sampleRate
+        var at = next
+        repeat(if (frame.layer == 3) 1 else 3) {
+            if (at + 4 > end) return true
+            r.seek(at)
+            val following = MpegFrame.parse(r.u32be()) ?: return false
+            if (following.layer != frame.layer || following.sampleRate != frame.sampleRate) return false
+            at += following.length
+        }
+        return true
     }
 
     private fun describe(r: SourceReader, pos: Long, frame: MpegFrame, end: Long): AudioProperties {
