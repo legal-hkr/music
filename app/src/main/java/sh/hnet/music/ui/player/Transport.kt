@@ -305,7 +305,8 @@ fun Modifier.closesVolumeBar(state: VolumeBarState): Modifier = composed {
 /**
  * Volume (start) and Queue (end); Volume grows into the volume bar (§4), which closes on Back, a tap
  * outside it, or 5 s after the last touch. The output music plays on is a button of that bar
- * (owner's decision 23.11.2026, over SPEC-output-and-grid §A2: the row keeps its symmetry).
+ * (owner's decision 23.11.2026, over SPEC-output-and-grid §A2: the row keeps its symmetry); the
+ * equalizer is reached from the output's page, its stage there (owner's decision 27.11.2026).
  */
 @Composable
 fun BottomRow(
@@ -313,7 +314,6 @@ fun BottomRow(
     output: AudioOutput?,
     onOutput: () -> Unit,
     onQueue: () -> Unit,
-    onEqualizer: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val volume = rememberMediaVolume()
@@ -345,7 +345,6 @@ fun BottomRow(
                     output,
                     onTouch = { bar.touched++ },
                     onOutput = { bar.open = false; onOutput() },
-                    onEqualizer = { bar.open = false; onEqualizer() },
                     modifier = shared.onGloballyPositioned { bar.bounds = it.boundsInRoot() },
                 )
             }
@@ -354,11 +353,12 @@ fun BottomRow(
 }
 
 /**
- * The pill (§4.2): mute, the volume slider, the output music plays on – the device's kind as its icon,
- * its name for TalkBack; opens the output details – and the equalizer button (SPEC-equalizer §2.2).
+ * The pill (§4.2): mute, the volume slider and the output music plays on – the device's kind as its
+ * icon, its name for TalkBack; opens the output's page, which leads on to ReplayGain, DSD and the
+ * equalizer (owner's decision 27.11.2026: no equalizer button of its own here, over SPEC-equalizer §2.2).
  */
 @Composable
-private fun VolumeBar(volume: MediaVolume, output: AudioOutput?, onTouch: () -> Unit, onOutput: () -> Unit, onEqualizer: () -> Unit, modifier: Modifier) {
+private fun VolumeBar(volume: MediaVolume, output: AudioOutput?, onTouch: () -> Unit, onOutput: () -> Unit, modifier: Modifier) {
     Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = CircleShape, modifier = modifier.fillMaxWidth().height(56.dp)) {
         Row(Modifier.padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
             if (!volume.fixed) {
@@ -397,9 +397,6 @@ private fun VolumeBar(volume: MediaVolume, output: AudioOutput?, onTouch: () -> 
                 IconButton(onClick = onOutput, modifier = Modifier.size(48.dp)) {
                     Icon(painterResource(outputIcon(output.kind)), contentDescription = stringResource(R.string.content_description_output, outputName(output)))
                 }
-            }
-            IconButton(onClick = onEqualizer, modifier = Modifier.size(48.dp)) {
-                Icon(painterResource(R.drawable.ic_equalizer), contentDescription = stringResource(R.string.title_equalizer))
             }
         }
     }

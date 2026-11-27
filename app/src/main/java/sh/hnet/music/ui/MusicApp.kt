@@ -572,7 +572,6 @@ fun MusicApp(openNowPlaying: Int = 0, openPlaylist: Pair<Int, Long> = 0 to -1L) 
                 onGoToAlbum = goToAlbum,
                 onDetails = { detailsOpen = true },
                 onQueue = { queueOpen = true },
-                onEqualizer = { equalizerForDevice = false; equalizerOpen = true },
                 onOutputSettings = { settingsOpen = "output" },
                 onOutput = { outputOpen = true },
                 onPlaybackSettings = { settingsOpen = "playback" },
@@ -606,6 +605,9 @@ fun MusicApp(openNowPlaying: Int = 0, openPlaylist: Pair<Int, Long> = 0 to -1L) 
                                 gain = currentGain,
                                 onBack = { outputOpen = false },
                                 onOpenDevice = { key -> deviceFromPlayer = true; settingsOpen = DEVICE_PAGE + key },
+                                // Both open over this page, so Back returns to it
+                                onOpenPlayback = { settingsOpen = "playback" },
+                                onOpenEqualizer = { equalizerForDevice = false; equalizerOpen = true },
                             )
                         }
                     }

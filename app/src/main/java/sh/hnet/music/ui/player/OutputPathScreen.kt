@@ -78,6 +78,10 @@ fun OutputPathScreen(
     gain: AppliedGain?,
     onBack: () -> Unit,
     onOpenDevice: (String) -> Unit,
+    /** Settings › Playback, where ReplayGain and DSD are set. */
+    onOpenPlayback: () -> Unit,
+    /** The equalizer of the device playing now. */
+    onOpenEqualizer: () -> Unit,
 ) {
     val context = LocalContext.current
     val app = context.applicationContext as MusicApplication
@@ -135,11 +139,11 @@ fun OutputPathScreen(
                     SettingsGroup {
                         path.dsd?.let { dsd ->
                             row { shapes ->
-                                Stage(shapes, R.drawable.ic_album, stringResource(R.string.label_stage_dsd), dsdText(dsd), path.dsdChanges)
+                                Stage(shapes, R.drawable.ic_album, stringResource(R.string.label_stage_dsd), dsdText(dsd), path.dsdChanges, onOpenPlayback)
                             }
                         }
                         row { shapes ->
-                            Stage(shapes, R.drawable.ic_graphic_eq, stringResource(R.string.title_replaygain), gainText(path.gain), path.gainChanges)
+                            Stage(shapes, R.drawable.ic_graphic_eq, stringResource(R.string.title_replaygain), gainText(path.gain), path.gainChanges, onOpenPlayback)
                         }
                         row { shapes ->
                             val text = when (path.equalizer) {
@@ -148,7 +152,7 @@ fun OutputPathScreen(
                                 // The preset of the device playing now, "(modified)" as the Settings row has it
                                 SoundPath.Equalizer.ON -> equalizerSummary(equalizer)
                             }
-                            Stage(shapes, R.drawable.ic_equalizer, stringResource(R.string.title_equalizer), text, path.equalizerChanges)
+                            Stage(shapes, R.drawable.ic_equalizer, stringResource(R.string.title_equalizer), text, path.equalizerChanges, onOpenEqualizer)
                         }
                         row { shapes ->
                             val text = stringResource(if (path.volume == SoundPath.Volume.DEVICE) R.string.label_volume_device else R.string.label_volume_system)
@@ -247,16 +251,20 @@ private fun Node(@DrawableRes icon: Int, look: NodeLook) {
     }
 }
 
-/** A stage of In Music: its icon box coloured when it changes the sound (§A5.2), its name and state. */
+/**
+ * A stage of In Music: its icon coloured when it changes the sound (§A5.2), its name and state. With
+ * [onClick] it leads to the stage's settings, with a chevron as the device's row (owner's decision 27.11.2026).
+ */
 @Composable
-private fun Stage(shapes: ListItemShapes, @DrawableRes icon: Int, name: String, state: String, changes: Boolean) {
+private fun Stage(shapes: ListItemShapes, @DrawableRes icon: Int, name: String, state: String, changes: Boolean, onClick: (() -> Unit)? = null) {
     val colors = MaterialTheme.colorScheme
     val (container, content) = if (changes) colors.tertiaryContainer to colors.onTertiaryContainer else colors.surfaceContainerHighest to colors.onSurfaceVariant
     SegmentedListItem(
-        onClick = {},
+        onClick = onClick ?: {},
         shapes = shapes,
         colors = settingsRowColors(),
         leadingContent = { IconBox(icon, container, content) },
+        trailingContent = onClick?.let { { Icon(painterResource(R.drawable.ic_chevron_right), contentDescription = null) } },
         supportingContent = { Text(state) },
     ) {
         Text(name)
