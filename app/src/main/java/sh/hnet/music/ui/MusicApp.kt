@@ -167,7 +167,7 @@ fun MusicApp(openNowPlaying: Int = 0, openPlaylist: Pair<Int, Long> = 0 to -1L) 
     var equalizerOpen by rememberSaveable { mutableStateOf(false) }
     // Opened from a device's page rather than the volume bar
     var equalizerForDevice by rememberSaveable { mutableStateOf(false) }
-    // A settings page opened from a chip on now playing: "output" or "playback"
+    // A settings page shown over now playing: "output" or "playback" (from a chip), PLAYBACK_AT_DSD (the output page's DSD step), DEVICE_PAGE + key
     var settingsOpen by rememberSaveable { mutableStateOf<String?>(null) }
     var queueOpen by rememberSaveable { mutableStateOf(false) }
     // The output details over now playing, from the volume bar (SPEC-output-and-grid §A4, a page as the equalizer's)
@@ -607,6 +607,7 @@ fun MusicApp(openNowPlaying: Int = 0, openPlaylist: Pair<Int, Long> = 0 to -1L) 
                                 onOpenDevice = { key -> deviceFromPlayer = true; settingsOpen = DEVICE_PAGE + key },
                                 // Both open over this page, so Back returns to it
                                 onOpenPlayback = { settingsOpen = "playback" },
+                                onOpenDsd = { settingsOpen = PLAYBACK_AT_DSD },
                                 onOpenEqualizer = { equalizerForDevice = false; equalizerOpen = true },
                             )
                         }
@@ -649,7 +650,7 @@ fun MusicApp(openNowPlaying: Int = 0, openPlaylist: Pair<Int, Long> = 0 to -1L) 
                                 messageScope = scope,
                                 topInsets = false,
                             )
-                            else PlaybackSettingsScreen(onBack = { settingsOpen = null }, topInsets = false)
+                            else PlaybackSettingsScreen(onBack = { settingsOpen = null }, topInsets = false, atDsd = shown == PLAYBACK_AT_DSD)
                         }
                     }
                 }
@@ -680,3 +681,6 @@ private const val OPEN_WAIT_MS = 5_000L
 
 /** Before a device's key in the name of a settings page shown over now playing. */
 private const val DEVICE_PAGE = "device:"
+
+/** Settings › Playback over now playing, opened at its DSD group (the output page's DSD step). */
+private const val PLAYBACK_AT_DSD = "playback:dsd"

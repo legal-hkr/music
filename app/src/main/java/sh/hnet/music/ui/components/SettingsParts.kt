@@ -4,6 +4,7 @@ package sh.hnet.music.ui.components
 
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -71,6 +72,8 @@ fun SettingsPage(
     topInsets: Boolean = true,
     /** Stays under the top bar while the content scrolls (the equalizer's response curve). */
     pinned: (@Composable () -> Unit)? = null,
+    /** For a page that opens scrolled to a group (Playback at DSD, from the output's page). */
+    scrollState: ScrollState = rememberScrollState(),
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val scrollBehavior = if (onBack == null) TopAppBarDefaults.exitUntilCollapsedScrollBehavior() else TopAppBarDefaults.pinnedScrollBehavior()
@@ -100,7 +103,7 @@ fun SettingsPage(
             modifier = Modifier
                 .fillMaxSize()
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(horizontal = 16.dp)
                 .padding(top = 8.dp, bottom = 24.dp + LocalBottomOverlay.current),
             verticalArrangement = Arrangement.spacedBy(16.dp),

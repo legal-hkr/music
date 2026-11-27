@@ -78,8 +78,10 @@ fun OutputPathScreen(
     gain: AppliedGain?,
     onBack: () -> Unit,
     onOpenDevice: (String) -> Unit,
-    /** Settings › Playback, where ReplayGain and DSD are set. */
+    /** Settings › Playback, where ReplayGain is set. */
     onOpenPlayback: () -> Unit,
+    /** Settings › Playback scrolled to its DSD group. */
+    onOpenDsd: () -> Unit,
     /** The equalizer of the device playing now. */
     onOpenEqualizer: () -> Unit,
 ) {
@@ -139,7 +141,7 @@ fun OutputPathScreen(
                     SettingsGroup {
                         path.dsd?.let { dsd ->
                             row { shapes ->
-                                Stage(shapes, R.drawable.ic_album, stringResource(R.string.label_stage_dsd), dsdText(dsd), path.dsdChanges, onOpenPlayback)
+                                Stage(shapes, R.drawable.ic_album, stringResource(R.string.label_stage_dsd), dsdText(dsd), path.dsdChanges, onOpenDsd)
                             }
                         }
                         row { shapes ->

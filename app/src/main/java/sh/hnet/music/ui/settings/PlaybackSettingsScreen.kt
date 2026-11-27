@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ListItemShapes
@@ -18,13 +19,18 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -61,19 +67,34 @@ private fun ReplayGainMode.description(): Int = when (this) {
     ReplayGainMode.AUTO -> R.string.desc_rg_auto
 }
 
-/** Settings › Playback (SPEC §11.4): ReplayGain mode, the volume options it uses, and the PCM rate for DSD. */
+/**
+ * Settings › Playback (SPEC §11.4): ReplayGain mode, the volume options it uses, and the PCM rate for DSD.
+ *
+ * @param atDsd Opens scrolled to the DSD group, from the output page's DSD step (owner's decision 27.11.2026)
+ */
 @Composable
-fun PlaybackSettingsScreen(onBack: () -> Unit, topInsets: Boolean = true) {
+fun PlaybackSettingsScreen(onBack: () -> Unit, topInsets: Boolean = true, atDsd: Boolean = false) {
     val preferences = (LocalContext.current.applicationContext as MusicApplication).preferences
-    val settings by preferences.gain.collectAsStateWithLifecycle(GainSettings())
+    val loaded by preferences.gain.collectAsStateWithLifecycle(null)
+    val settings = loaded ?: GainSettings()
     val dsdRate by preferences.dsdPcmRate.collectAsStateWithLifecycle(DSD_PCM_RATES.first())
     val dsdBoost by preferences.dsdBoost.collectAsStateWithLifecycle(true)
     val countPlays by preferences.countPlays.collectAsStateWithLifecycle(true)
     var choosingDsdRate by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val groupLabel = stringResource(R.string.title_replaygain)
+    val scrollState = rememberScrollState()
+    var dsdTop by remember { mutableIntStateOf(-1) }
+    // The Volume group above DSD shows only once the settings say ReplayGain is on: scroll after they came and the page was laid out with them
+    if (atDsd) {
+        LaunchedEffect(loaded != null) {
+            if (loaded == null) return@LaunchedEffect
+            withFrameNanos {}
+            if (dsdTop >= 0) scrollState.scrollTo(dsdTop)
+        }
+    }
 
-    SettingsPage(title = stringResource(R.string.title_settings_playback), onBack = onBack, topInsets = topInsets) {
+    SettingsPage(title = stringResource(R.string.title_settings_playback), onBack = onBack, topInsets = topInsets, scrollState = scrollState) {
         Column(Modifier.selectableGroup().semantics { contentDescription = groupLabel }) {
             SettingsGroup(stringResource(R.string.title_replaygain)) {
                 ReplayGainMode.entries.forEach { mode ->
@@ -109,28 +130,30 @@ fun PlaybackSettingsScreen(onBack: () -> Unit, topInsets: Boolean = true) {
                 }
             }
         }
-        // DSD is played as PCM; the rate it is converted to
-        SettingsGroup(stringResource(R.string.title_dsd)) {
-            row { shapes ->
-                SegmentedListItem(
-                    onClick = { choosingDsdRate = true },
-                    shapes = shapes,
-                    colors = settingsRowColors(),
-                    supportingContent = { Text(kilohertz(dsdRate)) },
-                ) {
-                    Text(stringResource(R.string.label_dsd_pcm_rate))
+        // DSD is played as PCM; the rate it is converted to. The group's top within the page's padding: scrolled there, it sits under the bar as the first group does
+        Column(Modifier.onGloballyPositioned { dsdTop = it.positionInParent().y.roundToInt() }) {
+            SettingsGroup(stringResource(R.string.title_dsd)) {
+                row { shapes ->
+                    SegmentedListItem(
+                        onClick = { choosingDsdRate = true },
+                        shapes = shapes,
+                        colors = settingsRowColors(),
+                        supportingContent = { Text(kilohertz(dsdRate)) },
+                    ) {
+                        Text(stringResource(R.string.label_dsd_pcm_rate))
+                    }
                 }
-            }
-            row { shapes ->
-                SegmentedListItem(
-                    checked = dsdBoost,
-                    onCheckedChange = { on -> scope.launch { preferences.setDsdBoost(on) } },
-                    shapes = shapes,
-                    colors = settingsRowColors(),
-                    trailingContent = { Switch(checked = dsdBoost, onCheckedChange = null) },
-                    supportingContent = { Text(stringResource(R.string.desc_dsd_boost)) },
-                ) {
-                    Text(stringResource(R.string.label_dsd_boost))
+                row { shapes ->
+                    SegmentedListItem(
+                        checked = dsdBoost,
+                        onCheckedChange = { on -> scope.launch { preferences.setDsdBoost(on) } },
+                        shapes = shapes,
+                        colors = settingsRowColors(),
+                        trailingContent = { Switch(checked = dsdBoost, onCheckedChange = null) },
+                        supportingContent = { Text(stringResource(R.string.desc_dsd_boost)) },
+                    ) {
+                        Text(stringResource(R.string.label_dsd_boost))
+                    }
                 }
             }
         }
